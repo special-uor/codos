@@ -1,2 +1,1 @@
-# codos
-CO-dos: CO2 conversion
+# CO-dos: CO2 conversion
