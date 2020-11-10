@@ -24,7 +24,14 @@ p_model_inverter <- function(T_diff,
                D_root_factor = 4,
                solver_args = solver_args)
   class(self) <- "p_model_inverter"
-  T_rec <- T_diff + T_ref
+
+  self$lat = lat
+
+  self$T_rec = T_diff + T_ref
+  self$T_ref = T_ref
+  self$m_rec = m_rec
+  self$c_ratio = c_ratio
+
   # Pre-calculate some variables that don't change for changing true MI
   self$K_rec <- K(self$T_rec)
   self$K_ref <- K(self$T_ref)
@@ -41,4 +48,32 @@ p_model_inverter <- function(T_diff,
                                               self$K_ref,
                                               self$eta_ref,
                                               self$E_q_sec_ref))
+}
+
+# Find the optimal MI given the set variables
+solve_for_delta_m <- function(self) {
+  abs(pracma::fsolve(e_difference(self), 1, self$solver_args[1])) - self$m_rec
+}
+
+e_difference <- function(self, m_true) {
+  m_true <- abs(m_true)
+  abs(useable_e(self, self$T_rec, m_true, self$K_rec, self$eta_rec, self$E_q_sec_rec) - self$use_e_pre)
+}
+
+# The version of E without unnecessary constants
+useable_e <- function(self, T, m, pre_K, pre_eta, pre_sec_E_q) {
+  # We pre-calculate E_q so we don't have to calculate it twice in the different eqm functions
+  pre_E_q <- pre_calc_E_q(T,m, pre_sec_E_q)
+  cur_eqm <- abs(eqm(pre_E_q, m))
+  cur_eqm * (self$C * sqrt(pre_eta/pre_K) * cur_eqm ^ (1 / self$D_root_factor) + 1) ^ -1
+}
+
+# Internal c_i for the plant
+get_c_i <- function(self) {
+  c_i(self$T_rec, self$c_ratio * self$modern_CO2, self$m_rec)
+}
+
+# Determines if the compensation point 'law' is upheld
+compensation_point_held <- function(self, m) {
+  c_i(self$T_rec, self$c_ratio * self$modern_CO2, m) > true_compensation_point(self$T_rec)
 }
