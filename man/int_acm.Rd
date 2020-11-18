@@ -49,14 +49,14 @@ month_len = c(31, 29 ,31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
 y_points <- c(0, 0.1, 0.25, 0.5, 0.9, 1.0, 0.93, 0.8, 0.5, 0.25, 0.1, 0)
 max_val <- 1
 min_val <- 0
-y_interpolated <- int_acm(y_points, month_len) # interpolate with no bounds
-unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
-y_interpolated <- int_acm(y_points, month_len, max_val = max_val) # interpolate with maximum bounds
-unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
-y_interpolated <- int_acm(y_points, month_len, min_val = min_val) # interpolate with minimum bounds
-unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
-y_interpolated <- int_acm(y_points, month_len, max_val, min_val) # interpolate with bounds
-unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
+# interpolate with no bounds
+y_interpolated <- int_acm(y_points, month_len)
+# interpolate with maximum bounds
+y_interpolated <- int_acm(y_points, month_len, max_val = max_val)
+# interpolate with minimum bounds
+y_interpolated <- int_acm(y_points, month_len, min_val = min_val)
+# interpolate with bounds
+y_interpolated <- int_acm(y_points, month_len, max_val, min_val)
 
 }
 \references{
