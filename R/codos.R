@@ -131,7 +131,7 @@ K <- function(self, Temp) {
 
 #' ETA
 #'
-#' @param self
+#' @param self Reference to class p_model.
 #' @param Temp Temperature.
 #'
 #' @return
