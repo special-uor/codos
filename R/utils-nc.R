@@ -151,6 +151,6 @@ retime <- function(time_var,
   tibble::tibble(date = aux,
                  year = lubridate::year(aux),
                  month = lubridate::month(aux),
-                 day = lubridate::month(aux),
+                 day = lubridate::day(aux),
                  leap = lubridate::leap_year(aux))
 }
