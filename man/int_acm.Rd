@@ -4,22 +4,39 @@
 \alias{int_acm}
 \title{Mean-preserving autoregressive interpolation}
 \usage{
-int_acm(y_points, month_len, max_val = ..., min_val = ...)
+int_acm(y_points, month_len, max_val = NULL, min_val = NULL)
 }
 \arguments{
-\item{min_val}{}
+\item{y_points}{Numeric vector with mean values at each timestep.}
+
+\item{month_len}{Numeric vector with the number of days that each timestep
+represents. These can be obtained with \code{\link{days_in_month}} and
+\code{\link{retime}}.}
+
+\item{max_val}{Numeric value with the upper bound for the interpolated
+entries.}
+
+\item{min_val}{Numeric value with the lower bound for the interpolated
+entries.}
 }
 \value{
-
+Numeric vector with the interpolated values, this one has the same
+length as the total sum of month_len.
 }
 \description{
-Perform a mean-preserving autoregressive interpolation.
+Interpolate monthly time series to daily using a mean-preserving
+autoregressive method.
 }
 \details{
+This method assumes a cycle (i.e. the last date interpolated influences
+the first date as well).
+
 The idea of how this was done was taken from:
-Rymes, M.D. and Myers, D.R., 2001. Mean preserving algorithm for smoothly
+\itemize{
+\item Rymes, M.D. and Myers, D.R., 2001. Mean preserving algorithm for smoothly
 interpolating averaged data. Solar Energy, 71(4), pp.225-231.
 DOI/URL: https://doi.org/10.1016/S0038-092X(01)00052-4
+}
 
 The method outlined in the paper does not work entirely, and some equations
 have been tweaked.
@@ -27,6 +44,19 @@ have been tweaked.
 the paper.
 }
 \examples{
+# month length the data represents
+month_len = c(31, 29 ,31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+y_points <- c(0, 0.1, 0.25, 0.5, 0.9, 1.0, 0.93, 0.8, 0.5, 0.25, 0.1, 0)
+max_val <- 1
+min_val <- 0
+y_interpolated <- int_acm(y_points, month_len) # interpolate with no bounds
+unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
+y_interpolated <- int_acm(y_points, month_len, max_val = max_val) # interpolate with maximum bounds
+unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
+y_interpolated <- int_acm(y_points, month_len, min_val = min_val) # interpolate with minimum bounds
+unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
+y_interpolated <- int_acm(y_points, month_len, max_val, min_val) # interpolate with bounds
+unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
 
 }
 \references{

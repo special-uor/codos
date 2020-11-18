@@ -7,6 +7,8 @@
 eta(self, Temp)
 }
 \arguments{
+\item{self}{Reference to class p_model.}
+
 \item{Temp}{Temperature.}
 }
 \value{
