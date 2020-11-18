@@ -93,3 +93,40 @@ nc2ts <- function(filename,
   tibble::tibble(time = time_data,
                  mean = awm)
 }
+
+#' Change time axis
+#'
+#' Change time axis from a reference date.
+#' For example "Months since 1870-01-01", set \code{ref_date = "1870-01-01"}
+#' and \code{duration = "months"}.
+#'
+#' @param time_var Numeric array with current time axis values.
+#' @param ref_date Reference data for the current axis.
+#' @param duration Interval between entries.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+retime <- function(time_var,
+                   ref_date = lubridate::date("1870-01-01"),
+                   duration = "months") {
+  duration <- tolower(duration)
+  # Select the appropriate duration units
+  if (duration == "years") {
+    aux <- ref_date + lubridate::dyears(time_var)
+  } else if (duration == "months") {
+    aux <- ref_date + lubridate::dmonths(time_var)
+  } else if (duration == "days") {
+    aux <- ref_date + lubridate::ddays(time_var)
+  } else {
+    stop("Invalid duration interval, select one of the following: \n",
+         "- years \n- months \n- days", call. = FALSE)
+  }
+  # Create output tibble
+  tibble::tibble(date = aux,
+                 year = lubridate::year(aux),
+                 month = lubridate::month(aux),
+                 day = lubridate::month(aux),
+                 leap = lubridate::leap_year(aux))
+}
