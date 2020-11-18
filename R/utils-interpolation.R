@@ -61,7 +61,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   if (is.null(max_val) && is.null(min_val)) {
     print('interpolating with no bounds')
     for (i in seq_len(length(MN))) {
-      pb$tick()
+      if (i %% 1000) pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
       new_mean <- unlist(lapply(unname(split(MN - new_MN,
                                              rep(seq_len(length(month_len)),
@@ -73,7 +73,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   }  else if (!is.null(max_val) && !is.null(min_val)) {
     print('interpolating with both minimum and maximum bounds')
     for (i in seq_len(length(MN))) {
-      pb$tick()
+      if (i %% 1000) pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
       new_mean <- unlist(lapply(unname(split(MN - new_MN,
                                              rep(seq_len(length(month_len)),
@@ -115,7 +115,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   } else if (!is.null(max_val)) {
     print('interpolating with maximum bounds')
     for (i in seq_len(length(MN))) {
-      pb$tick()
+      if (i %% 1000) pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
       new_mean <- unlist(lapply(unname(split(MN - new_MN,
                                              rep(seq_len(length(month_len)),
@@ -141,7 +141,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   } else if (!is.null(min_val)) {
     print('interpolating with minimum bounds')
     for (i in seq_len(length(MN))) {
-      pb$tick()
+      if (i %% 1000) pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
       diff <- MN - new_MN
       new_mean <- unlist(lapply(unname(split(diff,
