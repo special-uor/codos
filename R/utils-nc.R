@@ -11,7 +11,7 @@ days_in_month <- function(dates) {
 }
 
 
-#' netCDF to time series
+#' Convert netCDF to time series
 #'
 #' Convert netCDF file to a time series using the area-weighted mean (based on
 #' the latitudes in the netCDF file).
@@ -21,6 +21,8 @@ days_in_month <- function(dates) {
 #' @param timeid String with the time dimension identifier.
 #' @param latid String with the latitude dimension identifier.
 #' @param lonid String with the longitude dimension identifier.
+#' @param plot Boolean flag to indicate whether a plot for the time series
+#'     should be generated.
 #'
 #' @return Tibble with the time and mean values.
 #' @export
@@ -28,7 +30,8 @@ nc2ts <- function(filename,
                   varid,
                   timeid = "time",
                   latid = "lat",
-                  lonid = "lon") {
+                  lonid = "lon",
+                  plot = TRUE) {
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
   nc <- ncdf4::nc_open(filename)
@@ -102,6 +105,16 @@ nc2ts <- function(filename,
                   sum(lats_mat[is.finite(aux)])
 
   }
+
+  if (plot) {
+    print(ggplot2::qplot(time_data, awm) +
+            ggplot2::geom_line() +
+            ggplot2::geom_abline(intercept = mean(awm), col = "red", lty = 2) +
+            ggplot2::labs(x = time_units,
+                          y = var_units) +
+            ggplot2::theme_bw())
+  }
+
   # Create tibble structure
   tibble::tibble(time = time_data,
                  mean = awm)
@@ -117,10 +130,8 @@ nc2ts <- function(filename,
 #' @param ref_date Reference data for the current axis.
 #' @param duration Interval between entries.
 #'
-#' @return
+#' @return Tibble with date, year, month, day, and boolean if leap year.
 #' @export
-#'
-#' @examples
 retime <- function(time_var,
                    ref_date = lubridate::date("1870-01-01"),
                    duration = "months") {
