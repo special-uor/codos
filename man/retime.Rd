@@ -14,7 +14,7 @@ retime(time_var, ref_date = lubridate::date("1870-01-01"), duration = "months")
 \item{duration}{Interval between entries.}
 }
 \value{
-
+Tibble with date, year, month, day, and boolean if leap year.
 }
 \description{
 Change time axis from a reference date.

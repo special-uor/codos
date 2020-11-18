@@ -2,9 +2,16 @@
 % Please edit documentation in R/utils-nc.R
 \name{nc2ts}
 \alias{nc2ts}
-\title{netCDF to time series}
+\title{Convert netCDF to time series}
 \usage{
-nc2ts(filename, varid, timeid = "time", latid = "lat", lonid = "lon")
+nc2ts(
+  filename,
+  varid,
+  timeid = "time",
+  latid = "lat",
+  lonid = "lon",
+  plot = TRUE
+)
 }
 \arguments{
 \item{filename}{Filename for the netCDF input (relative or absolute path).}
@@ -16,6 +23,9 @@ nc2ts(filename, varid, timeid = "time", latid = "lat", lonid = "lon")
 \item{latid}{String with the latitude dimension identifier.}
 
 \item{lonid}{String with the longitude dimension identifier.}
+
+\item{plot}{Boolean flag to indicate whether a plot for the time series
+should be generated.}
 }
 \value{
 Tibble with the time and mean values.
