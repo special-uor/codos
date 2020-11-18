@@ -1,3 +1,16 @@
+#' Get the days in a month
+#'
+#' Get the days in a month from a date string.
+#'
+#' @param dates Vector of strings with dates.
+#'
+#' @return Numeric vector with the dates in each month linked to each date.
+#' @export
+days_in_month <- function(dates) {
+  unname(lubridate::days_in_month(dates))
+}
+
+
 #' netCDF to time series
 #'
 #' Convert netCDF file to a time series using the area-weighted mean (based on
