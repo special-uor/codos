@@ -36,14 +36,14 @@
 #' y_points <- c(0, 0.1, 0.25, 0.5, 0.9, 1.0, 0.93, 0.8, 0.5, 0.25, 0.1, 0)
 #' max_val <- 1
 #' min_val <- 0
-#' y_interpolated <- int_acm(y_points, month_len) # interpolate with no bounds
-#' unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
-#' y_interpolated <- int_acm(y_points, month_len, max_val = max_val) # interpolate with maximum bounds
-#' unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
-#' y_interpolated <- int_acm(y_points, month_len, min_val = min_val) # interpolate with minimum bounds
-#' unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
-#' y_interpolated <- int_acm(y_points, month_len, max_val, min_val) # interpolate with bounds
-#' unlist(lapply(unname(split(y_interpolated, rep(seq_len(length(month_len)), month_len))), mean)) # see whether the means are the same with the threshold defined
+#' # interpolate with no bounds
+#' y_interpolated <- int_acm(y_points, month_len)
+#' # interpolate with maximum bounds
+#' y_interpolated <- int_acm(y_points, month_len, max_val = max_val)
+#' # interpolate with minimum bounds
+#' y_interpolated <- int_acm(y_points, month_len, min_val = min_val)
+#' # interpolate with bounds
+#' y_interpolated <- int_acm(y_points, month_len, max_val, min_val)
 #'
 #' @author Kamolphat Atsawawaranunt
 #' @references
@@ -58,7 +58,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
     format = "(:current/:total) [:bar] :percent",
     total = length(MN), clear = FALSE, width = 60)
 
-  if (!is.null(max_val) & !is.null(min_val)) {
+  if (is.null(max_val) && is.null(min_val)) {
     print('interpolating with no bounds')
     for (i in seq_len(length(MN))) {
       pb$tick()
@@ -70,7 +70,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
       Cterm <- rep(new_mean, times = month_len)
       new_MN <- new_MN + Cterm
     }
-  }  else if (is.null(max_val) & is.null(min_val)) {
+  }  else if (!is.null(max_val) && !is.null(min_val)) {
     print('interpolating with both minimum and maximum bounds')
     for (i in seq_len(length(MN))) {
       pb$tick()
@@ -112,7 +112,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
       new_MN[diff < 0] <- new_MN[diff < 0] - fk2[diff < 0] *
                           (new_MN[diff < 0] - min_val)
     }
-  } else if (is.null(max_val)) {
+  } else if (!is.null(max_val)) {
     print('interpolating with maximum bounds')
     for (i in seq_len(length(MN))) {
       pb$tick()
@@ -138,7 +138,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
       fk <- rep(ls, times = month_len)
       new_MN[diff > 0] <- max_val - fk[diff > 0] * (max_val - new_MN[diff > 0])
     }
-  } else if (is.null(min_val)) {
+  } else if (!is.null(min_val)) {
     print('interpolating with minimum bounds')
     for (i in seq_len(length(MN))) {
       pb$tick()
@@ -186,7 +186,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
 #'
 #' @author Kamolphat Atsawawaranunt
 #' @references https://stackoverflow.com/questions/26997586/shifting-a-vector
-shift <- function(x, n, invert = FALSE){
+shift <- function(x, n, invert = FALSE) {
   stopifnot(length(x) >= n)
   if (n == 0)
     return(x)
