@@ -107,34 +107,93 @@ pre_section_E_q <- function(self, Temp) {
 }
 
 # Gives the value for R_n in MJ kg^(-1) a^(-1) mm
+#' Annual net radiation at the vegetated surface
+#'
+#' @details
+#' Given by (2.4):
+#' \eqn{R_n = 0.83 R_0 (0.25 + 0.5 S_f) - (107 - T)(0.2 + 0.8 S_f)}.
+#'
+#' @return Annual net radiation at the vegetated surface.
+#' @references
+#' I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+#' "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+#' plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+#' DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
 R_n <- function(self, Temp, m, lat = -30 ) {
   scale_factor <- 365.24 * 24 * 60 * 60 * 10 ^ -6
-  scale_factor * (0.83 * self$R_o * (0.25 + 0.5 * S_f(m)) - (107 - Temp) * (0.2 + 0.8 * S_f(m)))
+  scale_factor * (0.83 * self$R_o * (0.25 + 0.5 * S_f(m)) -
+                  (107 - Temp) * (0.2 + 0.8 * S_f(m)))
 }
 
 #' Fraction of sunshine hours
 #'
-#' @param m Numeric moisture value.
+#' @details
+#' Given by (2.5):
+#' \eqn{S_f = 0.6611 e^{-0.74m} + 0.2175}.
+#'
+#' @param m Numeric value for moisture index.
 #'
 #' @return Fraction of sunshine hours.
+#' @references
+#' I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+#' "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+#' plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+#' DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
 #' @export
-#'
 S_f <- function(m) {
   0.6611 * exp(-0.74 * m) + 0.2175
 }
 
+#' Effective Michaelis-Menten coefficient for carboxylation
+#'
+#' @details
+#' Given by (2.9):
+#'
+#' \eqn{K = K_C \left(1 + \frac{O}{K_O}\right)}.
+#'
+#' where
+#'
+#' \eqn{K_C = 404.9 \exp\left[\frac{\Delta H_C}{R}\left(\frac{1}{298} - \frac{1}{T_K}\right)\right]}
+#'
+#' and
+#'
+#' \eqn{K_O = 278.4 \exp\left[\left(\frac{\Delta H_O}{R}\right)\left(\frac{1}{298} - \frac{1}{T_K}\right)\right]}.
+#'
+#' @return Annual net radiation at the vegetated surface.
+#' @references
+#' I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+#' "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+#' plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+#' DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
+#'
+#' @param self Reference to class \code{p_model}.
+#' @param Temp Temperature.
+#'
+#' @return Viscosity of water.
+#' @export
 K <- function(self, Temp) {
   # Don't have a better name for this
   pre_calc <- 1 /self$R * (1 / 298 - 1 / (Temp + 273.15))
   404.9 * exp(self$dHc * pre_calc) * ( 1 + self$O / (278.4 * exp(self$dHo * pre_calc)))
 }
 
-#' ETA
+#' Viscosity of water
 #'
-#' @param self Reference to class p_model.
+#' @details
+#' Given by (2.8):
+#' \eqn{\eta = 0.024258 exp{\frac{580}{T_K} - 183}}.
+#'
+#' @return Annual net radiation at the vegetated surface.
+#' @references
+#' I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+#' "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+#' plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+#' DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
+#'
+#' @param self Reference to class \code{p_model}.
 #' @param Temp Temperature.
 #'
-#' @return
+#' @return Viscosity of water.
 #' @export
 eta <- function(self, Temp) {
   0.024258 * exp(580 / (Temp + self$visc_offset))
