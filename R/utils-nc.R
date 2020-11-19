@@ -47,7 +47,10 @@ nc2ts <- function(filename,
 
   # Check the main variable exists
   if (!(varid %in% names(nc$var)))
-    stop("The main variable was not found: \n-", varid, call. = FALSE)
+    stop("The main variable was not found: \n- ", varid,
+         "\nTry one of the following: \n",
+         paste0("- ", names(nc$var), collapse = "\n"),
+         call. = FALSE)
 
   # Read dimensions
   ## Time
