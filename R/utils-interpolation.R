@@ -58,46 +58,34 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
     format = "(:current/:total) [:bar] :percent",
     total = length(MN), clear = FALSE, width = 60)
 
+  groups <- rep(seq_len(length(month_len)), month_len)
   if (is.null(max_val) && is.null(min_val)) {
     print('interpolating with no bounds')
     for (i in seq_len(length(MN))) {
-      if (i %% 1000) pb$tick()
+      pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
-      new_mean <- unlist(lapply(unname(split(MN - new_MN,
-                                             rep(seq_len(length(month_len)),
-                                                 month_len))),
-                                mean))
+      new_mean <- unlist(lapply(unname(split(MN - new_MN, groups)), mean))
       Cterm <- rep(new_mean, times = month_len)
       new_MN <- new_MN + Cterm
     }
   }  else if (!is.null(max_val) && !is.null(min_val)) {
     print('interpolating with both minimum and maximum bounds')
     for (i in seq_len(length(MN))) {
-      if (i %% 1000) pb$tick()
+      pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
-      new_mean <- unlist(lapply(unname(split(MN - new_MN,
-                                             rep(seq_len(length(month_len)),
-                                                 month_len))),
-                                mean))
+      new_mean <- unlist(lapply(unname(split(MN - new_MN, groups)), mean))
       Cterm <- rep(new_mean, times = month_len)
       new_MN <- new_MN + Cterm
 
       new_MN[new_MN > max_val] <- max_val
       diff <- MN - new_MN
-      sum1 <- unlist(lapply(unname(split(max_val - MN,
-                                         rep(seq_len(length(month_len)),
-                                             month_len))),
-                            sum))
-      sum2 <- unlist(lapply(unname(split(max_val - new_MN,
-                                         rep(seq_len(length(month_len)),
-                                             month_len))),
-                            sum))
+      sum1 <- unlist(lapply(unname(split(max_val - MN, groups)), sum))
+      sum2 <- unlist(lapply(unname(split(max_val - new_MN, groups)), sum))
       ls <- sum1 / sum2
       fk <- rep(ls, times = month_len)
       new_MN[diff > 0] <- max_val - fk[diff > 0] * (max_val - new_MN[diff > 0])
 
       new_MN[new_MN < min_val] <- min_val
-      diff <- MN - new_MN
       diff <- MN - new_MN
       sum3 <- unlist(lapply(unname(split(new_MN - MN,
                                          rep(seq_len(length(month_len)),
@@ -115,25 +103,16 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   } else if (!is.null(max_val)) {
     print('interpolating with maximum bounds')
     for (i in seq_len(length(MN))) {
-      if (i %% 1000) pb$tick()
+      pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
-      new_mean <- unlist(lapply(unname(split(MN - new_MN,
-                                             rep(seq_len(length(month_len)),
-                                                 month_len))),
-                                mean))
+      new_mean <- unlist(lapply(unname(split(MN - new_MN, groups)), mean))
       Cterm <- rep(new_mean, times = month_len)
       new_MN <- new_MN + Cterm
       new_MN[new_MN > max_val] <- max_val
 
       diff <- MN - new_MN
-      sum1 <- unlist(lapply(unname(split(max_val - MN,
-                                         rep(seq_len(length(month_len)),
-                                             month_len))),
-                            sum))
-      sum2 <- unlist(lapply(unname(split(max_val - new_MN,
-                                         rep(seq_len(length(month_len)),
-                                             month_len))),
-                            sum))
+      sum1 <- unlist(lapply(unname(split(max_val - MN, groups)), sum))
+      sum2 <- unlist(lapply(unname(split(max_val - new_MN, groups)), sum))
       ls <- sum1 / sum2
       fk <- rep(ls, times = month_len)
       new_MN[diff > 0] <- max_val - fk[diff > 0] * (max_val - new_MN[diff > 0])
@@ -141,33 +120,25 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   } else if (!is.null(min_val)) {
     print('interpolating with minimum bounds')
     for (i in seq_len(length(MN))) {
-      if (i %% 1000) pb$tick()
+      pb$tick()
       new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
-      diff <- MN - new_MN
-      new_mean <- unlist(lapply(unname(split(diff,
-                                             rep(seq_len(length(month_len)),
-                                                 month_len))),
-                                mean))
+      new_mean <- unlist(lapply(unname(split(MN - new_MN, groups)), mean))
       Cterm <- rep(new_mean, times = month_len)
       new_MN <- new_MN + Cterm
       new_MN[new_MN < min_val] <- min_val
 
       diff <- MN - new_MN
-      sum3 <- unlist(lapply(unname(split(new_MN - MN,
-                                         rep(seq_len(length(month_len)),
-                                             month_len))),
-                            sum))
-      sum4 <- unlist(lapply(unname(split(new_MN - min_val,
-                                         rep(seq_len(length(month_len)),
-                                             month_len))),
-                            sum))
+      sum3 <- unlist(lapply(unname(split(new_MN - MN, groups)), sum))
+      sum4 <- unlist(lapply(unname(split(new_MN - min_val, groups)), sum))
       ls2 <- sum3 / sum4
       fk2 <- rep(ls2, times = month_len)
       new_MN[diff < 0] <- new_MN[diff < 0] - fk2[diff < 0] *
                           (new_MN[diff < 0] - min_val)
     }
   }
-  return(new_MN)
+  # tibble::tibble(time = unlist(lapply(month_len, seq_len)),
+  #                mean = new_MN)
+  new_MN
 }
 
 #' Shift vector
