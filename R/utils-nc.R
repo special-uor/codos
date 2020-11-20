@@ -4,7 +4,7 @@
 #' @param conv_factor Numeric vector or single value with the conversion factor.
 #' @param FUN Infix function to perform the conversion.
 #'
-#' @inheritParams nc2ts
+#' @inheritParams monthly_clim
 #'
 #' @keywords internal
 convert_units <- function(filename,
@@ -14,6 +14,7 @@ convert_units <- function(filename,
                           timeid = "time",
                           latid = "lat",
                           lonid = "lon",
+                          overwrite = TRUE,
                           FUN = `*`) {
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)

@@ -12,6 +12,7 @@ convert_units(
   timeid = "time",
   latid = "lat",
   lonid = "lon",
+  overwrite = TRUE,
   FUN = `*`
 )
 }
@@ -29,6 +30,9 @@ convert_units(
 \item{latid}{String with the latitude dimension identifier.}
 
 \item{lonid}{String with the longitude dimension identifier.}
+
+\item{overwrite}{Boolean flag to indicate if the output file should be
+overwritten (if it exists).}
 
 \item{FUN}{Infix function to perform the conversion.}
 }
