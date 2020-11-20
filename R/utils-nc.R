@@ -27,7 +27,6 @@ monthly_clim <- function(filename,
                          timeid = "time",
                          latid = "lat",
                          lonid = "lon",
-                         plot = TRUE,
                          overwrite = TRUE) {
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
@@ -156,6 +155,15 @@ monthly_clim <- function(filename,
   # Add extra attributes to the new netCDF
   for (i in which(idx))
     ncdf4::ncatt_put(nc_out, varid, var_att_names[i], var_att[[i]])
+  ncdf4::ncatt_put(nc_out,
+                   varid,
+                   "description",
+                   paste0("Created by averaging monthly data between ",
+                          s_year,
+                          " and ",
+                          e_year,
+                          " from ",
+                          basename(filename)))
 
   # Add the climatology data
   ncdf4::ncvar_put(nc_out, var_clim, var_data_climatology)
