@@ -14,6 +14,8 @@ days_in_month <- function(dates) {
 #'
 #' @param s_year Numeric value with the start year.
 #' @param e_year Numeric value with the end year.
+#' @param overwrite Boolean flag to indicate if the output file should be
+#'     overwritten (if it exists).
 #'
 #' @inheritParams nc2ts
 #'
@@ -25,7 +27,8 @@ monthly_clim <- function(filename,
                          timeid = "time",
                          latid = "lat",
                          lonid = "lon",
-                         plot = TRUE) {
+                         plot = TRUE,
+                         overwrite = TRUE) {
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
   nc <- ncdf4::nc_open(filename)
