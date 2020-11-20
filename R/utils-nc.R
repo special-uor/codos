@@ -144,7 +144,10 @@ monthly_clim <- function(filename,
                                missval = var_missval,
                                prec = "double",
                                longname = var_longname)
+
+  # Create new netCDF file
   nc_out <- ncdf4::nc_create(output_filename, var_clim)
+  on.exit(ncdf4::nc_close(nc_out)) # Close the file
 
   # List all attributes for the main variable in the input netCDF
   var_att <- ncdf4::ncatt_get(nc, varid)
@@ -153,7 +156,9 @@ monthly_clim <- function(filename,
   # Add extra attributes to the new netCDF
   for (i in which(idx))
     ncdf4::ncatt_put(nc_out, varid, var_att_names[i], var_att[[i]])
-  on.exit(ncdf4::nc_close(nc_out)) # Close the file
+
+  # Add the climatology data
+  ncdf4::ncvar_put(nc_out, var_clim, var_data_climatology)
 }
 
 #' Convert netCDF to time series
