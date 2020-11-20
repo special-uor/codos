@@ -3,7 +3,7 @@
 export(K)
 export(S_f)
 export(T_g)
-export(convert_units)
+export(convert_units.m2d)
 export(days_in_month)
 export(eta)
 export(int_acm)
