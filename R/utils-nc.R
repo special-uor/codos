@@ -218,6 +218,73 @@ extract_data <- function(filename,
                          timeid = "time",
                          latid = "lat",
                          lonid = "lon") {
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
+  nc <- ncdf4::nc_open(filename)
+  on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  ## Time
+  tryCatch({
+    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
+    time_data <- ncdf4::ncvar_get(nc, timeid)
+    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the time dimension: ", timeid, call. = FALSE)
+  })
+  ## Latitude
+  tryCatch({
+    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
+    lat_data <- ncdf4::ncvar_get(nc, latid)
+    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
+  })
+  ## Longitude
+  tryCatch({
+    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
+    lon_data <- ncdf4::ncvar_get(nc, lonid)
+    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
+  })
+
+  # Read main variable
+  tryCatch({
+    var_data <- ncdf4::ncvar_get(nc, varid)
+    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", varid, call. = FALSE)
+  })
+
+  # Initialise index
+  idx <- rep(TRUE, length(time_data))
+
+  # Convert time variable to actual dates
+  if (grepl("since", time_units)) {
+    time_components <- unlist(strsplit(time_units, " since "))
+    years <- retime(time_data,
+                    ref_date = lubridate::date(time_components[2]),
+                    duration = time_components[1])$year
+
+    # Find indices of years within s_year and e_year
+    if (!is.null(c(s_year, e_year))) {
+      idx <- years >= s_year & years <= e_year
+    } else if (!is.null(s_year)) {
+      idx <- years >= s_year
+    } else if (!is.null(e_year)) {
+      idx <- years <= e_year
+    }
+  }
+
+  # Subset the data for the timesteps in the target range
+  var_data2 <- var_data[,,idx]
+  time_data2 <- time_data[idx]
+
+  list(main = list(data = var_data[,,idx], units = var_units),
+       lat = list(data = lat_data, units = lat_units),
+       lon = list(data = lon_data, units = lon_units),
+       time = list(data = time_data[idx], units = time_units))
 }
 
 #' Create monthly climatology
