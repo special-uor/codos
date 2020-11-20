@@ -391,6 +391,34 @@ monthly_clim <- function(filename,
   ncdf4::ncvar_put(nc_out, var_clim, var_data_climatology)
 }
 
+#' Check and open netCDF file
+#'
+#' @inheritParams nc2ts
+#'
+#' @return Reference to \code{ncdf4} object.
+#' @keywords internal
+nc_open <- function(filename, varid, timeid, latid, lonid) {
+  if (!file.exists(filename))
+    stop("The given netCDF file was not found: \n", filename, call. = FALSE)
+  nc <- ncdf4::nc_open(filename)
+  on.exit(ncdf4::nc_close(nc)) # Close the file
+  # Check the dimensions for time, latitude, and longitude exist
+  idx <- c(timeid, latid, lonid) %in% names(nc$dim)
+  if (any(!idx))
+    stop("The following dimension",
+         ifelse(sum(!idx) > 1, "s were", " was"),
+         " not found: \n",
+         paste0("- ", c(timeid, latid, lonid)[!idx], collapse = "\n"),
+         call. = FALSE)
+
+  # Check the main variable exists
+  if (!(varid %in% names(nc$var)))
+    stop("The main variable was not found: \n- ", varid,
+         "\nTry one of the following: \n",
+         paste0("- ", names(nc$var), collapse = "\n"),
+         call. = FALSE)
+}
+
 #' Convert netCDF to time series
 #'
 #' Convert netCDF file to a time series using the area-weighted mean (based on
