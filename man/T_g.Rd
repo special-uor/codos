@@ -27,9 +27,8 @@ hours determined by latitude and month.
 Given by (7):
 
 \eqn{T_g = T_{max}\left[\frac{1}{2} +
-                        \frac{(1-x^2)^{1/2}}{2 \cos{x}}\right] +
-           T_{min}\left[\frac{1}{2} +
-                        \frac{(1-x^2)^{1/2}}{2 \cos{x}}\right]\right]}
+                        \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right] +
+           T_{min}\left[\frac{1}{2} + \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]}
 
 where
 
