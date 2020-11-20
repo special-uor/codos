@@ -16,25 +16,10 @@ convert_units <- function(filename,
                           lonid = "lon",
                           overwrite = TRUE,
                           FUN = `*`) {
-  if (!file.exists(filename))
-    stop("The given netCDF file was not found: \n", filename, call. = FALSE)
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
   on.exit(ncdf4::nc_close(nc)) # Close the file
-  # Check the dimensions for time, latitude, and longitude exist
-  idx <- c(timeid, latid, lonid) %in% names(nc$dim)
-  if (any(!idx))
-    stop("The following dimension",
-         ifelse(sum(!idx) > 1, "s were", " was"),
-         " not found: \n",
-         paste0("- ", c(timeid, latid, lonid)[!idx], collapse = "\n"),
-         call. = FALSE)
-
-  # Check the main variable exists
-  if (!(varid %in% names(nc$var)))
-    stop("The main variable was not found: \n- ", varid,
-         "\nTry one of the following: \n",
-         paste0("- ", names(nc$var), collapse = "\n"),
-         call. = FALSE)
 
   # Read dimensions
   ## Time
@@ -160,6 +145,8 @@ convert_units.m2d <- function(filename,
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
 
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
@@ -216,8 +203,21 @@ days_in_month <- function(dates) {
   unname(lubridate::days_in_month(dates))
 }
 
-extract_data <- function() {
-
+#' Extract data from netCDF file
+#'
+#' @inheritParams monthly_clim
+#'
+#' @return List with dimensions (latitude, longitude, and time) and selected
+#' variable (varid).
+#'
+#' @export
+extract_data <- function(filename,
+                         varid,
+                         s_year = NULL,
+                         e_year = NULL,
+                         timeid = "time",
+                         latid = "lat",
+                         lonid = "lon") {
 }
 
 #' Create monthly climatology
@@ -246,25 +246,10 @@ monthly_clim <- function(filename,
     e_year <- tmp
   }
 
-  if (!file.exists(filename))
-    stop("The given netCDF file was not found: \n", filename, call. = FALSE)
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
   on.exit(ncdf4::nc_close(nc)) # Close the file
-  # Check the dimensions for time, latitude, and longitude exist
-  idx <- c(timeid, latid, lonid) %in% names(nc$dim)
-  if (any(!idx))
-    stop("The following dimension",
-         ifelse(sum(!idx) > 1, "s were", " was"),
-         " not found: \n",
-         paste0("- ", c(timeid, latid, lonid)[!idx], collapse = "\n"),
-         call. = FALSE)
-
-  # Check the main variable exists
-  if (!(varid %in% names(nc$var)))
-    stop("The main variable was not found: \n- ", varid,
-         "\nTry one of the following: \n",
-         paste0("- ", names(nc$var), collapse = "\n"),
-         call. = FALSE)
 
   # Read dimensions
   ## Time
@@ -391,13 +376,13 @@ monthly_clim <- function(filename,
   ncdf4::ncvar_put(nc_out, var_clim, var_data_climatology)
 }
 
-#' Check and open netCDF file
+#' Check netCDF file
 #'
 #' @inheritParams nc2ts
 #'
 #' @return Reference to \code{ncdf4} object.
 #' @keywords internal
-nc_open <- function(filename, varid, timeid, latid, lonid) {
+nc_check <- function(filename, varid, timeid, latid, lonid) {
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
   nc <- ncdf4::nc_open(filename)
@@ -440,25 +425,10 @@ nc2ts <- function(filename,
                   latid = "lat",
                   lonid = "lon",
                   plot = TRUE) {
-  if (!file.exists(filename))
-    stop("The given netCDF file was not found: \n", filename, call. = FALSE)
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
   on.exit(ncdf4::nc_close(nc)) # Close the file
-  # Check the dimensions for time, latitude, and longitude exist
-  idx <- c(timeid, latid, lonid) %in% names(nc$dim)
-  if (any(!idx))
-    stop("The following dimension",
-         ifelse(sum(!idx) > 1, "s were", " was"),
-         " not found: \n",
-         paste0("- ", c(timeid, latid, lonid)[!idx], collapse = "\n"),
-         call. = FALSE)
-
-  # Check the main variable exists
-  if (!(varid %in% names(nc$var)))
-    stop("The main variable was not found: \n- ", varid,
-         "\nTry one of the following: \n",
-         paste0("- ", names(nc$var), collapse = "\n"),
-         call. = FALSE)
 
   # Read dimensions
   ## Time
