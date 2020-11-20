@@ -6,7 +6,7 @@
 #'
 #' @inheritParams nc2ts
 #'
-#' @export
+#' @keywords internal
 convert_units <- function(filename,
                           varid,
                           new_units,
@@ -138,7 +138,65 @@ convert_units <- function(filename,
 
   # Add the climatology data
   ncdf4::ncvar_put(nc_out, var_conv, var_data2)
-  return(var_data2)
+  # return(var_data2)
+}
+
+#' Convert units from monthly to daily
+#'
+#' @inheritParams convert_units
+#'
+#' @export
+convert_units.m2d <- function(filename,
+                              varid,
+                              timeid = "time",
+                              latid = "lat",
+                              lonid = "lon",
+                              FUN = `*`) {
+  if (!file.exists(filename))
+    stop("The given netCDF file was not found: \n", filename, call. = FALSE)
+
+  nc <- ncdf4::nc_open(filename)
+  on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  ## Time
+  tryCatch({
+    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
+    time_data <- ncdf4::ncvar_get(nc, timeid)
+    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the time dimension: ", timeid, call. = FALSE)
+  })
+
+  # Read main variable
+  tryCatch({
+    var_data <- ncdf4::ncvar_get(nc, varid)
+    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", varid, call. = FALSE)
+  })
+
+  ncdf4::nc_close(nc) # Close the file
+
+  # Check the units have month in them
+  if (!grepl("month", var_units))
+    stop("The variable ", varid, " does not seem to be in monthly units: ",
+         var_units)
+
+  # Convert time variable to actual dates
+  time_components <- unlist(strsplit(time_units, " since "))
+  dates <- retime(time_data,
+                  ref_date = lubridate::date(time_components[2]),
+                  duration = time_components[1])$date
+
+  convert_units(filename,
+                varid,
+                new_units = gsub("month", "day", var_units),
+                timeid,
+                latid,
+                lonid,
+                conv_factor = days_in_month(dates),
+                FUN = `/`)
 }
 
 #' Get the days in a month
