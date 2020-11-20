@@ -2,9 +2,12 @@
 
 export(K)
 export(S_f)
+export(T_g)
 export(days_in_month)
 export(eta)
 export(int_acm)
+export(m2d)
 export(nc2ts)
 export(retime)
 export(shift)
+importFrom(foreach,"%dopar%")
