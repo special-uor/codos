@@ -12,7 +12,8 @@ monthly_clim(
   timeid = "time",
   latid = "lat",
   lonid = "lon",
-  plot = TRUE
+  plot = TRUE,
+  overwrite = TRUE
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ monthly_clim(
 
 \item{plot}{Boolean flag to indicate whether a plot for the time series
 should be generated.}
+
+\item{overwrite}{Boolean flag to indicate if the output file should be
+overwritten (if it exists).}
 }
 \description{
 Create monthly climatology
