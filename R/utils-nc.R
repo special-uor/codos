@@ -216,6 +216,10 @@ days_in_month <- function(dates) {
   unname(lubridate::days_in_month(dates))
 }
 
+extract_data <- function() {
+
+}
+
 #' Create monthly climatology
 #'
 #' @param s_year Numeric value with the start year.
