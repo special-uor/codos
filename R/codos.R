@@ -222,6 +222,36 @@ alpha_from_mi_om3 <- function(mi) {
   1 + mi - (1 + mi ^ 3) ^ (1/3)
 }
 
+#' Mean daytime air temperature
+#'
+#' Mean daytime air temperature (\eqn{T_g}) was estimated for each month by
+#' assuming the diurnal temperature cycle to follow a sine curve, with daylight
+#' hours determined by latitude and month.
+#'
+#' @details
+#' Given by (7):
+#'
+#' \eqn{T_g = T_{max}\left[\frac{1}{2} +
+#'                         \frac{(1-x^2)^{1/2}}{2 \cos{x}}\right] +
+#'            T_{min}\left[\frac{1}{2} +
+#'                         \frac{(1-x^2)^{1/2}}{2 \cos{x}}\right]\right]}
+#'
+#' where
+#'
+#' \eqn{x = -\tan{\lambda}\tan{\delta}}.
+#'
+#' @param lat Latitude (\eqn{\lambda}).
+#' @param delta Monthly average solar declination (\eqn{\delta}).
+#' @param Temp_max Maximum value of temperature (\eqn{T_{max}}).
+#' @param Temp_min Minimum value of temperature (\eqn{T_{min}}).
+#'
+#' @return Mean daytime air temperature.
+#' @export
+T_g <- function(lat, delta, Temp_max, Temp_min) {
+  x <- -tan(lat) * tan(delta)
+  (Temp_max + Temp_min) * (0.5 + sqrt(1 - x^2) / (2 * cos(x)))
+}
+
 ## Wrapper functions to find corrected moisture index #############
 calculate_m_true <- function(T_diff, T_ref, m_rec, c_a_diff) {
   model <- p_model_inverter(T_diff, T_ref, m_rec, c_a_diff)
