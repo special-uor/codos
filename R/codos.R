@@ -232,9 +232,8 @@ alpha_from_mi_om3 <- function(mi) {
 #' Given by (7):
 #'
 #' \eqn{T_g = T_{max}\left[\frac{1}{2} +
-#'                         \frac{(1-x^2)^{1/2}}{2 \cos{x}}\right] +
-#'            T_{min}\left[\frac{1}{2} +
-#'                         \frac{(1-x^2)^{1/2}}{2 \cos{x}}\right]\right]}
+#'                         \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right] +
+#'            T_{min}\left[\frac{1}{2} + \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]}
 #'
 #' where
 #'
@@ -249,7 +248,7 @@ alpha_from_mi_om3 <- function(mi) {
 #' @export
 T_g <- function(lat, delta, Temp_max, Temp_min) {
   x <- -tan(lat) * tan(delta)
-  (Temp_max + Temp_min) * (0.5 + sqrt(1 - x^2) / (2 * cos(x)))
+  (Temp_max + Temp_min) * (0.5 + sqrt(1 - x^2) / 2 * acos(x))
 }
 
 ## Wrapper functions to find corrected moisture index #############
