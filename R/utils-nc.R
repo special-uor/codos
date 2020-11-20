@@ -82,7 +82,11 @@ convert_units <- function(filename,
   }
 
   # Convert units
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = length(time_data), clear = FALSE, width = 60)
   for (i in seq_along(time_data)) {
+    pb$tick()
     var_data2[,,i] <- FUN(var_data[,,i], conv_factor[i])
   }
 
@@ -176,12 +180,12 @@ convert_units.m2d <- function(filename,
     stop("Error reading the main variable: ", varid, call. = FALSE)
   })
 
-  ncdf4::nc_close(nc) # Close the file
-
   # Check the units have month in them
   if (!grepl("month", var_units))
     stop("The variable ", varid, " does not seem to be in monthly units: ",
          var_units)
+
+  ncdf4::nc_close(nc) # Close the file
 
   # Convert time variable to actual dates
   time_components <- unlist(strsplit(time_units, " since "))
@@ -229,6 +233,14 @@ monthly_clim <- function(filename,
                          latid = "lat",
                          lonid = "lon",
                          overwrite = TRUE) {
+  if (s_year > e_year) {
+    warning("Swapping start and end years: \n",
+            s_year, "-", e_year, " => ", e_year, "-", s_year)
+    tmp <- s_year
+    s_year <- e_year
+    e_year <- tmp
+  }
+
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
   nc <- ncdf4::nc_open(filename)
@@ -300,7 +312,11 @@ monthly_clim <- function(filename,
   var_data_climatology <- array(0, dim = c(dim(var_data2)[1:2], 12))
 
   # Create climatology
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = 12, clear = FALSE, width = 60)
   for (i in 1:12) {
+    pb$tick()
     var_data_climatology[,,i] <- rowMeans(var_data2[,,seq(i, total_monts, 12)],
                                           na.rm = TRUE,
                                           dims = 2)
