@@ -141,6 +141,43 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   new_MN
 }
 
+
+#' Monthly to daily interpolation
+#'
+#' @importFrom foreach "%dopar%"
+#' @param data Numeric vector with monthly entries.
+#' @param time Numeric vector with the days in month for a particular time step.
+#' @param cpus Numeric value with the number of CPUs to use for the computation.
+#'
+#' @return Numeric value for the daily values interpolated.
+#' @export
+#'
+# @examples
+m2d <- function(data, time, cpus = 2, thr = 12) {
+  if (min(time) < 1 | max(time) > 31)
+    stop("The time vector must contain values between 1 and 31, corresponding ",
+         "to the days in each month. Use the following functions to compute ",
+         "these values: days_in_month and retime.", call. = FALSE)
+  if (length(data) != length(time))
+    stop("The length of both data and time should be the same")
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  breaks <- seq(0, length(data), thr)[-1]
+  idx <- seq_len(length(breaks))
+  foreach::foreach(i = idx, .combine = c) %dopar% {
+    int_acm(data[(breaks[i] - (thr - 1)):breaks[i]],
+            time[(breaks[i] - (thr - 1)):breaks[i]])
+  }
+}
+
 #' Shift vector
 #'
 #' Shift vector by \code{n} positions.
