@@ -14,8 +14,11 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
-Imports: 
+Imports:
+    doParallel,
+    foreach,
     lubridate,
     ncdf4,
+    parallel,
     progress,
     tibble
