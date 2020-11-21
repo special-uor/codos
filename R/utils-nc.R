@@ -281,7 +281,12 @@ extract_data <- function(filename,
   var_data2 <- var_data[,,idx]
   time_data2 <- time_data[idx]
 
-  list(main = list(data = var_data[,,idx], units = var_units),
+  var_scale_factor <- ncdf4::ncatt_get(nc, varid, "scale_factor")$value
+  var_scale_factor <- ifelse(var_scale_factor == 0, 1, var_scale_factor)
+  var_missing_value <- ncdf4::ncatt_get(nc, varid, "missing_value")$value
+
+  list(main = list(data = var_data[,,idx] * var_scale_factor,
+                   units = var_units),
        lat = list(data = lat_data, units = lat_units),
        lon = list(data = lon_data, units = lon_units),
        time = list(data = time_data[idx], units = time_units))
@@ -566,6 +571,14 @@ nc2ts <- function(filename,
   # Create tibble structure
   tibble::tibble(time = time_data,
                  mean = awm)
+}
+
+#' @export
+plot_map <- function(data, lat, lon) {
+  library(maptools)
+  data(wrld_simpl)
+  image(lon, lat, data)
+  # plot(wrld_simpl, add = TRUE)
 }
 
 #' Change time axis
