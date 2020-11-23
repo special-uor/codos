@@ -478,7 +478,7 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
 
 #' Interpolate netCDF file
 #'
-#' @param cpus
+#' @param cpus Number of CPUs to use for the computation.
 #'
 #' @inheritParams monthly_clim
 #'
@@ -539,38 +539,39 @@ nc_int <- function(filename,
   cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
 
   # Start parallel backend
-  # cl <- parallel::makeCluster(cpus)
-  # on.exit(parallel::stopCluster(cl)) # Stop cluster
-  # doParallel::registerDoParallel(cl)
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
 
   month_len <- days_in_month(as.Date(paste0(s_year, "-", time_data, "-01")))
   idx <- seq_len(length(lat_data) * length(lon_data))
-  # interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
-  tmp <- array(0, dim = c(dim(var_data)[1:2], sum(month_len)))
+  interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
+    # tmp <- array(0, dim = c(dim(var_data)[1:2], sum(month_len)))
+    # pb <- progress::progress_bar$new(
+    #   format = "(:current/:total) [:bar] :percent",
+    #   total = length(idx), clear = FALSE, width = 60)
+    # for (i in idx) {
+    #   pb$tick()
+    aux <- arrayInd(i, dim(var_data)[-3])[1, ]
+    # int_acm(var_data[aux[1], aux[2], ],
+    #         month_len)
+    # var_data[aux[1], aux[2], ]
+    # tmp[aux[1], aux[2], ] <- int_acm2(var_data[aux[1], aux[2], ], month_len)
+    # var_data[aux[1], aux[2], ]
+    int_acm2(var_data[aux[1], aux[2], ], month_len)
+  }
+
+  message("Done with interpolation.")
+  message("Reshaping output...")
+  tmp <- array(0, dim = c(dim(var_data)[1:2], dim(interpolated)[1]))
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = length(idx), clear = FALSE, width = 60)
   for (i in idx) {
     pb$tick()
     aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-    # int_acm(var_data[aux[1], aux[2], ],
-    #         month_len)
-    # var_data[aux[1], aux[2], ]
-    tmp[aux[1], aux[2], ] <- int_acm2(var_data[aux[1], aux[2], ], month_len)
-      #var_data[aux[1], aux[2], ]
+    tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
   }
-
-  message("Done with interpolation.")
-  # message("Reshaping output...")
-  # tmp <- array(0, dim = c(dim(var_data)[1:2], dim(interpolated)[1]))
-  # pb <- progress::progress_bar$new(
-  #   format = "(:current/:total) [:bar] :percent",
-  #   total = length(idx), clear = FALSE, width = 60)
-  # for (i in idx) {
-  #   pb$tick()
-  #   aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-  #   tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
-  # }
 
   # return(tmp)
 
@@ -708,8 +709,8 @@ nc2ts <- function(filename,
 #' @return Graphical object.
 #' @keywords internal
 plot_map <- function(data, lat, lon) {
-  library(maptools)
-  data(wrld_simpl)
+  # library(maptools)
+  # data("wrld_simpl")
   image(lon, lat, data)
   # plot(wrld_simpl, add = TRUE)
 }
