@@ -57,7 +57,7 @@ nc_save <- function(filename,
     idx <- !(var_att_names %in% c("long_name", "units", "_FillValue"))
     # Add extra attributes to the new netCDF
     for (i in which(idx))
-      ncdf4::ncatt_put(nc_out, varid, var_att_names[i], var_atts[[i]])
+      ncdf4::ncatt_put(nc_out, var$id, var_att_names[i], var_atts[[i]])
   }
 
   # Add the climatology data
