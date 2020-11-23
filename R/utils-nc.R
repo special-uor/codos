@@ -543,7 +543,7 @@ nc_int <- function(filename,
   # on.exit(parallel::stopCluster(cl)) # Stop cluster
   # doParallel::registerDoParallel(cl)
 
-  month_len <- days_in_month(paste0(s_year, "-", time_data, "-01"))
+  month_len <- days_in_month(as.Date(paste0(s_year, "-", time_data, "-01")))
   idx <- seq_len(length(lat_data) * length(lon_data))
   # interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
   tmp <- array(0, dim = c(dim(var_data)[1:2], sum(month_len)))
