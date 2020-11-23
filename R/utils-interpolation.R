@@ -141,6 +141,27 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
   new_MN
 }
 
+#' Simplified version of \code{\link{int_acm}}
+#'
+#' @inheritParams int_acm
+#'
+#' @return @return Numeric vector with the interpolated values, this one has the same
+#'     length as the total sum of month_len.
+#' @keywords internal
+int_acm2 <- function(y_points, month_len) {
+  MN <- rep(y_points, times = month_len)
+  new_MN <- MN
+
+  groups <- rep(seq_len(length(month_len)), month_len)
+  for (i in seq_len(length(MN))) {
+    new_MN <- (shift(new_MN, -1) + new_MN + shift(new_MN, 1)) / 3
+    new_mean <- unlist(lapply(unname(split(MN - new_MN, groups)), mean))
+    Cterm <- rep(new_mean, times = month_len)
+    new_MN <- new_MN + Cterm
+  }
+  new_MN
+}
+
 
 #' Monthly to daily interpolation
 #'

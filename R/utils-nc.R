@@ -76,59 +76,30 @@ convert_units <- function(filename,
     var_data2[,,i] <- FUN(var_data[,,i], conv_factor[i])
   }
 
-  # Create name for the output file based on input netCDF
-  output_filename <- paste0(gsub("\\.nc$", "", filename), "-new.nc")
-
-  # Check if the output file exists
-  if (file.exists(output_filename) & !overwrite)
-    stop("The output netCDF already exists. Please rename it or pass ",
-         "overwrite = TRUE to the function call.\n",
-         output_filename, call. = FALSE)
-
-  # Delete old output file
-  if (file.exists(output_filename))
-    . <- file.remove(output_filename)
-
-  # Extract extra attributes from the input netCDF
-  time_calendar <- ncdf4::ncatt_get(nc, timeid, "calendar")$value
-  var_longname <- ncdf4::ncatt_get(nc, varid, "long_name")$value
-  var_missval <- ncdf4::ncatt_get(nc, varid, "missing_value")$value
-
-  # Define dimensions
-  dimLat <- ncdf4::ncdim_def(name = latid, units = lat_units, vals = lat_data)
-  dimLon <- ncdf4::ncdim_def(name = lonid, units = lon_units, vals = lon_data)
-  dimTime <- ncdf4::ncdim_def(name = timeid,
-                              units = time_units,
-                              vals = time_data,
-                              calendar = time_calendar)
-
-  dimLon$id <- 0
-  dimLat$id <- 1
-  dimTime$id <- 2
-
-  # Create a variable
-  var_conv <- ncdf4::ncvar_def(name = varid,
-                               units = new_units,
-                               dim = list(dimLon, dimLat, dimTime),
-                               missval = var_missval,
-                               prec = "double",
-                               longname = var_longname)
-
-  # Create new netCDF file
-  nc_out <- ncdf4::nc_create(output_filename, var_conv)
-  on.exit(ncdf4::nc_close(nc_out)) # Close the file
-
-  # List all attributes for the main variable in the input netCDF
-  var_att <- ncdf4::ncatt_get(nc, varid)
-  var_att_names <- names(var_att)
-  idx <- !(var_att_names %in% c("long_name", "units", "_FillValue"))
-  # Add extra attributes to the new netCDF
-  for (i in which(idx))
-    ncdf4::ncatt_put(nc_out, varid, var_att_names[i], var_att[[i]])
-
-  # Add the climatology data
-  ncdf4::ncvar_put(nc_out, var_conv, var_data2)
-  # return(var_data2)
+  message("Saving output to netCDF...")
+  var_atts <- ncdf4::ncatt_get(nc, varid)
+  nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-new.nc"),
+          var = list(id = varid,
+                     longname = ncdf4::ncatt_get(nc,
+                                                 varid,
+                                                 "long_name")$value,
+                     missval = ncdf4::ncatt_get(nc,
+                                                varid,
+                                                "missing_value")$value,
+                     prec = "double",
+                     units = var_units,
+                     vals = var_data2),
+          lat = list(id = latid, units = lat_units, vals = lat_data),
+          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          time = list(calendar = ncdf4::ncatt_get(nc,
+                                                  timeid,
+                                                  "calendar")$value,
+                      id = timeid,
+                      units = time_units,
+                      vals = time_data),
+          var_atts = var_atts,
+          overwrite = overwrite)
+  message("Done. Bye!")
 }
 
 #' Convert units from monthly to daily
@@ -173,7 +144,7 @@ convert_units.m2d <- function(filename,
     stop("The variable ", varid, " does not seem to be in monthly units: ",
          var_units)
 
-  ncdf4::nc_close(nc) # Close the file
+  # ncdf4::nc_close(nc) # Close the file
 
   # Convert time variable to actual dates
   time_components <- unlist(strsplit(time_units, " since "))
@@ -384,68 +355,36 @@ monthly_clim <- function(filename,
                                           dims = 2)
   }
 
-  # Create name for the output file based on input netCDF
-  output_filename <- paste0(gsub("\\.nc$", "", filename),
-                            "-clim-", s_year, "-", e_year, ".nc")
-
-  # Check if the output file exists
-  if (file.exists(output_filename) & !overwrite)
-    stop("The output netCDF already exists. Please rename it or pass ",
-         "overwrite = TRUE to the function call.\n",
-         output_filename, call. = FALSE)
-
-  # Delete old output file
-  if (file.exists(output_filename))
-    . <- file.remove(output_filename)
-
-  # Extract extra attributes from the input netCDF
-  time_calendar <- ncdf4::ncatt_get(nc, timeid, "calendar")$value
-  var_longname <- ncdf4::ncatt_get(nc, varid, "long_name")$value
-  var_missval <- ncdf4::ncatt_get(nc, varid, "missing_value")$value
-
-  # Define dimensions
-  dimLat <- ncdf4::ncdim_def(name = latid, units = lat_units, vals = lat_data)
-  dimLon <- ncdf4::ncdim_def(name = lonid, units = lon_units, vals = lon_data)
-  dimTime <- ncdf4::ncdim_def(name = timeid,
-                              units = "months in a year",
-                              vals = 1:12,
-                              calendar = time_calendar)
-
-  dimLon$id <- 0
-  dimLat$id <- 1
-  dimTime$id <- 2
-
-  # Create a variable
-  var_clim <- ncdf4::ncvar_def(name = varid,
-                               units = var_units,
-                               dim = list(dimLon, dimLat, dimTime),
-                               missval = var_missval,
-                               prec = "double",
-                               longname = var_longname)
-
-  # Create new netCDF file
-  nc_out <- ncdf4::nc_create(output_filename, var_clim)
-  on.exit(ncdf4::nc_close(nc_out)) # Close the file
-
-  # List all attributes for the main variable in the input netCDF
-  var_att <- ncdf4::ncatt_get(nc, varid)
-  var_att_names <- names(var_att)
-  idx <- !(var_att_names %in% c("long_name", "units", "_FillValue"))
-  # Add extra attributes to the new netCDF
-  for (i in which(idx))
-    ncdf4::ncatt_put(nc_out, varid, var_att_names[i], var_att[[i]])
-  ncdf4::ncatt_put(nc_out,
-                   varid,
-                   "description",
-                   paste0("Created by averaging monthly data between ",
-                          s_year,
-                          " and ",
-                          e_year,
-                          " from ",
-                          basename(filename)))
-
-  # Add the climatology data
-  ncdf4::ncvar_put(nc_out, var_clim, var_data_climatology)
+  message("Saving output to netCDF...")
+  var_atts <- ncdf4::ncatt_get(nc, varid)
+  var_atts$description <- paste0("Created by averaging monthly data between ",
+                                 s_year,
+                                 " and ",
+                                 e_year,
+                                 " from ",
+                                 basename(filename))
+  nc_save(filename = paste0(gsub("\\.nc$", "", filename),
+                            "-clim-", s_year, "-", e_year, ".nc"),
+          var = list(id = varid,
+                     longname = ncdf4::ncatt_get(nc,
+                                                 varid,
+                                                 "long_name")$value,
+                     missval = ncdf4::ncatt_get(nc,
+                                                varid,
+                                                "missing_value")$value,
+                     prec = "double",
+                     units = var_units,
+                     vals = var_data_climatology),
+          lat = list(id = latid, units = lat_units, vals = lat_data),
+          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          time = list(calendar = ncdf4::ncatt_get(nc,
+                                                  timeid,
+                                                  "calendar")$value,
+                      id = timeid,
+                      units = "months in a year", # time_units,
+                      vals = seq_len(12)),
+          var_atts = var_atts,
+          overwrite = overwrite)
 }
 
 #' Check netCDF file
@@ -474,6 +413,121 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          "\nTry one of the following: \n",
          paste0("- ", names(nc$var), collapse = "\n"),
          call. = FALSE)
+}
+
+#' Interpolate netCDF file
+#'
+#' @param cpus Number of CPUs to use for the computation.
+#'
+#' @inheritParams monthly_clim
+#'
+#' @export
+nc_int <- function(filename,
+                   varid,
+                   timeid = "time",
+                   latid = "lat",
+                   lonid = "lon",
+                   cpus = 2,
+                   s_year = 1961,
+                   overwrite = TRUE) {
+
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
+  nc <- ncdf4::nc_open(filename)
+  on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  ## Time
+  tryCatch({
+    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
+    time_data <- ncdf4::ncvar_get(nc, timeid)
+    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the time dimension: ", timeid, call. = FALSE)
+  })
+  ## Latitude
+  tryCatch({
+    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
+    lat_data <- ncdf4::ncvar_get(nc, latid)
+    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
+  })
+  ## Longitude
+  tryCatch({
+    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
+    lon_data <- ncdf4::ncvar_get(nc, lonid)
+    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
+  })
+
+  # Read main variable
+  tryCatch({
+    var_data <- ncdf4::ncvar_get(nc, varid)
+    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", varid, call. = FALSE)
+  })
+
+  if (length(time_data) > 12)
+    stop("The input does not look like a monthly climatology.")
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  month_len <- days_in_month(as.Date(paste0(s_year, "-", time_data, "-01")))
+  idx <- seq_len(length(lat_data) * length(lon_data))
+  interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
+    aux <- arrayInd(i, dim(var_data)[-3])[1, ]
+    int_acm2(var_data[aux[1], aux[2], ], month_len)
+  }
+
+  message("Done with interpolation.")
+  message("Reshaping output...")
+  tmp <- array(0, dim = c(dim(var_data)[1:2], dim(interpolated)[1]))
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = length(idx), clear = FALSE, width = 60)
+  for (i in idx) {
+    pb$tick()
+    aux <- arrayInd(i, dim(var_data)[-3])[1, ]
+    tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
+  }
+
+  # return(tmp)
+
+  message("Saving output to netCDF...")
+  var_atts <- ncdf4::ncatt_get(nc, varid)
+  var_atts$description <- paste0("Daily values interpolated from ",
+                                 "a monthly climatology.")
+  nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-int.nc"),
+          var = list(id = varid,
+                     longname = ncdf4::ncatt_get(nc,
+                                                 varid,
+                                                 "long_name")$value,
+                     missval = ncdf4::ncatt_get(nc,
+                                                varid,
+                                                "missing_value")$value,
+                     prec = "double",
+                     units = var_units,
+                     vals = tmp),
+          lat = list(id = latid, units = lat_units, vals = lat_data),
+          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          time = list(calendar = ncdf4::ncatt_get(nc,
+                                                  timeid,
+                                                  "calendar")$value,
+                      id = timeid,
+                      units = time_units,
+                      vals = seq_len(dim(tmp)[3])),
+          var_atts = var_atts,
+          overwrite = overwrite)
 }
 
 #' Convert netCDF to time series
@@ -573,10 +627,17 @@ nc2ts <- function(filename,
                  mean = awm)
 }
 
-#' @export
+#' Create simple map
+#'
+#' @param data 2D array with the data to be mapped.
+#' @param lat Numeric array with latitude data (y-axis).
+#' @param lon Numeric array with longitude data (x-axis).
+#'
+#' @return Graphical object.
+#' @keywords internal
 plot_map <- function(data, lat, lon) {
-  library(maptools)
-  data(wrld_simpl)
+  # library(maptools)
+  # data("wrld_simpl")
   image(lon, lat, data)
   # plot(wrld_simpl, add = TRUE)
 }

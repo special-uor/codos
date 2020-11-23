@@ -17,7 +17,9 @@ RoxygenNote: 7.1.1
 Imports:
     doParallel,
     foreach,
+    ggplot2,
     lubridate,
+    maptools,
     ncdf4,
     parallel,
     progress,
