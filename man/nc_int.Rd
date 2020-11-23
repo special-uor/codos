@@ -26,7 +26,7 @@ nc_int(
 
 \item{lonid}{String with the longitude dimension identifier.}
 
-\item{cpus}{}
+\item{cpus}{Number of CPUs to use for the computation.}
 
 \item{s_year}{Numeric value with the start year.}
 
