@@ -691,7 +691,14 @@ nc2ts <- function(filename,
                  mean = awm)
 }
 
-#' @export
+#' Create simple map
+#'
+#' @param data 2D array with the data to be mapped.
+#' @param lat Numeric array with latitude data (y-axis).
+#' @param lon Numeric array with longitude data (x-axis).
+#'
+#' @return Graphical object.
+#' @keywords internal
 plot_map <- function(data, lat, lon) {
   library(maptools)
   data(wrld_simpl)
