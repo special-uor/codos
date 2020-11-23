@@ -539,30 +539,38 @@ nc_int <- function(filename,
   cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
 
   # Start parallel backend
-  cl <- parallel::makeCluster(cpus)
-  on.exit(parallel::stopCluster(cl)) # Stop cluster
-  doParallel::registerDoParallel(cl)
+  # cl <- parallel::makeCluster(cpus)
+  # on.exit(parallel::stopCluster(cl)) # Stop cluster
+  # doParallel::registerDoParallel(cl)
 
   month_len <- days_in_month(paste0(s_year, "-", time_data, "-01"))
   idx <- seq_len(length(lat_data) * length(lon_data))
-  interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
-    aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-    # int_acm(var_data[aux[1], aux[2], ],
-    #         month_len)
-    var_data[aux[1], aux[2], ]
-  }
-
-  message("Done with interpolation.")
-  message("Reshaping output...")
-  tmp <- array(0, dim = c(dim(var_data)[1:2], dim(interpolated)[1]))
+  # interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
+  tmp <- array(0, dim = c(dim(var_data)[1:2], sum(month_len)))
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = length(idx), clear = FALSE, width = 60)
   for (i in idx) {
     pb$tick()
     aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-    tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
+    # int_acm(var_data[aux[1], aux[2], ],
+    #         month_len)
+    # var_data[aux[1], aux[2], ]
+    tmp[aux[1], aux[2], ] <- int_acm2(var_data[aux[1], aux[2], ], month_len)
+      #var_data[aux[1], aux[2], ]
   }
+
+  message("Done with interpolation.")
+  # message("Reshaping output...")
+  # tmp <- array(0, dim = c(dim(var_data)[1:2], dim(interpolated)[1]))
+  # pb <- progress::progress_bar$new(
+  #   format = "(:current/:total) [:bar] :percent",
+  #   total = length(idx), clear = FALSE, width = 60)
+  # for (i in idx) {
+  #   pb$tick()
+  #   aux <- arrayInd(i, dim(var_data)[-3])[1, ]
+  #   tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
+  # }
 
   # return(tmp)
 
@@ -577,10 +585,10 @@ nc_int <- function(filename,
                                                  "long_name")$value,
                      missval = ncdf4::ncatt_get(nc,
                                                 varid,
-                                                "missing_value")$value),
+                                                "missing_value")$value,
                      prec = "double",
                      units = var_units,
-                     vals = tmp,
+                     vals = tmp),
           lat = list(id = latid, units = lat_units, vals = lat_data),
           lon = list(id = lonid, units = lon_units, vals = lon_data),
           time = list(calendar = ncdf4::ncatt_get(nc,
