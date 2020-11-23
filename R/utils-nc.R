@@ -546,18 +546,7 @@ nc_int <- function(filename,
   month_len <- days_in_month(as.Date(paste0(s_year, "-", time_data, "-01")))
   idx <- seq_len(length(lat_data) * length(lon_data))
   interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
-    # tmp <- array(0, dim = c(dim(var_data)[1:2], sum(month_len)))
-    # pb <- progress::progress_bar$new(
-    #   format = "(:current/:total) [:bar] :percent",
-    #   total = length(idx), clear = FALSE, width = 60)
-    # for (i in idx) {
-    #   pb$tick()
     aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-    # int_acm(var_data[aux[1], aux[2], ],
-    #         month_len)
-    # var_data[aux[1], aux[2], ]
-    # tmp[aux[1], aux[2], ] <- int_acm2(var_data[aux[1], aux[2], ], month_len)
-    # var_data[aux[1], aux[2], ]
     int_acm2(var_data[aux[1], aux[2], ], month_len)
   }
 
@@ -578,7 +567,7 @@ nc_int <- function(filename,
   message("Saving output to netCDF...")
   var_atts <- ncdf4::ncatt_get(nc, varid)
   var_atts$description <- paste0("Daily values interpolated from ",
-                                 "monthly climatology.")
+                                 "a monthly climatology.")
   nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-int.nc"),
           var = list(id = varid,
                      longname = ncdf4::ncatt_get(nc,
@@ -600,7 +589,6 @@ nc_int <- function(filename,
                       vals = seq_len(dim(tmp)[3])),
           var_atts = var_atts,
           overwrite = overwrite)
-  tmp
 }
 
 #' Convert netCDF to time series
