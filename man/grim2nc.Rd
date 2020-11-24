@@ -6,15 +6,19 @@
 \usage{
 grim2nc(
   filename,
+  varid,
   scale_factor = 10^3,
   units = "m",
   lat = NULL,
   lon = NULL,
-  FUN = `*`
+  FUN = `*`,
+  overwrite = TRUE
 )
 }
 \arguments{
 \item{filename}{Filename for the netCDF input (relative or absolute path).}
+
+\item{varid}{String with the main variable identifier.}
 
 \item{units}{String with the output units.}
 
@@ -23,6 +27,9 @@ grim2nc(
 \item{lon}{Numeric vector with the longitude values.}
 
 \item{FUN}{Infix function to perform the conversion.}
+
+\item{overwrite}{Boolean flag to indicate if the output file should be
+overwritten (if it exists).}
 }
 \description{
 Convert GRIM file to netCDF
