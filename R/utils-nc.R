@@ -162,6 +162,100 @@ convert_units.m2d <- function(filename,
                 FUN = `/`)
 }
 
+#' Calculate daily temperature from \eqn{T_{min}} and \eqn{T_{max}}
+#'
+#' @param tmin List with \eqn{T_{min}} \code{data} and variable \code{id}.
+#' @param tmax List with \eqn{T_{max}} \code{data} and variable \code{id}.
+#' @param varid String with variable ID for daily temperature.
+#' @inheritParams nc2ts
+#'
+#' @export
+daily_temp <- function(tmin,
+                       tmax,
+                       varid = "tmp",
+                       timeid = "time",
+                       latid = "lat",
+                       lonid = "lon",
+                       overwrite = TRUE) {
+  # Check and open netCDF files
+  nc_check(tmin$filename, tmin$id, timeid, latid, lonid)
+  nc_check(tmax$filename, tmax$id, timeid, latid, lonid)
+  nc_tmin <- ncdf4::nc_open(tmin$filename)
+  on.exit(ncdf4::nc_close(nc_tmin)) # Close the file
+  nc_tmax <- ncdf4::nc_open(tmax$filename)
+  on.exit(ncdf4::nc_close(nc_tmax)) # Close the file
+
+  # Read dimensions
+  ## Time
+  tryCatch({
+    time_data <- ncdf4::ncvar_get(nc_tmin, timeid)
+    time_units <- ncdf4::ncatt_get(nc_tmin, timeid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the time dimension: ", timeid, call. = FALSE)
+  })
+  ## Latitude
+  tryCatch({
+    lat_data <- ncdf4::ncvar_get(nc_tmin, latid)
+    lat_units <- ncdf4::ncatt_get(nc_tmin, latid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
+  })
+  ## Longitude
+  tryCatch({
+    lon_data <- ncdf4::ncvar_get(nc_tmin, lonid)
+    lon_units <- ncdf4::ncatt_get(nc_tmin, lonid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
+  })
+
+  # Read main variables
+  ## Tmin
+  tryCatch({
+    tmin_data <- ncdf4::ncvar_get(nc_tmin, tmin$id)
+    tmin_units <- ncdf4::ncatt_get(nc_tmin, tmin$id, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", tmin$id, call. = FALSE)
+  })
+  ## Tmax
+  tryCatch({
+    tmax_data <- ncdf4::ncvar_get(nc_tmax, tmax$id)
+    tmax_units <- ncdf4::ncatt_get(nc_tmax, tmax$id, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", tmax$id, call. = FALSE)
+  })
+
+  if (tmin_units != tmax_units)
+    stop("The units for both Tmin and Tmax are not the same: \n",
+         "Tmin: ", tmin_units, "\tTmax: ", tmax_units)
+
+  message("Saving output to netCDF...")
+  var_atts <- ncdf4::ncatt_get(nc_tmin, tmin$id)
+  var_atts$description <- paste0("Daily temperature calculated as a mean of ",
+                                 "Tmin: ", basename(tmin$filename), " and ",
+                                 "Tmax: ", basename(tmax$filename), ".")
+  nc_save(filename = paste0(strsplit(tmin$filename, tmin$id)[[1]][1],
+                            "daily.tmp.nc"),
+          var = list(id = varid,
+                     longname = "daily mean temperature",
+                     missval = ncdf4::ncatt_get(nc_tmin,
+                                                tmin$id,
+                                                "missing_value")$value,
+                     prec = "double",
+                     units = tmin_units,
+                     vals = (tmin_data + tmax_data) / 2),
+          lat = list(id = latid, units = lat_units, vals = lat_data),
+          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          time = list(calendar = ncdf4::ncatt_get(nc_tmin,
+                                                  timeid,
+                                                  "calendar")$value,
+                      id = timeid,
+                      units = time_units,
+                      vals = time_data),
+          var_atts = var_atts,
+          overwrite = overwrite)
+  message("Done. Bye!")
+}
+
 #' Get the days in a month
 #'
 #' Get the days in a month from a date string.
@@ -527,8 +621,6 @@ nc_int <- function(filename,
     aux <- arrayInd(i, dim(var_data)[-3])[1, ]
     tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
   }
-
-  # return(tmp)
 
   message("Saving output to netCDF...")
   var_atts <- ncdf4::ncatt_get(nc, varid)
