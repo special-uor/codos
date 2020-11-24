@@ -88,5 +88,5 @@ The original file was downloaded from:
 
 ```{r}
 elv_filename <- "~/Downloads/halfdeg.elv"
-codos::grim2nc(elv_filename, "elv")
+codos::grim2nc(elv_filename, "elv", scale_factor = 1, longname = "elevation")
 ```
