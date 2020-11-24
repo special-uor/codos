@@ -42,20 +42,97 @@ for (i in seq_along(ncfiles))
 ################################################################################
 # Climatologies
 ncfiles <- list.files("~/Desktop/iCloud/UoR/Data/CRU/4.04/", full.names = TRUE)
+tictoc::tic()
+pre_clim_int <- codos::nc_int(ncfiles[5], "pre", cpus = 8)
+tictoc::toc()
 
 # Precipitation plots
 filename <- "~/Downloads/cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990.nc"
 out <- codos::extract_data(filename, "pre")
+month_len <- codos::days_in_month(paste0("1961-", out$time$data, "-01"))
+################################################################################
+library(maptools)
+data(wrld_simpl)
+lat <- out$lat$data
+lon <- out$lon$data
+data <- array(0, dim = c(length(lon), length(lat)))
+data[650:660, 120:130] <- 10
+image(lon, lat, data, col = c("#FFFFFF", "#EECC00"))
+plot(wrld_simpl, add = TRUE)
+
+tmp <- array(0, dim = c(720, 360, 365))
+for (i in seq(650, 660, 1))
+  for (j in seq(120, 130, 1))
+    tmp[i, j, ] <- codos:::int_acm2(out$main$data[i, j, ], month_len)
+
+
+image(lon, lat, tmp[,,1])
+plot(wrld_simpl, add = TRUE)
+
+lon_start <- 650
+lon_end <- 655
+lon_delta <- lon_end - lon_start + 1
+lat_start <- 120
+lat_end <- 125
+lat_delta <- lat_end - lat_start + 1
+plots <- vector("list", lon_delta * lat_delta)
+p <- 1
+for (j in rev(seq(lat_start, lat_end, 1))) {
+  for (i in seq(lon_start, lon_end, 1)) {
+    plots[[p]] <- ts_comp(out$main$data[i, j, ],
+                          tmp[i, j, ],
+                          month_len,
+                          paste0("Precipitation at (", lat[j], ", ", lon[i], ")"),
+                          "Days",
+                          "Precipitation [mm/day]")
+    p <- p + 1
+  }
+}
+
+ggplot2::ggsave("precipitation-ts.pdf",
+                plot = gridExtra::grid.arrange(grobs = plots, nrow = lat_delta),
+                device = "pdf",
+                width = 9 * lon_delta,
+                height = 7 * lat_delta,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+
+ts_comp <- function(original, interpolated, month_len, main = NULL, xlab = NULL, ylab = NULL) {
+  df <- data.frame(x = seq_along(interpolated), y = interpolated)
+  df2 <- data.frame(x = cumsum(month_len) - month_len/2, y = original)
+  ggplot2::ggplot(df, ggplot2::aes(x, y)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_line(ggplot2::aes(x, y), df2, lty = 2, col = "red") +
+    ggplot2::labs(title = main, x = xlab, y = ylab) +
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+    ggplot2::theme_bw()
+  # plot(x = seq_along(interpolated), y = interpolated, type = "l", main = main, xlab = xlab, ylab = NULL)
+  # lines(x = c(15.5, 45, 74.5, 105, 135.5, 166, 196.5, 227.5, 258, 288.5,
+  #             319, 349.5),#c(15, cumsum(month_len)[-12]),
+  #       y = original, lty = 2)
+}
+
+
+codos::int_acm(out$main$data[1,2,], month_len)
+
 m_names <- c("jan", "feb", "mar", "apr", "may", "jun",
              "jul", "aug", "sep", "oct", "nov", "dec")
-for (i in seq_along(m_names)) {
-  pdf(paste0("~/Downloads/cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-",
-             i, "-", m_names[i], ".pdf"),
+
+library(maptools)
+data(wrld_simpl)
+for (i in seq_along(month.abb)) {
+  # pdf(paste0("~/Downloads/cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-",
+  #            i, "-", m_names[i], ".pdf"),
+  #
+  pdf(paste0("~/Desktop/iCloud/UoR/Data/codos/cru_ts4.04.pre-clim-1961-1990-",
+             i, "-", month.abb[i], ".pdf"),
       width = 8,
       height = 6)
-  codos::plot_map(out$main$data[,,i], out$lat$data, out$lon$data)
+  codos:::plot_map(out$main$data[,,i], out$lat$data, out$lon$data)
+  plot(wrld_simpl, add = TRUE, main = "Precipitation (1961-1990) [mm/day]")
   dev.off()
 }
+
 
 shp_path <- "~/Downloads"
 shp_name <- "ne_110m_admin_0_countries.shp"
@@ -63,20 +140,36 @@ shp_file <- file.path(shp_path, shp_name)
 world_shp <- sf::read_sf(shp_file)
 world_outline <- as(sf::st_geometry(world_shp), Class = "Spatial")
 # plot(world_outline, col="gray80", lwd=1)
-
+variable <- "Precipitation (1961-1990) [mm/day]"
 pre_raster <- raster::brick(filename, "pre")
 mapTheme <- rasterVis::rasterTheme(region = c(RColorBrewer::brewer.pal(9, "Blues")))
-cutpts <- seq(0, 50, 10)# c(0, 10, 20, 30, 40, 50)
+cutpts <- seq(0, 30, 1)# c(0, 10, 20, 30, 40, 50)
 pre_raster2 <- raster::brick(out$main$data)
-plt <- rasterVis::levelplot(raster::subset(pre_raster, 1),
-                            margin = FALSE,
-                            at = cutpts,
-                            cuts = length(cutpts),
-                            pretty=TRUE,
-                            par.settings = mapTheme,
-                            main = "January temperature")
+i <- 1
+for (i in seq_along(month.abb)) {
+  plt <- rasterVis::levelplot(raster::subset(pre_raster, i),
+                              margin = FALSE,
+                              at = cutpts,
+                              cuts = length(cutpts),
+                              pretty=TRUE,
+                              par.settings = mapTheme,
+                              main = paste0(variable, ": ", month.name[i]))
+  pdf(paste0("~/Desktop/iCloud/UoR/Data/codos/pre-clim-1961-1990-",
+             i, "-", month.abb[i], ".pdf"),
+      width = 8,
+      height = 6)
+  plt + latticeExtra::layer(sp::sp.lines(world_outline, col = "black", lwd = 1.0))
+  dev.off()
+  i <- i + 1
+}
+ ggplot2::ggsave("pre-clim-1961-1990.pdf",
+                plot = plt + latticeExtra::layer(sp::sp.lines(world_outline, col = "black", lwd = 1.0)),
+                device = "pdf",
+                width = 9,
+                height = 7,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
 
-plt + latticeExtra::layer(sp::sp.lines(world_outline, col = "black", lwd = 1.0))
 
 # world <- data.frame(maps::map(plot=FALSE)[c("x","y")])
 # plot(world)
