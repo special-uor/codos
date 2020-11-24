@@ -425,7 +425,7 @@ monthly_clim <- function(filename,
   var_data2 <- var$data[,,idx]
   time_data2 <- time$data[idx]
 
-  total_monts <- length(time_data2)
+  total_months <- length(time_data2)
   var_data_climatology <- array(0, dim = c(dim(var_data2)[1:2], 12))
 
   # Create climatology
@@ -434,7 +434,7 @@ monthly_clim <- function(filename,
     total = 12, clear = FALSE, width = 60)
   for (i in 1:12) {
     pb$tick()
-    var_data_climatology[,,i] <- rowMeans(var_data2[,,seq(i, total_monts, 12)],
+    var_data_climatology[,,i] <- rowMeans(var_data2[,,seq(i, total_months, 12)],
                                           na.rm = TRUE,
                                           dims = 2)
   }
