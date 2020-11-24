@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 .Rproj.user
 docs
+inst/python/*.png
