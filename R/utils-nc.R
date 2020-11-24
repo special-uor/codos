@@ -162,6 +162,100 @@ convert_units.m2d <- function(filename,
                 FUN = `/`)
 }
 
+#' Calculate daily temperature from \eqn{T_{min}} and \eqn{T_{max}}
+#'
+#' @param tmin List with \eqn{T_{min}} \code{data} and variable \code{id}.
+#' @param tmax List with \eqn{T_{max}} \code{data} and variable \code{id}.
+#' @param varid String with variable ID for daily temperature.
+#' @inheritParams nc2ts
+#'
+#' @export
+daily_temp <- function(tmin,
+                       tmax,
+                       varid = "tmp",
+                       timeid = "time",
+                       latid = "lat",
+                       lonid = "lon",
+                       overwrite = TRUE) {
+  # Check and open netCDF files
+  nc_check(tmin$filename, tmin$id, timeid, latid, lonid)
+  nc_check(tmax$filename, tmax$id, timeid, latid, lonid)
+  nc_tmin <- ncdf4::nc_open(tmin$filename)
+  on.exit(ncdf4::nc_close(nc_tmin)) # Close the file
+  nc_tmax <- ncdf4::nc_open(tmax$filename)
+  on.exit(ncdf4::nc_close(nc_tmax)) # Close the file
+
+  # Read dimensions
+  ## Time
+  tryCatch({
+    time_data <- ncdf4::ncvar_get(nc_tmin, timeid)
+    time_units <- ncdf4::ncatt_get(nc_tmin, timeid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the time dimension: ", timeid, call. = FALSE)
+  })
+  ## Latitude
+  tryCatch({
+    lat_data <- ncdf4::ncvar_get(nc_tmin, latid)
+    lat_units <- ncdf4::ncatt_get(nc_tmin, latid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
+  })
+  ## Longitude
+  tryCatch({
+    lon_data <- ncdf4::ncvar_get(nc_tmin, lonid)
+    lon_units <- ncdf4::ncatt_get(nc_tmin, lonid, "units")$value
+  }, error = function(e) {
+    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
+  })
+
+  # Read main variables
+  ## Tmin
+  tryCatch({
+    tmin_data <- ncdf4::ncvar_get(nc_tmin, tmin$id)
+    tmin_units <- ncdf4::ncatt_get(nc_tmin, tmin$id, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", tmin$id, call. = FALSE)
+  })
+  ## Tmax
+  tryCatch({
+    tmax_data <- ncdf4::ncvar_get(nc_tmax, tmax$id)
+    tmax_units <- ncdf4::ncatt_get(nc_tmax, tmax$id, "units")$value
+  }, error = function(e) {
+    stop("Error reading the main variable: ", tmax$id, call. = FALSE)
+  })
+
+  if (tmin_units != tmax_units)
+    stop("The units for both Tmin and Tmax are not the same: \n",
+         "Tmin: ", tmin_units, "\tTmax: ", tmax_units)
+
+  message("Saving output to netCDF...")
+  var_atts <- ncdf4::ncatt_get(nc_tmin, tmin$id)
+  var_atts$description <- paste0("Daily temperature calculated as a mean of ",
+                                 "Tmin: ", basename(tmin$filename), " and ",
+                                 "Tmax: ", basename(tmax$filename), ".")
+  nc_save(filename = paste0(strsplit(tmin$filename, tmin$id)[[1]][1],
+                            "daily.tmp.nc"),
+          var = list(id = varid,
+                     longname = "daily mean temperature",
+                     missval = ncdf4::ncatt_get(nc_tmin,
+                                                tmin$id,
+                                                "missing_value")$value,
+                     prec = "double",
+                     units = tmin_units,
+                     vals = (tmin_data + tmax_data) / 2),
+          lat = list(id = latid, units = lat_units, vals = lat_data),
+          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          time = list(calendar = ncdf4::ncatt_get(nc_tmin,
+                                                  timeid,
+                                                  "calendar")$value,
+                      id = timeid,
+                      units = time_units,
+                      vals = time_data),
+          var_atts = var_atts,
+          overwrite = overwrite)
+  message("Done. Bye!")
+}
+
 #' Get the days in a month
 #'
 #' Get the days in a month from a date string.
@@ -261,6 +355,122 @@ extract_data <- function(filename,
        lat = list(data = lat_data, units = lat_units),
        lon = list(data = lon_data, units = lon_units),
        time = list(data = time_data[idx], units = time_units))
+}
+
+#' Convert GRIM file to netCDF
+#'
+#' @param longname String with the output variable's long name.
+#' @param units String with the output units.
+#' @param lat Numeric vector with the latitude values.
+#' @param lon Numeric vector with the longitude values.
+#' @inheritParams convert_units
+#'
+#' @export
+#'
+#' @details
+#' A GRIM file is a structured ASCII file, that was used for early versions of
+#' the CRU TS data-set. This function is particularly useful to parse the
+#' elevations file provided here:
+#' \url{https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html}
+grim2nc <- function(filename,
+                    varid,
+                    longname = NULL,
+                    scale_factor = 10^3,
+                    units = "m",
+                    lat = NULL,
+                    lon = NULL,
+                    FUN = `*`,
+                    overwrite = TRUE) {
+  if (!file.exists(filename))
+    stop("The given file does not exist: \n", filename)
+
+  # Open filename
+  elv_file <- file(filename, open = 'r')
+  on.exit(close(elv_file))
+
+  # Read lines from the input file
+  elv_file_lines <- readLines(elv_file)
+
+  # Check if latitude and longitude vectors were given, if not create them.
+  if (is.null(lat))
+    lat <- seq(-89.75, 89.75, 0.5)
+  if (is.null(lon))
+    lon <- seq(-179.75, 179.75, 0.5)
+
+  # Create empty structure to store the elevations
+  elevations <- array(NA, dim = c(length(lon), length(lat)))
+
+  # Loop through the lines
+  message("Parsing the GRIM file...")
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = length(seq(6, length(elv_file_lines), 2)), clear = FALSE, width = 60)
+  for (i in seq(6, length(elv_file_lines), 2)) {
+    pb$tick()
+    # Check for lines starting with "Grid-ref="
+    if (grepl("Grid-ref=", elv_file_lines[i])) {
+      idx <- trimws(unlist(strsplit(elv_file_lines[i], "Grid-ref="))[2])
+      idx <- unlist(strsplit(idx, ", "))
+      x <- as.integer(trimws(idx[1]))
+      y <- as.integer(trimws(idx[2]))
+      values <- as.integer(unlist(strsplit(elv_file_lines[i + 1], " ")))
+      values <- values[!is.na(values)]
+      if (any(mean(values) != values))
+        warning("Some depths are not the same for all positions: ",
+                "(", x, ",", y, ")")
+      if (all(!is.na(elevations[x, y]))) {
+        warning("Duplicated elevations for position: (", x, ",", y, ")")
+      } else {
+        elevations[x, y] <- mean(values)
+      }
+    }
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("File converted from GRIM file: ",
+                                 basename(filename))
+  nc_save_timeless(filename = paste0(filename, ".nc"),
+                   var = list(id = varid,
+                              longname = ifelse(is.null(longname),
+                                                varid,
+                                                longname),
+                              missval = -999L,
+                              prec = "double",
+                              units = units,
+                              vals = FUN(elevations, scale_factor)),
+                   lat = list(id = "lat", units = "degrees_north", vals = lat),
+                   lon = list(id = "lon", units = "degrees_east", vals = lon),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+  message("Done. Bye!")
+}
+
+#' Calculate Julian day
+#'
+#' @param year Numeric value with the year.
+#' @param month Numeric value with the month (1-12).
+#' @param day Numeric value with the day (1-31).
+#'
+#' @return Numeric value with the Julian day.
+#' @export
+#'
+#' @examples
+#' # 13 Aug 2014 (expected 2456882)
+#' julian_day(2014, 8, 13)
+#'
+#' @references
+#' Meeus, J. (1991). Astronomical algorithms. 1st ed.
+#' Virginia: Willmann-Bell, Inc. (cit. on pp. 13, 43).
+julian_day <- function(year, month, day) {
+  if (month <= 2) {
+    year <- year - 1
+    month <- month + 12
+  }
+  A <- as.integer(year / 100)
+  B <- 2 - A + as.integer(A / 4)
+  as.integer(365.25 * (year + 4716)) +
+    as.integer(30.6001 * (month + 1)) + day + B - 1524.5
 }
 
 #' Create monthly climatology
@@ -501,8 +711,6 @@ nc_int <- function(filename,
     tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
   }
 
-  # return(tmp)
-
   message("Saving output to netCDF...")
   var_atts <- ncdf4::ncatt_get(nc, varid)
   var_atts$description <- paste0("Daily values interpolated from ",
@@ -524,7 +732,7 @@ nc_int <- function(filename,
                                                   timeid,
                                                   "calendar")$value,
                       id = timeid,
-                      units = time_units,
+                      units = "days in a year",
                       vals = seq_len(dim(tmp)[3])),
           var_atts = var_atts,
           overwrite = overwrite)
