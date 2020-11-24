@@ -357,6 +357,72 @@ extract_data <- function(filename,
        time = list(data = time_data[idx], units = time_units))
 }
 
+#' Convert GRIM file to netCDF
+#'
+#' @param units String with the output units.
+#' @param lat Numeric vector with the latitude values.
+#' @param lon Numeric vector with the longitude values.
+#' @inheritParams convert_units
+#'
+#' @export
+#'
+#' @details
+#' A GRIM file is a structured ASCII file, that was used for early versions of
+#' the CRU TS data-set. This function is particularly useful to parse the
+#' elevations file provided here:
+#' \url{https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html}
+grim2nc <- function(filename,
+                    scale_factor = 10^3,
+                    units = "m",
+                    lat = NULL,
+                    lon = NULL,
+                    FUN = `*`) {
+  if (!file.exists(filename))
+    stop("The given file does not exist: \n", filename)
+
+  # Open filename
+  elv_file <- file(filename, open = 'r')
+  on.exit(close(elv_file))
+
+  # Read lines from the input file
+  elv_file_lines <- readLines(elv_file)
+
+  # Check if latitude and longitude vectors were given, if not create them.
+  if (is.null(lat))
+    lat <- seq(-89.75, 89.75, 0.5)
+  if (is.null(lon))
+    lon <- seq(-179.75, 179.75, 0.5)
+
+  # Create empty structure to store the elevations
+  elevations <- array(NA, dim = c(length(lon), length(lat)))
+
+  # Loop through the lines
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = length(seq(6, length(elv_file_lines), 2)), clear = FALSE, width = 60)
+  for (i in seq(6, length(elv_file_lines), 2)) {
+    pb$tick()
+    # Check for lines starting with "Grid-ref="
+    if (grepl("Grid-ref=", elv_file_lines[i])) {
+      idx <- trimws(unlist(strsplit(elv_file_lines[i], "Grid-ref="))[2])
+      idx <- unlist(strsplit(idx, ", "))
+      x <- as.integer(trimws(idx[1]))
+      y <- as.integer(trimws(idx[2]))
+      values <- as.integer(unlist(strsplit(elv_file_lines[i + 1], " ")))
+      values <- values[!is.na(values)]
+      if (any(mean(values) != values))
+        warning("Some depths are not the same for all positions: ",
+                "(", x, ",", y, ")")
+      if (all(!is.na(elevations[x, y]))) {
+        warning("Duplicated elevations for position: (", x, ",", y, ")")
+      } else {
+        elevations[x, y] <- mean(values)
+      }
+    }
+  }
+  elevations_scaled <- FUN(elevations, scale_factor)
+}
+
 #' Calculate Julian day
 #'
 #' @param year Numeric value with the year.
