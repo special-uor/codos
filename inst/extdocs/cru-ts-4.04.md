@@ -85,3 +85,13 @@ codos::daily_temp(tmin = list(filename = tmin, id = "tmn"),
 
 SPLASH is driven by daily temperature (`tmp`), precipitation (`pre`),
 cloud coverage (`cld`), and latitude.
+
+## Convert elevations file from CRU TS 2.0
+
+The original file was downloaded from:
+<https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html>
+
+``` r
+elv_filename <- "~/Downloads/halfdeg.elv"
+codos::grim2nc(elv_filename, "elv")
+```
