@@ -263,6 +263,33 @@ extract_data <- function(filename,
        time = list(data = time_data[idx], units = time_units))
 }
 
+#' Calculate Julian day
+#'
+#' @param year Numeric value with the year.
+#' @param month Numeric value with the month (1-12).
+#' @param day Numeric value with the day (1-31).
+#'
+#' @return Numeric value with the Julian day.
+#' @export
+#'
+#' @examples
+#' # 13 Aug 2014 (expected 2456882)
+#' julian_day(2014, 8, 13)
+#'
+#' @references
+#' Meeus, J. (1991). Astronomical algorithms. 1st ed.
+#' Virginia: Willmann-Bell, Inc. (cit. on pp. 13, 43).
+julian_day <- function(year, month, day) {
+  if (month <= 2) {
+    year <- year - 1
+    month <- month + 12
+  }
+  A <- as.integer(year / 100)
+  B <- 2 - A + as.integer(A / 4)
+  as.integer(365.25 * (year + 4716)) +
+    as.integer(30.6001 * (month + 1)) + day + B - 1524.5
+}
+
 #' Create monthly climatology
 #'
 #' @param s_year Numeric value with the start year.
