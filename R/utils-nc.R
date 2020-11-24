@@ -372,11 +372,13 @@ extract_data <- function(filename,
 #' elevations file provided here:
 #' \url{https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html}
 grim2nc <- function(filename,
+                    varid,
                     scale_factor = 10^3,
                     units = "m",
                     lat = NULL,
                     lon = NULL,
-                    FUN = `*`) {
+                    FUN = `*`,
+                    overwrite = TRUE) {
   if (!file.exists(filename))
     stop("The given file does not exist: \n", filename)
 
@@ -397,6 +399,7 @@ grim2nc <- function(filename,
   elevations <- array(NA, dim = c(length(lon), length(lat)))
 
   # Loop through the lines
+  message("Parsing the GRIM file...")
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = length(seq(6, length(elv_file_lines), 2)), clear = FALSE, width = 60)
@@ -420,7 +423,23 @@ grim2nc <- function(filename,
       }
     }
   }
-  elevations_scaled <- FUN(elevations, scale_factor)
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("File converted from GRIM file: ",
+                                 basename(filename))
+  nc_save_timeless(filename = paste0(filename, ".nc"),
+                   var = list(id = varid,
+                              longname = varid,
+                              missval = -999L,
+                              prec = "double",
+                              units = units,
+                              vals = FUN(elevations, scale_factor)),
+                   lat = list(id = "lat", units = "degrees_north", vals = lat),
+                   lon = list(id = "lon", units = "degrees_east", vals = lon),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+  message("Done. Bye!")
 }
 
 #' Calculate Julian day
