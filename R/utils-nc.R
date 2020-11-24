@@ -643,7 +643,7 @@ nc_int <- function(filename,
                                                   timeid,
                                                   "calendar")$value,
                       id = timeid,
-                      units = time_units,
+                      units = "days in a year",
                       vals = seq_len(dim(tmp)[3])),
           var_atts = var_atts,
           overwrite = overwrite)
