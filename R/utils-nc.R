@@ -146,47 +146,17 @@ daily_temp <- function(tmin,
   on.exit(ncdf4::nc_close(nc_tmax)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    time_data <- ncdf4::ncvar_get(nc_tmin, timeid)
-    time_units <- ncdf4::ncatt_get(nc_tmin, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
-  ## Latitude
-  tryCatch({
-    lat_data <- ncdf4::ncvar_get(nc_tmin, latid)
-    lat_units <- ncdf4::ncatt_get(nc_tmin, latid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
-  })
-  ## Longitude
-  tryCatch({
-    lon_data <- ncdf4::ncvar_get(nc_tmin, lonid)
-    lon_units <- ncdf4::ncatt_get(nc_tmin, lonid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
-  })
+  time <- nc_var_get(tmin$filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(tmin$filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(tmin$filename, lonid, TRUE)    # Longitude
 
   # Read main variables
-  ## Tmin
-  tryCatch({
-    tmin_data <- ncdf4::ncvar_get(nc_tmin, tmin$id)
-    tmin_units <- ncdf4::ncatt_get(nc_tmin, tmin$id, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", tmin$id, call. = FALSE)
-  })
-  ## Tmax
-  tryCatch({
-    tmax_data <- ncdf4::ncvar_get(nc_tmax, tmax$id)
-    tmax_units <- ncdf4::ncatt_get(nc_tmax, tmax$id, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", tmax$id, call. = FALSE)
-  })
+  tmin <- nc_var_get(tmin$filename, tmin$id)
+  tmax <- nc_var_get(tmax$filename, tmax$id)
 
-  if (tmin_units != tmax_units)
+  if (tmin$units != tmax$units)
     stop("The units for both Tmin and Tmax are not the same: \n",
-         "Tmin: ", tmin_units, "\tTmax: ", tmax_units)
+         "Tmin: ", tmin$units, "\tTmax: ", tmax$units)
 
   message("Saving output to netCDF...")
   var_atts <- ncdf4::ncatt_get(nc_tmin, tmin$id)
@@ -201,16 +171,16 @@ daily_temp <- function(tmin,
                                                 tmin$id,
                                                 "missing_value")$value,
                      prec = "double",
-                     units = tmin_units,
-                     vals = (tmin_data + tmax_data) / 2),
-          lat = list(id = latid, units = lat_units, vals = lat_data),
-          lon = list(id = lonid, units = lon_units, vals = lon_data),
+                     units = tmin$units,
+                     vals = (tmin$data + tmax$data) / 2),
+          lat = list(id = latid, units = lat$units, vals = lat$data),
+          lon = list(id = lonid, units = lon$units, vals = lon$data),
           time = list(calendar = ncdf4::ncatt_get(nc_tmin,
                                                   timeid,
                                                   "calendar")$value,
                       id = timeid,
-                      units = time_units,
-                      vals = time_data),
+                      units = time$units,
+                      vals = time$data),
           var_atts = var_atts,
           overwrite = overwrite)
   message("Done. Bye!")
@@ -249,46 +219,20 @@ extract_data <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
-    time_data <- ncdf4::ncvar_get(nc, timeid)
-    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
-  ## Latitude
-  tryCatch({
-    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
-    lat_data <- ncdf4::ncvar_get(nc, latid)
-    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
-  })
-  ## Longitude
-  tryCatch({
-    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
-    lon_data <- ncdf4::ncvar_get(nc, lonid)
-    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
-  })
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)    # Longitude
 
   # Read main variable
-  tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
-    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", varid, call. = FALSE)
-  })
+  var <- nc_var_get(filename, varid)
 
   # Initialise index
-  idx <- rep(TRUE, length(time_data))
+  idx <- rep(TRUE, length(time$data))
 
   # Convert time variable to actual dates
-  if (grepl("since", time_units)) {
-    time_components <- unlist(strsplit(time_units, " since "))
-    years <- retime(time_data,
+  if (grepl("since", time$units)) {
+    time_components <- unlist(strsplit(time$units, " since "))
+    years <- retime(time$data,
                     ref_date = lubridate::date(time_components[2]),
                     duration = time_components[1])$year
 
@@ -302,19 +246,15 @@ extract_data <- function(filename,
     }
   }
 
-  # Subset the data for the timesteps in the target range
-  var_data2 <- var_data[,,idx]
-  time_data2 <- time_data[idx]
-
   var_scale_factor <- ncdf4::ncatt_get(nc, varid, "scale_factor")$value
   var_scale_factor <- ifelse(var_scale_factor == 0, 1, var_scale_factor)
   var_missing_value <- ncdf4::ncatt_get(nc, varid, "missing_value")$value
 
-  list(main = list(data = var_data[,,idx] * var_scale_factor,
-                   units = var_units),
-       lat = list(data = lat_data, units = lat_units),
-       lon = list(data = lon_data, units = lon_units),
-       time = list(data = time_data[idx], units = time_units))
+  list(main = list(data = var$data[,,idx] * var_scale_factor,
+                   units = var$units),
+       lat = list(data = lat$data, units = lat$units),
+       lon = list(data = lon$data, units = lon$units),
+       time = list(data = time$data[idx], units = time$units))
 }
 
 #' Convert GRIM file to netCDF
@@ -465,42 +405,16 @@ monthly_clim <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
-    time_data <- ncdf4::ncvar_get(nc, timeid)
-    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
-  ## Latitude
-  tryCatch({
-    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
-    lat_data <- ncdf4::ncvar_get(nc, latid)
-    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
-  })
-  ## Longitude
-  tryCatch({
-    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
-    lon_data <- ncdf4::ncvar_get(nc, lonid)
-    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
-  })
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)    # Longitude
 
   # Read main variable
-  tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
-    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", varid, call. = FALSE)
-  })
+  var <- nc_var_get(filename, varid)
 
   # Convert time variable to actual dates
-  time_components <- unlist(strsplit(time_units, " since "))
-  years <- retime(time_data,
+  time_components <- unlist(strsplit(time$units, " since "))
+  years <- retime(time$data,
                   ref_date = lubridate::date(time_components[2]),
                   duration = time_components[1])$year
 
@@ -508,8 +422,8 @@ monthly_clim <- function(filename,
   idx <- years >= s_year & years <= e_year
 
   # Subset the data for the timesteps in the target range
-  var_data2 <- var_data[,,idx]
-  time_data2 <- time_data[idx]
+  var_data2 <- var$data[,,idx]
+  time_data2 <- time$data[idx]
 
   total_monts <- length(time_data2)
   var_data_climatology <- array(0, dim = c(dim(var_data2)[1:2], 12))
@@ -543,15 +457,15 @@ monthly_clim <- function(filename,
                                                 varid,
                                                 "missing_value")$value,
                      prec = "double",
-                     units = var_units,
+                     units = var$units,
                      vals = var_data_climatology),
-          lat = list(id = latid, units = lat_units, vals = lat_data),
-          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          lat = list(id = latid, units = lat$units, vals = lat$data),
+          lon = list(id = lonid, units = lon$units, vals = lon$data),
           time = list(calendar = ncdf4::ncatt_get(nc,
                                                   timeid,
                                                   "calendar")$value,
                       id = timeid,
-                      units = "months in a year", # time_units,
+                      units = "months in a year", # time$units,
                       vals = seq_len(12)),
           var_atts = var_atts,
           overwrite = overwrite)
@@ -607,40 +521,14 @@ nc_int <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
-    time_data <- ncdf4::ncvar_get(nc, timeid)
-    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
-  ## Latitude
-  tryCatch({
-    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
-    lat_data <- ncdf4::ncvar_get(nc, latid)
-    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
-  })
-  ## Longitude
-  tryCatch({
-    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
-    lon_data <- ncdf4::ncvar_get(nc, lonid)
-    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
-  })
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)    # Longitude
 
   # Read main variable
-  tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
-    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", varid, call. = FALSE)
-  })
+  var <- nc_var_get(filename, varid)
 
-  if (length(time_data) > 12)
+  if (length(time$data) > 12)
     stop("The input does not look like a monthly climatology.")
 
   # Check the number of CPUs does not exceed the availability
@@ -652,23 +540,23 @@ nc_int <- function(filename,
   on.exit(parallel::stopCluster(cl)) # Stop cluster
   doParallel::registerDoParallel(cl)
 
-  month_len <- days_in_month(as.Date(paste0(s_year, "-", time_data, "-01")))
-  idx <- seq_len(length(lat_data) * length(lon_data))
+  month_len <- days_in_month(as.Date(paste0(s_year, "-", time$data, "-01")))
+  idx <- seq_len(length(lat$data) * length(lon$data))
   interpolated <- foreach::foreach(i = idx, .combine = cbind) %dopar% {
-    aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-    int_acm2(var_data[aux[1], aux[2], ], month_len)
+    aux <- arrayInd(i, dim(var$data)[-3])[1, ]
+    int_acm2(var$data[aux[1], aux[2], ], month_len)
   }
 
   message("Done with interpolation.")
   message("Reshaping output...")
-  tmp <- array(0, dim = c(dim(var_data)[1:2], dim(interpolated)[1]))
+  tmp <- array(0, dim = c(dim(var$data)[1:2], dim(interpolated)[1]))
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = length(idx), clear = FALSE, width = 60)
   for (i in idx) {
     pb$tick()
-    aux <- arrayInd(i, dim(var_data)[-3])[1, ]
-    tmp[aux[1], aux[2], ] <- interpolated[, i] #var_data[aux[1], aux[2], ]
+    aux <- arrayInd(i, dim(var$data)[-3])[1, ]
+    tmp[aux[1], aux[2], ] <- interpolated[, i] #var$data[aux[1], aux[2], ]
   }
 
   message("Saving output to netCDF...")
@@ -684,10 +572,10 @@ nc_int <- function(filename,
                                                 varid,
                                                 "missing_value")$value,
                      prec = "double",
-                     units = var_units,
+                     units = var$units,
                      vals = tmp),
-          lat = list(id = latid, units = lat_units, vals = lat_data),
-          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          lat = list(id = latid, units = lat$units, vals = lat$data),
+          lon = list(id = lonid, units = lon$units, vals = lon$data),
           time = list(calendar = ncdf4::ncatt_get(nc,
                                                   timeid,
                                                   "calendar")$value,
@@ -749,73 +637,47 @@ nc2ts <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
-    time_data <- ncdf4::ncvar_get(nc, timeid)
-    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
-  ## Latitude
-  tryCatch({
-    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
-    lat_data <- ncdf4::ncvar_get(nc, latid)
-    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
-  })
-  ## Longitude
-  tryCatch({
-    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
-    lon_data <- ncdf4::ncvar_get(nc, lonid)
-    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
-  })
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)    # Longitude
 
   # Read main variable
-  tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
-    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", varid, call. = FALSE)
-  })
+  var <- nc_var_get(filename, varid)
 
   # Create universal weight matrix
   lats_mat <- c()
-  for (i in lat_data)
+  for (i in lat$data)
     lats_mat <- c(lats_mat, cos(i * pi / 180))
-  lats_mat <- rep(lats_mat, length(lon_data))
+  lats_mat <- rep(lats_mat, length(lon$data))
   lats_mat <- matrix(lats_mat,
-                     nrow = length(lat_data),
-                     ncol = length(lon_data),
+                     nrow = length(lat$data),
+                     ncol = length(lon$data),
                      byrow = FALSE)
 
   # Calculate area weighted mean
-  awm <- rep(NA, length = length(time_data))
+  awm <- rep(NA, length = length(time$data))
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
-    total = length(time_data), clear = FALSE, width = 60)
-  for (i in seq_len(length(time_data))) {
+    total = length(time$data), clear = FALSE, width = 60)
+  for (i in seq_len(length(time$data))) {
     pb$tick()
-    aux <- var_data[,,i]
+    aux <- var$data[,,i]
     awm[i] <- sum(t(aux) * lats_mat, na.rm = TRUE) /
                   sum(lats_mat[is.finite(aux)])
 
   }
 
   if (plot) {
-    print(ggplot2::qplot(time_data, awm) +
+    print(ggplot2::qplot(time$data, awm) +
             ggplot2::geom_line() +
             ggplot2::geom_abline(intercept = mean(awm), col = "red", lty = 2) +
-            ggplot2::labs(x = time_units,
-                          y = var_units) +
+            ggplot2::labs(x = time$units,
+                          y = var$units) +
             ggplot2::theme_bw())
   }
 
   # Create tibble structure
-  tibble::tibble(time = time_data,
+  tibble::tibble(time = time$data,
                  mean = awm)
 }
 
