@@ -359,6 +359,7 @@ extract_data <- function(filename,
 
 #' Convert GRIM file to netCDF
 #'
+#' @param longname String with the output variable's long name.
 #' @param units String with the output units.
 #' @param lat Numeric vector with the latitude values.
 #' @param lon Numeric vector with the longitude values.
@@ -373,6 +374,7 @@ extract_data <- function(filename,
 #' \url{https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html}
 grim2nc <- function(filename,
                     varid,
+                    longname = NULL,
                     scale_factor = 10^3,
                     units = "m",
                     lat = NULL,
@@ -430,7 +432,9 @@ grim2nc <- function(filename,
                                  basename(filename))
   nc_save_timeless(filename = paste0(filename, ".nc"),
                    var = list(id = varid,
-                              longname = varid,
+                              longname = ifelse(is.null(longname),
+                                                varid,
+                                                longname),
                               missval = -999L,
                               prec = "double",
                               units = units,
