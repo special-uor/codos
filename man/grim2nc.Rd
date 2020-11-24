@@ -7,6 +7,7 @@
 grim2nc(
   filename,
   varid,
+  longname = NULL,
   scale_factor = 10^3,
   units = "m",
   lat = NULL,
@@ -19,6 +20,8 @@ grim2nc(
 \item{filename}{Filename for the netCDF input (relative or absolute path).}
 
 \item{varid}{String with the main variable identifier.}
+
+\item{longname}{String with the output variable's long name.}
 
 \item{units}{String with the output units.}
 
