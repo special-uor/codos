@@ -22,58 +22,32 @@ convert_units <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
-    time_data <- ncdf4::ncvar_get(nc, timeid)
-    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
-  ## Latitude
-  tryCatch({
-    # lat_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, latid))
-    lat_data <- ncdf4::ncvar_get(nc, latid)
-    lat_units <- ncdf4::ncatt_get(nc, latid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the latitude dimension: ", latid, call. = FALSE)
-  })
-  ## Longitude
-  tryCatch({
-    # lon_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, lonid))
-    lon_data <- ncdf4::ncvar_get(nc, lonid)
-    lon_units <- ncdf4::ncatt_get(nc, lonid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the longitude dimension: ", lonid, call. = FALSE)
-  })
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)    # Longitude
 
   # Read main variable
-  tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
-    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", varid, call. = FALSE)
-  })
+  var <- nc_var_get(filename, varid)
 
-  # Create empty structure with the same dimensions as var_data
-  var_data2 <- array(0, dim = dim(var_data))
+  # Create empty structure with the same dimensions as var$data
+  var_data2 <- array(0, dim = dim(var$data))
 
-  if (length(conv_factor) != length(time_data) & length(conv_factor) > 1)
+  if (length(conv_factor) != length(time$data) & length(conv_factor) > 1)
     stop("The conversion factor must be of the same length of the time ",
          "dimension or a single value.", call. = FALSE)
 
   # Verify that conversion factor's length is the same as the time dimension
-  if (length(conv_factor) != length(time_data)) {
-    conv_factor <- rep(conv_factor, length(time_data))
+  if (length(conv_factor) != length(time$data)) {
+    conv_factor <- rep(conv_factor, length(time$data))
   }
 
   # Convert units
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
-    total = length(time_data), clear = FALSE, width = 60)
-  for (i in seq_along(time_data)) {
+    total = length(time$data), clear = FALSE, width = 60)
+  for (i in seq_along(time$data)) {
     pb$tick()
-    var_data2[,,i] <- FUN(var_data[,,i], conv_factor[i])
+    var_data2[,,i] <- FUN(var$data[,,i], conv_factor[i])
   }
 
   message("Saving output to netCDF...")
@@ -87,16 +61,16 @@ convert_units <- function(filename,
                                                 varid,
                                                 "missing_value")$value,
                      prec = "double",
-                     units = var_units,
+                     units = var$units,
                      vals = var_data2),
-          lat = list(id = latid, units = lat_units, vals = lat_data),
-          lon = list(id = lonid, units = lon_units, vals = lon_data),
+          lat = list(id = latid, units = lat$units, vals = lat$data),
+          lon = list(id = lonid, units = lon$units, vals = lon$data),
           time = list(calendar = ncdf4::ncatt_get(nc,
                                                   timeid,
                                                   "calendar")$value,
                       id = timeid,
-                      units = time_units,
-                      vals = time_data),
+                      units = time$units,
+                      vals = time$data),
           var_atts = var_atts,
           overwrite = overwrite)
   message("Done. Bye!")
@@ -122,39 +96,25 @@ convert_units.m2d <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  ## Time
-  tryCatch({
-    # time_data <- tibble::as_tibble(ncdf4::ncvar_get(nc, timeid))
-    time_data <- ncdf4::ncvar_get(nc, timeid)
-    time_units <- ncdf4::ncatt_get(nc, timeid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the time dimension: ", timeid, call. = FALSE)
-  })
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
 
   # Read main variable
-  tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
-    var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
-  }, error = function(e) {
-    stop("Error reading the main variable: ", varid, call. = FALSE)
-  })
+  var <- nc_var_get(filename, varid)
 
   # Check the units have month in them
-  if (!grepl("month", var_units))
+  if (!grepl("month", var$units))
     stop("The variable ", varid, " does not seem to be in monthly units: ",
-         var_units)
-
-  # ncdf4::nc_close(nc) # Close the file
+         var$units)
 
   # Convert time variable to actual dates
-  time_components <- unlist(strsplit(time_units, " since "))
-  dates <- retime(time_data,
+  time_components <- unlist(strsplit(time$units, " since "))
+  dates <- retime(time$data,
                   ref_date = lubridate::date(time_components[2]),
                   duration = time_components[1])$date
 
   convert_units(filename,
                 varid,
-                new_units = gsub("month", "day", var_units),
+                new_units = gsub("month", "day", var$units),
                 timeid,
                 latid,
                 lonid,
