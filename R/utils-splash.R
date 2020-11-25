@@ -11,6 +11,7 @@
 #' @param year Numeric value with the year.
 #' @param lat List with latitude \code{data} and variable \code{id}.
 #' @param lon List with longitude \code{data} and variable \code{id}.
+#' @param cpus Number of CPUs to use for the computation.
 #' @param overwrite Boolean flag to indicate if the output file should be
 #'     overwritten (if it exists).
 #'
@@ -22,6 +23,7 @@ splash_solar <- function(filename,
                          year,
                          lat = NULL,
                          lon = NULL,
+                         cpus = 2,
                          overwrite = TRUE) {
   if (!(length(dim(tmp) == length(dim(sf)) &&
         dim(tmp) != dim(sf))))
@@ -29,14 +31,14 @@ splash_solar <- function(filename,
          "- tmp: (", paste0(dim(tmp), collapse = ", "), ")\n",
          "- sf: (", paste0(dim(sf), collapse = ", "), ")\n")
 
-  # solar_decl <- array(NA, dim = dim(pre))
+  # solar_decl <- array(NA, dim = dim(tmp))
 
   # for (j in seq_along(lat)) {
-  #   for (i in seq_len(dim(pre)[1])) {
+  #   for (i in seq_len(dim(tmp)[1])) {
   #     if (!is.na(elv[i, j])) {
   #       message(i, ", ", j)
   #       solar_decl[i, j, ] <-
-  #         unlist(lapply(seq_len(dim(pre)[3]),
+  #         unlist(lapply(seq_len(dim(tmp)[3]),
   #                       function(x, i, j) {
   #                         splash::calc_daily_solar(lat = lat[j],
   #                                                  n = x,
@@ -59,12 +61,15 @@ splash_solar <- function(filename,
   on.exit(parallel::stopCluster(cl)) # Stop cluster
   doParallel::registerDoParallel(cl)
 
-  idx <- data.frame(i = seq_len(dim(pre)[1]),
-                    j = rep(seq_along(lat$data), each = dim(pre)[1]))
+  idx <- data.frame(i = seq_len(dim(tmp)[1]),
+                    j = rep(seq_along(lat$data), each = dim(tmp)[1]))
+  message("Calculating solar declination...")
   output <- foreach::foreach(k = seq_len(nrow(idx)),
                              .combine = cbind) %dopar% {
+    i <- idx$i[k]
+    j <- idx$j[k]
     if (!is.na(elv[i, j])) {
-      unlist(lapply(seq_len(dim(pre)[3]),
+      unlist(lapply(seq_len(dim(tmp)[3]),
                     function(x, i, j) {
                       splash::calc_daily_solar(lat = lat$data[j],
                                                n = x,
@@ -72,15 +77,15 @@ splash_solar <- function(filename,
                                                y = year,
                                                sf = sf[i, j, x],
                                                tc = tmp[i, j, x])$delta_deg
-                    }, i = idx$i[k], j = idx$j[k]))
+                    }, i = i, j = j))
     } else {
-      rep(NA, dim(pre)[3])
+      rep(NA, dim(tmp)[3])
     }
   }
 
   message("Done calculating solar declination.")
   message("Reshaping output...")
-  solar_decl <- array(NA, dim = dim(pre))
+  solar_decl <- array(NA, dim = dim(tmp))
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
