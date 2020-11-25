@@ -47,6 +47,43 @@ ts_comp(climatology,
         main = paste0("Time series at (", lat[j], ", ", lon[i], ")"),
         xlab = "Days")
 
+lon_start <- 650
+lon_end <- 655
+lon_delta <- lon_end - lon_start + 1
+lat_start <- 120
+lat_end <- 125
+lat_delta <- lat_end - lat_start + 1
+plots <- vector("list", lon_delta * lat_delta)
+p <- 1
+for (j in rev(seq(lat_start, lat_end, 1))) {
+  for (i in seq(lon_start, lon_end, 1)) {
+    interpolated <- c(cld_ts_int[i, j, ],
+                      pre_ts_int[i, j, ],
+                      tmn_ts_int[i, j, ],
+                      tmx_ts_int[i, j, ],
+                      vap_ts_int[i, j, ])
+    climatology <- c(cld_ts_clim[i, j, ],
+                     pre_ts_clim[i, j, ],
+                     tmn_ts_clim[i, j, ],
+                     tmx_ts_clim[i, j, ],
+                     vap_ts_clim[i, j, ])
+    plots[[p]] <- ts_comp(climatology,
+                          interpolated,
+                          month_len,
+                          main = paste0("Time series at (", lat[j], ", ", lon[i], ")"),
+                          xlab = "Days")
+    p <- p + 1
+  }
+}
+
+ggplot2::ggsave("ts-comparison.pdf",
+                plot = gridExtra::grid.arrange(grobs = plots, nrow = lat_delta),
+                device = "pdf",
+                width = 5 * lon_delta,
+                height = 4 * lat_delta,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+
 ts_comp <- function(climatology,
                     interpolated,
                     month_len,
@@ -67,5 +104,6 @@ ts_comp <- function(climatology,
     ggplot2::geom_point(ggplot2::aes(x, y, color = variable), df2) +
     ggplot2::labs(title = main, x = xlab, y = ylab) +
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+    ggplot2::scale_color_brewer(palette = "Set1") +
     ggplot2::theme_bw()
 }
