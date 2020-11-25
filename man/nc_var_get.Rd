@@ -15,7 +15,7 @@ nc_var_get(filename, varid, is.dim = FALSE)
 (e.g. time, latitude, or longitude).}
 }
 \value{
-List with data and units linked to the variable.
+List with data, id, and units linked to the variable.
 }
 \description{
 Get variable from netCDF file
