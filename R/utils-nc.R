@@ -593,7 +593,7 @@ nc_int <- function(filename,
 #'     (e.g. time, latitude, or longitude).
 #' @inheritParams nc2ts
 #'
-#' @return List with data and units linked to the variable.
+#' @return List with data, id, and units linked to the variable.
 #' @keywords internal
 nc_var_get <- function(filename, varid, is.dim = FALSE) {
   nc <- ncdf4::nc_open(filename)
@@ -608,6 +608,7 @@ nc_var_get <- function(filename, varid, is.dim = FALSE) {
          ifelse(is.dim, "dimension", "variable"), ".", call. = FALSE)
   })
   list(data = var_data,
+       id = varid,
        units = var_units)
 }
 
