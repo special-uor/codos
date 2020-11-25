@@ -98,7 +98,8 @@ splash_solar <- function(filename,
 
   message("Saving output to netCDF...")
   var_atts <- list()
-  var_atts$description <- paste0("Solar declination calculated as a function ",
+  var_atts$description <- paste0("Solar declination angle, calculated as a ",
+                                 "function of",
                                  "latitute, elevation, daily temperature, and ",
                                  "sunshine fraction. The calculations were ",
                                  "done using SPLASH: ",
