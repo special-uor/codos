@@ -14,6 +14,7 @@ splash_solar(
   year,
   lat = NULL,
   lon = NULL,
+  cpus = 2,
   overwrite = TRUE
 )
 }
@@ -31,6 +32,8 @@ splash_solar(
 \item{lat}{List with latitude \code{data} and variable \code{id}.}
 
 \item{lon}{List with longitude \code{data} and variable \code{id}.}
+
+\item{cpus}{Number of CPUs to use for the computation.}
 
 \item{overwrite}{Boolean flag to indicate if the output file should be
 overwritten (if it exists).}
