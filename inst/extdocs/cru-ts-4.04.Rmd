@@ -87,6 +87,41 @@ The original file was downloaded from:
 [https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html](https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html)
 
 ```{r}
-elv_filename <- "~/Downloads/halfdeg.elv"
+elv_filename <- "halfdeg.elv"
 codos::grim2nc(elv_filename, "elv", scale_factor = 1, longname = "elevation")
+```
+##### Output file
+```{bash}
+"halfdeg.elv.nc"
+```
+
+
+## Run SPLASH
+Install wrapper R package for SPLASH:
+```{r}
+remotes::install_github("villegar/splash", "dev")
+```
+
+### Solar declination
+```{r}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "elv")$data
+lat <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lat")
+lon <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lon")
+tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.daily.tmp.nc"), "tmp")$data
+cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), "cld")$data
+sf <- 1 - cld / 100
+
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc")
+codos::splash_solar(output_filename, elv, sf, tmp, 1961, lat, lon, cpus = 20)
+```
+
+##### Output file
+```{bash}
+"cru_ts4.04-clim-1961-1990-solar-dcl.nc"
+```
+
+### Moisture Index
+```{r}
+pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
 ```
