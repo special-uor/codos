@@ -501,6 +501,7 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
 
 #' Interpolate netCDF file
 #'
+#' @importFrom foreach "%dopar%"
 #' @param cpus Number of CPUs to use for the computation.
 #'
 #' @inheritParams monthly_clim

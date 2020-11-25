@@ -2,6 +2,8 @@
 #' Calculate solar declination angle in degrees using SPLASH:
 #' \url{https://doi.org/10.5281/zenodo.376293}.
 #'
+#' @importFrom foreach "%dopar%"
+#'
 #' @param filename String with the output filename (.nc).
 #' @param elv 2D structure with elevation data.
 #' @param sf 3D structure with sunshine fraction data.
