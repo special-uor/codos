@@ -15,6 +15,7 @@
 #' @param overwrite Boolean flag to indicate if the output file should be
 #'     overwritten (if it exists).
 #'
+#' @export
 splash_evap <- function(filename,
                         elv,
                         sf,
@@ -49,15 +50,15 @@ splash_evap <- function(filename,
     i <- idx$i[k]
     j <- idx$j[k]
     if (!is.na(elv[i, j])) {
-     unlist(lapply(seq_len(dim(tmp)[3]),
-                   function(x, i, j) {
-                     splash::calc_daily_evap(lat = lat$data[j],
-                                             n = x,
-                                             elv = elv[i, j],
-                                             y = year,
-                                             sf = sf[i, j, x],
-                                             tc = tmp[i, j, x])$pet_mm
-                   }, i = i, j = j))
+      unlist(lapply(seq_len(dim(tmp)[3]),
+                    function(x, i, j) {
+                      splash::calc_daily_evap(lat = lat$data[j],
+                                              n = x,
+                                              elv = elv[i, j],
+                                              y = year,
+                                              sf = sf[i, j, x],
+                                              tc = tmp[i, j, x])$pet_mm
+                    }, i = i, j = j))
     } else {
      rep(NA, dim(tmp)[3])
     }
