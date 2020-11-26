@@ -589,7 +589,7 @@ nc_gs <- function(filename,
                               longname = ncdf4::ncatt_get(nc,
                                                           varid,
                                                           "long_name")$value,
-                              missval = cdf4::ncatt_get(nc,
+                              missval = ncdf4::ncatt_get(nc,
                                                         varid,
                                                         "missing_value")$value,
                               prec = "double",
@@ -720,7 +720,8 @@ nc_int <- function(filename,
 #' @importFrom foreach "%dopar%"
 #'
 #' @param filename String with the output filename (.nc).
-#' @param dcl 3D structure with solar declination angle data.
+#' @param dcl Numeric vector with solar declination angle data. These values
+#'     can be calculated with \code{\link{splash_dcl}}.
 #' @param tmn 3D structure with minimum temperature data.
 #' @param tmx 3D structure with maximum temperature data.
 #' @param lat List with latitude \code{data} and variable \code{id}.
@@ -745,12 +746,9 @@ nc_Tg <- function(filename,
 
   data("land_mask", envir = environment())
 
-  if (length(dim(dcl)) != length(dim(tmn)) ||
-      any(dim(dcl) != dim(tmn)) ||
-      length(dim(tmn)) != length(dim(tmx)) ||
+  if (length(dim(tmn)) != length(dim(tmx)) ||
       any(dim(tmn) != dim(tmx)))
-    stop("The dimensions of dcl, tmn, and tmx must be the same: \n",
-         "- dcl: (", paste0(dim(dcl), collapse = ", "), ")\n",
+    stop("The dimensions of tmn and tmx must be the same: \n",
          "- tmn: (", paste0(dim(tmn), collapse = ", "), ")\n",
          "- tmx: (", paste0(dim(tmx), collapse = ", "), ")\n")
 
@@ -775,7 +773,7 @@ nc_Tg <- function(filename,
                                  unlist(lapply(seq_len(dim(tmn)[3]),
                                                function(x, i, j) {
                                                  T_g(lat$data[j] * pi / 180,
-                                                     dcl[i, j, x] * pi / 180,
+                                                     dcl[x] * pi / 180,
                                                      tmx[i, j, x],
                                                      tmn[i, j, x]) },
                                                i = i, j = j))
