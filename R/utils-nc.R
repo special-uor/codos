@@ -713,6 +713,102 @@ nc_int <- function(filename,
           overwrite = overwrite)
 }
 
+#' Calculate soil moisture index and save netCDF file
+#'
+#' @importFrom foreach "%dopar%"
+#'
+#' @param filename String with the output filename (.nc).
+#' @param pet 3D structure with potential evapotranspiration data. These values
+#'     can be calculated with the function \code{\link{splash_evap}}.
+#' @param tmn 3D structure with minimum temperature data.
+#' @param tmx 3D structure with maximum temperature data.
+#' @param lat List with latitude \code{data} and variable \code{id}.
+#' @param lon List with longitude \code{data} and variable \code{id}.
+#' @param cpus Number of CPUs to use for the computation.
+#' @param overwrite Boolean flag to indicate if the output file should be
+#'     overwritten (if it exists).
+#' @export
+nc_mi <- function(filename,
+                  pet,
+                  pre,
+                  lat = NULL,
+                  lon = NULL,
+                  cpus = 2,
+                  overwrite = TRUE) {
+  if (length(dim(pet)) != length(dim(pre)) ||
+      any(dim(pet) != dim(pre)))
+    stop("The dimensions of pet and pre must be the same: \n",
+         "- pet: (", paste0(dim(pet), collapse = ", "), ")\n",
+         "- pre: (", paste0(dim(pre), collapse = ", "), ")\n")
+
+  if (is.null(lat))
+    data("lat", envir = environment())
+
+  if (is.null(lon))
+    data("lon", envir = environment())
+
+  # Load land-sea mask
+  data("land_mask", envir = environment())
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(length(lon$data)),
+                    j = rep(seq_along(lat$data), each = length(lon$data)))
+  message("Calculating moisture indices...")
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (!is.na(land_mask[i, j])) {
+                                 sum(pre[i, j, ], na.rm = TRUE) /
+                                   sum(pet[i, j, ], na.rm = TRUE)
+                               } else {
+                                 NA
+                               }
+                             }
+  message("Done calculating moisture indices.")
+  message("Reshaping output...")
+  smi <- array(NA, dim = dim(var$data)[1:2])
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    smi[i, j] <- output[k]
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Soil moisture index, calculated as a ",
+                                 "function of ",
+                                 "latitute, elevation, daily temperature, ",
+                                 "sunshine fraction, and precipitation. The ",
+                                 "calculations were done using SPLASH: ",
+                                 "https://doi.org/10.5281/zenodo.376293")
+  nc_save_timeless(filename = filename,
+                   var = list(id = "smi",
+                              longname = "soil moisture index",
+                              missval = -999L,
+                              prec = "double",
+                              units = "-",
+                              vals = smi),
+                   lat = list(id = "lat", units = lat$units, vals = lat$data),
+                   lon = list(id = "lon", units = lon$units, vals = lon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+
+  message("Done. Bye!")
+}
+
 #' Wrapper for \code{\link{T_g}}
 #'
 #' Wrapper for \code{\link{T_g}} (mean daytime air temperature).
@@ -721,7 +817,7 @@ nc_int <- function(filename,
 #'
 #' @param filename String with the output filename (.nc).
 #' @param dcl Numeric vector with solar declination angle data. These values
-#'     can be calculated with \code{\link{splash_dcl}}.
+#'     can be calculated with the function \code{\link{splash_dcl}}.
 #' @param tmn 3D structure with minimum temperature data.
 #' @param tmx 3D structure with maximum temperature data.
 #' @param lat List with latitude \code{data} and variable \code{id}.
@@ -744,6 +840,7 @@ nc_Tg <- function(filename,
   if (is.null(lon))
     data("lon", envir = environment())
 
+  # Load land-sea mask
   data("land_mask", envir = environment())
 
   if (length(dim(tmn)) != length(dim(tmx)) ||
