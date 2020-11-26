@@ -6,3 +6,4 @@
 ^LICENSE\.md$
 ^README\.Rmd$
 ^inst$
+^data-raw$
