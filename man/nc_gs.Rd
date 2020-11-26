@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils-nc.R
 \name{nc_gs}
 \alias{nc_gs}
-\title{Find growing season and save netCDF file}
+\title{Find mean growing season and save netCDF file}
 \usage{
 nc_gs(
   filename,
@@ -34,5 +34,5 @@ nc_gs(
 overwritten (if it exists).}
 }
 \description{
-Find growing season and save netCDF file
+Find mean growing season and save netCDF file
 }
