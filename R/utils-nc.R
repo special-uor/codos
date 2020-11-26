@@ -755,8 +755,8 @@ nc_Tg <- function(filename,
                                if (!is.na(land_mask[i, j])) {
                                  unlist(lapply(seq_len(dim(tmn)[3]),
                                                function(x, i, j) {
-                                                 T_g(lat$data[j],
-                                                     dcl[i, j, x],
+                                                 T_g(lat$data[j] * pi / 180,
+                                                     dcl[i, j, x] * pi / 180,
                                                      tmx[i, j, x],
                                                      tmn[i, j, x]) },
                                                i = i, j = j))
@@ -768,8 +768,8 @@ nc_Tg <- function(filename,
   # j <- 69
   # ts_plot(c(unlist(lapply(seq_len(dim(tmn)[3]),
   #                       function(x, i, j) {
-  #                         T_g(lat$data[j],
-  #                             dcl[i, j, x],
+  #                         T_g(lat$data[j] * pi / 180,
+  #                             dcl[i, j, x] * pi / 180,
   #                             tmx[i, j, x],
   #                             tmn[i, j, x]) },
   #                       i = i, j = j)),
