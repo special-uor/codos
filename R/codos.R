@@ -248,7 +248,8 @@ alpha_from_mi_om3 <- function(mi) {
 #' @export
 T_g <- function(lat, delta, Temp_max, Temp_min) {
   x <- -tan(lat) * tan(delta)
-  (Temp_max + Temp_min) * (0.5 + sqrt(1 - x^2) / 2 * acos(x))
+  Temp_max * (0.5 + sqrt(1 - x^2) / 2 * acos(x)) +
+    Temp_min * (0.5 - sqrt(1 - x^2) / 2 * acos(x))
 }
 
 ## Wrapper functions to find corrected moisture index #############
