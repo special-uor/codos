@@ -499,6 +499,113 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          call. = FALSE)
 }
 
+#' Find growing season and save netCDF file
+#'
+#' @param thr Growing season threshold.
+#'
+#' @inheritParams nc_int
+#' @export
+nc_gs <- function(filename,
+                  varid,
+                  thr = 0,
+                  timeid = "time",
+                  latid = "lat",
+                  lonid = "lon",
+                  cpus = 2,
+                  overwrite = TRUE) {
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
+  nc <- ncdf4::nc_open(filename)
+  on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  time <- codos:::nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- codos:::nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- codos:::nc_var_get(filename, lonid, TRUE)    # Longitude
+
+  # Read main variable
+  var <- codos:::nc_var_get(filename, varid)
+
+  # Load land-sea mask
+  data("land_mask", envir = environment())
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(length(lon$data)),
+                    j = rep(seq_along(lat$data), each = length(lon$data)))
+  message("Calculating growing season...")
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (!is.na(land_mask[i, j])) {
+                                 !is.na(var$data[i, j, ]) &
+                                   !is.null(var$data[i, j, ]) &
+                                   var$data[i, j, ] > thr
+                                 # unlist(lapply(seq_len(length(time$data)),
+                                 #               function(x, i, j) {
+                                 #                 if (is.na(var$data[i, j, x]) ||
+                                 #                     is.null(var$data[i, j, x]))
+                                 #                   return(FALSE)
+                                 #                 if (var$data[i, j, x] > thr)
+                                 #                   return(TRUE)
+                                 #                 return(FALSE) },
+                                 #               i = i, j = j))
+                               } else {
+                                 rep(FALSE, length(time$data))
+                               }
+                             }
+  message("Done calculating growing season.")
+  message("Reshaping output...")
+  gs_idx <- array(FALSE, dim = dim(var$data))
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    gs_idx[i, j, ] <- output[, k]
+  }
+
+  gs <- array(NA, dim = dim(var$data))
+  gs[gs_idx] <- var$data[gs_idx]
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Growing season, values above ", thr, ".")
+  nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
+          var = list(id = varid,
+                     longname = ncdf4::ncatt_get(nc,
+                                                 varid,
+                                                 "long_name")$value,
+                     missval = ncdf4::ncatt_get(nc,
+                                                varid,
+                                                "missing_value")$value,
+                     prec = "double",
+                     units = var$units,
+                     vals = gs),
+          lat = list(id = "lat", units = lat$units, vals = lat$data),
+          lon = list(id = "lon", units = lon$units, vals = lon$data),
+          time = list(calendar = ncdf4::ncatt_get(nc,
+                                                  timeid,
+                                                  "calendar")$value,
+                      id = time$id,
+                      units = time$units,
+                      vals = time$data),
+          var_atts = var_atts,
+          overwrite = overwrite)
+
+  message("Done. Bye!")
+}
+
 #' Interpolate netCDF file
 #'
 #' @importFrom foreach "%dopar%"
@@ -714,7 +821,6 @@ nc_Tg <- function(filename,
           overwrite = overwrite)
 
   message("Done. Bye!")
-
 }
 
 #' Get variable from netCDF file
