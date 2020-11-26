@@ -1,3 +1,14 @@
+#' Land-sea mask dataset
+#'
+#' A dataset containing information of land-sea mask with a grid of 0.5 by 0.5
+#' degrees resolution. \code{TRUE} values represent a land grid cell.
+#'
+#' @format A 2D matrix of 720 x 360 (lon x lat).
+#'
+#' @usage data(land_mask)
+#' @keywords datasets
+"land_mask"
+
 #' Latitude dataset
 #'
 #' A dataset containing information of the latitude dimension at a resolution
