@@ -24,7 +24,7 @@ codos::convert_units.m2d("cru_ts4.04.1901.2019.pre.dat.nc", "pre")
 "cru_ts4.04.1901.2019.pre.dat-new.nc"
 ```
 
-## Create monthly climatologies: 1960-1990
+## Create monthly climatologies: 1961-1990
 
 ``` r
 for (i in seq_along(ncfiles_raw))
@@ -141,15 +141,33 @@ pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim
 
   
 ![T\_g = T\_{max}\\left\[\\frac{1}{2} +&#10; \\frac{(1-x^2)^{1/2}}{2}
-\\cos^{-1}{x}\\right\] +&#10; T\_{min}\\left\[\\frac{1}{2} +
+\\cos^{-1}{x}\\right\] +&#10; T\_{min}\\left\[\\frac{1}{2} -
 \\frac{(1-x^2)^{1/2}}{2}
-\\cos^{-1}{x}\\right\]](https://latex.codecogs.com/png.latex?T_g%20%3D%20T_%7Bmax%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20T_%7Bmin%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D
+\\cos^{-1}{x}\\right\]](https://latex.codecogs.com/png.latex?T_g%20%3D%20T_%7Bmax%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20T_%7Bmin%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20-%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D
 "T_g = T_{max}\\left[\\frac{1}{2} +
                          \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right] +
-            T_{min}\\left[\\frac{1}{2} + \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right]")  
+            T_{min}\\left[\\frac{1}{2} - \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right]")  
+
+where
+
+  
+![x = -\\tan\\lambda \\tan
+\\delta](https://latex.codecogs.com/png.latex?x%20%3D%20-%5Ctan%5Clambda%20%5Ctan%20%5Cdelta
+"x = -\\tan\\lambda \\tan \\delta")  
 
 ``` r
-codos::T_g(lat, dlt, tmax, tmin)
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+dcl <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc"), "dcl")$data
+tmn <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn")$data
+tmx <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx")$data
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc")
+codos::nc_Tg(output_filename, dcl, tmn, tmx, cpus = 10)
+```
+
+##### Output file
+
+``` bash
+"cru_ts4.04-clim-1961-1990-mdt.nc"
 ```
 
 # Plots

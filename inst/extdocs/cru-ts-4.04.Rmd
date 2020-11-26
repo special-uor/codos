@@ -28,7 +28,7 @@ codos::convert_units.m2d("cru_ts4.04.1901.2019.pre.dat.nc", "pre")
 "cru_ts4.04.1901.2019.pre.dat-new.nc"
 ```
 
-## Create monthly climatologies: 1960-1990
+## Create monthly climatologies: 1961-1990
 ```{r}
 for (i in seq_along(ncfiles_raw))
   codos::monthly_clim(ncfiles_raw[i], ncfiles_var[i], 1961, 1990)
@@ -131,16 +131,27 @@ pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim
 ## Derive daytime temperature ($T_g$) with the following equation:
 $$T_g = T_{max}\left[\frac{1}{2} +
                          \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right] +
-            T_{min}\left[\frac{1}{2} + \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]$$
+            T_{min}\left[\frac{1}{2} - \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]$$
 
+where
+
+$$x = -\tan\lambda \tan \delta$$
 
 ```{r}
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 dcl <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc"), "dcl")$data
 tmn <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn")$data
 tmx <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx")$data
-output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-tg.nc")
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc")
 codos::nc_Tg(output_filename, dcl, tmn, tmx, cpus = 10)
+```
+##### Output file
+```bash
+"cru_ts4.04-clim-1961-1990-mdt.nc"
+```
+
+```{r, echo = FALSE}
+mdt <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
 ```
 
 # Plots
