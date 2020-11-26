@@ -499,7 +499,9 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          call. = FALSE)
 }
 
-#' Find mean growing season and save netCDF file
+#' Find mean growing season
+#'
+#' Find mean growing season and save output to a netCDF file.
 #'
 #' @importFrom foreach "%dopar%"
 #' @param thr Growing season threshold.
@@ -714,20 +716,16 @@ nc_int <- function(filename,
           overwrite = overwrite)
 }
 
-#' Calculate soil moisture index and save netCDF file
+#' Calculate soil moisture index
+#'
+#' Calculate soil moisture index and save output to a netCDF file.
 #'
 #' @importFrom foreach "%dopar%"
 #'
-#' @param filename String with the output filename (.nc).
 #' @param pet 3D structure with potential evapotranspiration data. These values
 #'     can be calculated with the function \code{\link{splash_evap}}.
-#' @param tmn 3D structure with minimum temperature data.
-#' @param tmx 3D structure with maximum temperature data.
-#' @param lat List with latitude \code{data} and variable \code{id}.
-#' @param lon List with longitude \code{data} and variable \code{id}.
-#' @param cpus Number of CPUs to use for the computation.
-#' @param overwrite Boolean flag to indicate if the output file should be
-#'     overwritten (if it exists).
+#' @param pre 3D structure with precipitation data.
+#' @inheritParams nc_Tg
 #' @export
 nc_mi <- function(filename,
                   pet,
@@ -962,6 +960,100 @@ nc_var_get <- function(filename, varid, is.dim = FALSE) {
        filename = filename,
        id = varid,
        units = var_units)
+}
+
+#' Calculate vapour pressure deficit
+#'
+#' Calculate vapour pressure deficit and save output to a netCDF file.
+#' @importFrom foreach "%dopar%"
+#'
+#' @param Tg 3D structure with potential evapotranspiration data. These values
+#'     can be calculated with the function \code{\link{splash_evap}}.
+#' @param vap 3D structure with vapour data.
+#' @inheritParams nc_Tg
+#' @export
+nc_vpd <- function(filename,
+                  Tg,
+                  vap,
+                  lat = NULL,
+                  lon = NULL,
+                  cpus = 2,
+                  overwrite = TRUE) {
+  if (length(dim(Tg)) != length(dim(vap)) ||
+      any(dim(Tg) != dim(vap)))
+    stop("The dimensions of Tg and vap must be the same: \n",
+         "- Tg: (", paste0(dim(Tg), collapse = ", "), ")\n",
+         "- vap: (", paste0(dim(vap), collapse = ", "), ")\n")
+
+  if (is.null(lat))
+    data("lat", envir = environment())
+
+  if (is.null(lon))
+    data("lon", envir = environment())
+
+  # Load land-sea mask
+  data("land_mask", envir = environment())
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(length(lon$data)),
+                    j = rep(seq_along(lat$data), each = length(lon$data)))
+  message("Calculating vapour pressure deficit...")
+  # Calculate saturated vapour pressure
+  svp <- 0.6108 * exp(17.27 * Tg / (Tg + 237.3))
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (!is.na(land_mask[i, j])) {
+                                 vap[i, j, ] - svp[i, j, ]
+                               } else {
+                                 NA
+                               }
+                             }
+  message("Done calculating vapour pressure deficit.")
+  message("Reshaping output...")
+  vpd <- array(NA, dim = dim(var$data)[1:2])
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    vpd[i, j] <- output[k]
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Vapour pressure deficit, calculated as a ",
+                                 "function of actual vapour pressured and ",
+                                 "saturated vapour pressured at a given ",
+                                 "temperature")
+                                 # "latitute, elevation, daily temperature, ",
+                                 # "sunshine fraction, and precipitation. The ",
+                                 # "calculations were done using SPLASH: ",
+                                 # "https://doi.org/10.5281/zenodo.376293")
+  nc_save_timeless(filename = filename,
+                   var = list(id = "vpd",
+                              longname = "vapour pressure deficit",
+                              missval = -999L,
+                              prec = "double",
+                              units = "kPa",
+                              vals = vpd),
+                   lat = list(id = "lat", units = lat$units, vals = lat$data),
+                   lon = list(id = "lon", units = lon$units, vals = lon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+
+  message("Done. Bye!")
 }
 
 #' Convert netCDF to time series
