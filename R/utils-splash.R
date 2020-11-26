@@ -25,8 +25,8 @@ splash_solar <- function(filename,
                          lon = NULL,
                          cpus = 2,
                          overwrite = TRUE) {
-  if (!(length(dim(tmp) == length(dim(sf)) &&
-        dim(tmp) != dim(sf))))
+  if (length(dim(tmp)) != length(dim(sf)) ||
+      any(dim(tmp) != dim(sf)))
     stop("The dimensions of tmp and sf must be the same: \n",
          "- tmp: (", paste0(dim(tmp), collapse = ", "), ")\n",
          "- sf: (", paste0(dim(sf), collapse = ", "), ")\n")
@@ -64,6 +64,17 @@ splash_solar <- function(filename,
   idx <- data.frame(i = seq_len(dim(tmp)[1]),
                     j = rep(seq_along(lat$data), each = dim(tmp)[1]))
   message("Calculating solar declination...")
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # 04. Calculate the declination angle (delta), degrees
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Woolf (1968)
+  # Paleoclimate variables:
+  # ke <- 0.01670       # eccentricity of earth's orbit, 2000CE (Berger 1978)
+  # keps <- 23.44       # obliquity of earth's elliptic, 2000CE (Berger 1978)
+  # pir <- pi / 180
+  # lam <- splash::berger_tls(n, 365)[2]
+  # delta_deg <- asin(sin(lam * pir) * sin(keps * pir)) / pir
+
   output <- foreach::foreach(k = seq_len(nrow(idx)),
                              .combine = cbind) %dopar% {
     i <- idx$i[k]
