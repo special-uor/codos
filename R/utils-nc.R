@@ -587,6 +587,136 @@ nc_int <- function(filename,
           overwrite = overwrite)
 }
 
+#' Wrapper for \code{\link{T_g}}
+#'
+#' Wrapper for \code{\link{T_g}} (mean daytime air temperature).
+#'
+#' @importFrom foreach "%dopar%"
+#'
+#' @param filename String with the output filename (.nc).
+#' @param dcl 3D structure with solar declination angle data.
+#' @param tmn 3D structure with minimum temperature data.
+#' @param tmx 3D structure with maximum temperature data.
+#' @param lat List with latitude \code{data} and variable \code{id}.
+#' @param lon List with longitude \code{data} and variable \code{id}.
+#' @param cpus Number of CPUs to use for the computation.
+#' @param overwrite Boolean flag to indicate if the output file should be
+#'     overwritten (if it exists).
+#' @export
+nc_Tg <- function(filename,
+                  dcl,
+                  tmn,
+                  tmx,
+                  lat = NULL,
+                  lon = NULL,
+                  cpus = 2,
+                  overwrite = TRUE) {
+  if (is.null(lat))
+    data("lat", envir = environment())
+
+  if (is.null(lon))
+    data("lon", envir = environment())
+
+  data("land_mask", envir = environment())
+
+  if (length(dim(dcl)) != length(dim(tmn)) ||
+      any(dim(dcl) != dim(tmn)) ||
+      length(dim(tmn)) != length(dim(tmx)) ||
+      any(dim(tmn) != dim(tmx)))
+    stop("The dimensions of dcl, tmn, and tmx must be the same: \n",
+         "- dcl: (", paste0(dim(dcl), collapse = ", "), ")\n",
+         "- tmn: (", paste0(dim(tmn), collapse = ", "), ")\n",
+         "- tmx: (", paste0(dim(tmx), collapse = ", "), ")\n")
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(dim(tmn)[1]),
+                    j = rep(seq_along(lat$data), each = dim(tmn)[1]))
+  message("Calculating mean daytime temperature...")
+
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (!is.na(land_mask[i, j])) {
+                                 unlist(lapply(seq_len(dim(tmn)[3]),
+                                               function(x, i, j) {
+                                                 T_g(lat$data[j],
+                                                     dcl[i, j, x],
+                                                     tmx[i, j, x],
+                                                     tmn[i, j, x]) },
+                                               i = i, j = j))
+                               } else {
+                                 rep(NA, dim(tmn)[3])
+                               }
+                             }
+  # i <- 225
+  # j <- 69
+  # ts_plot(c(unlist(lapply(seq_len(dim(tmn)[3]),
+  #                       function(x, i, j) {
+  #                         T_g(lat$data[j],
+  #                             dcl[i, j, x],
+  #                             tmx[i, j, x],
+  #                             tmn[i, j, x]) },
+  #                       i = i, j = j)),
+  #         tmn[i, j, ],
+  #         tmx[i, j, ]),
+  #         vars = c("Tg", "Tmin", "Tmax"),
+  #         main = paste("(", lat$data[j], ", ", lon$data[i], ")"),
+  #         xlab = "Days")
+  message("Done calculating mean daytime temperature.")
+  message("Reshaping output...")
+  tg <- array(NA, dim = dim(tmn))
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    tg[i, j, ] <- output[, k]
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Mean daytime temperature, calculated as a ",
+                                 "function of",
+                                 "latitute, solar declination angle [dcl], and ",
+                                 "maximum [tmx] & minimum [tmn] temperature. ",
+                                 "The calculations were done using the ",
+                                 "following equation: ",
+                                 "T_max * [0.5 + 0.5 * (1 - x^2)^0.5",
+                                 " * arccos(x)] + ",
+                                 "T_min * [0.5 - 0.5 * (1 - x^2)^0.5",
+                                 " * arccos(x)]; where ",
+                                 "x = -tan(lat) * tan(dcl)")
+  nc_save(filename = filename,
+          var = list(id = "mdt",
+                     longname = "mean daytime temperature",
+                     missval = -999L,
+                     prec = "double",
+                     units = "degrees Celsius",
+                     vals = tg),
+          lat = list(id = "lat", units = lat$units, vals = lat$data),
+          lon = list(id = "lon", units = lon$units, vals = lon$data),
+          time = list(calendar = "standard",
+                      id = "time",
+                      units = "days in a year",
+                      vals = seq_len(dim(tmn)[3])),
+          var_atts = var_atts,
+          overwrite = overwrite)
+
+  message("Done. Bye!")
+
+}
+
 #' Get variable from netCDF file
 #'
 #' @param is.dim Boolean flag to indicate if the variable is a dimension
