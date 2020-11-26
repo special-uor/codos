@@ -136,3 +136,107 @@ codos::splash_solar(output_filename, elv, sf, tmp, 1961, lat, lon, cpus = 20)
 ``` r
 pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
 ```
+
+## Derive daytime temperature (![T\_g](https://latex.codecogs.com/png.latex?T_g "T_g")) with the following equation:
+
+  
+![T\_g = T\_{max}\\left\[\\frac{1}{2} +&#10; \\frac{(1-x^2)^{1/2}}{2}
+\\cos^{-1}{x}\\right\] +&#10; T\_{min}\\left\[\\frac{1}{2} +
+\\frac{(1-x^2)^{1/2}}{2}
+\\cos^{-1}{x}\\right\]](https://latex.codecogs.com/png.latex?T_g%20%3D%20T_%7Bmax%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20T_%7Bmin%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D
+"T_g = T_{max}\\left[\\frac{1}{2} +
+                         \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right] +
+            T_{min}\\left[\\frac{1}{2} + \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right]")  
+
+``` r
+codos::T_g(lat, dlt, tmax, tmin)
+```
+
+# Plots
+
+## Climatologies vs Interpolated values
+
+##### Inputs
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+ncfiles_clim <- file.path(path,
+                          c("cru_ts4.04.1901.2019.cld.dat-clim-1961-1990.nc",
+                            "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990.nc",
+                            "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990.nc",
+                            "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990.nc",
+                            "cru_ts4.04.1901.2019.vap.dat-clim-1961-1990.nc"))
+ncfiles_int <- file.path(path,
+                         c("cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc",
+                           "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc",
+                           "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc",
+                           "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc",
+                           "cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc"))
+
+# Original climatologies
+cld_ts_clim <- codos::extract_data(ncfiles_clim[1], "cld")$main$data
+pre_ts_clim <- codos::extract_data(ncfiles_clim[2], "pre")$main$data
+tmn_ts_clim <- codos::extract_data(ncfiles_clim[3], "tmn")$main$data
+tmx_ts_clim <- codos::extract_data(ncfiles_clim[4], "tmx")$main$data
+vap_ts_clim <- codos::extract_data(ncfiles_clim[5], "vap")$main$data
+
+# Interpolated data
+cld_ts_int <- codos::extract_data(ncfiles_int[1], "cld")$main$data
+pre_ts_int <- codos::extract_data(ncfiles_int[2], "pre")$main$data
+tmn_ts_int <- codos::extract_data(ncfiles_int[3], "tmn")$main$data
+tmx_ts_int <- codos::extract_data(ncfiles_int[4], "tmx")$main$data
+vap_ts_int <- codos::extract_data(ncfiles_int[5], "vap")$main$data
+
+# Extract spatial dimensions
+lat <- codos::extract_data(ncfiles_clim[1], "cld")$lat$data
+lon <- codos::extract_data(ncfiles_clim[1], "cld")$lon$data
+```
+
+##### Computation
+
+``` r
+# Small test area over Eastern Australia 
+lon_start <- 650
+lon_end <- 655
+lon_delta <- lon_end - lon_start + 1
+lat_start <- 120
+lat_end <- 125
+lat_delta <- lat_end - lat_start + 1
+
+# Generate the plots
+plots <- vector("list", lon_delta * lat_delta)
+p <- 1
+for (j in rev(seq(lat_start, lat_end, 1))) {
+  for (i in seq(lon_start, lon_end, 1)) {
+    interpolated <- c(cld_ts_int[i, j, ],
+                      pre_ts_int[i, j, ],
+                      tmn_ts_int[i, j, ],
+                      tmx_ts_int[i, j, ],
+                      vap_ts_int[i, j, ])
+    climatology <- c(cld_ts_clim[i, j, ],
+                     pre_ts_clim[i, j, ],
+                     tmn_ts_clim[i, j, ],
+                     tmx_ts_clim[i, j, ],
+                     vap_ts_clim[i, j, ])
+    plots[[p]] <- ts_comp(climatology,
+                          interpolated,
+                          month_len,
+                          main = paste0("Time series at (", lat[j], ", ", lon[i], ")"),
+                          xlab = "Days")
+    p <- p + 1
+  }
+}
+
+# Save plots
+ggplot2::ggsave("ts-comparison.pdf",
+                plot = gridExtra::grid.arrange(grobs = plots, nrow = lat_delta),
+                device = "pdf",
+                width = 5 * lon_delta,
+                height = 4 * lat_delta,
+                path = path,
+                limitsize = FALSE)
+```
+
+<!-- ##### Example output -->
+
+<!-- ![ts_comparison](inst/README-ts-comparison.png) -->
