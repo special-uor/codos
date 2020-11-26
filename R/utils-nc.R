@@ -501,6 +501,7 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
 
 #' Find mean growing season and save netCDF file
 #'
+#' @importFrom foreach "%dopar%"
 #' @param thr Growing season threshold.
 #'
 #' @inheritParams nc_int
