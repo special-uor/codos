@@ -1,3 +1,63 @@
+splash_eet <- function(filename,
+                       elv,
+                       sf,
+                       tmp,
+                       year,
+                       lat = NULL,
+                       lon = NULL,
+                       cpus = 2,
+                       overwrite = TRUE) {
+
+}
+
+#' Calculate solar declination
+#' Calculate solar declination angle in degrees using SPLASH:
+#' \url{https://doi.org/10.5281/zenodo.376293}.
+#'
+#' @param year Numeric value with the year.
+#'
+#' @return Numeric vector with the solar declination angle for each day of the
+#' given year.
+#'
+#' @export
+#' @examples
+#' splash_dcl(1960)
+#' splash_dcl(1961)
+splash_dcl <- function(year) {
+# splash_dcl <- function(filename,
+#                        year,
+#                        lat = NULL,
+#                        lon = NULL,
+#                        overwrite = TRUE) {
+  # # Check if the spatial dimensions were passed
+  # if (is.null(lat))
+  #   data("lat", envir = environment())
+  # if (is.null(lon))
+  #   data("lon", envir = environment())
+  # # Load land-sea mask
+  # data("land_mask", envir = environment())
+
+  # Adjust the number of days based on the given year
+  days <- 365
+  if (lubridate::leap_year(as.Date(paste0(year, "-01-01"))))
+    days <- days + 1
+
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # 04. Calculate the declination angle (delta), degrees
+  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Woolf (1968)
+  # Paleoclimate variables:
+  ke <- 0.01670       # eccentricity of earth's orbit, 2000CE (Berger 1978)
+  keps <- 23.44       # obliquity of earth's elliptic, 2000CE (Berger 1978)
+  pir <- pi / 180
+  dcl <- c()
+  for (n in seq_len(days)) {
+    lam <- splash::berger_tls(n, 365)[2]
+    dcl <- c(dcl, asin(sin(lam * pir) * sin(keps * pir)) / pir)
+  }
+  dcl
+}
+
 #' Calculate solar declination
 #' Calculate solar declination angle in degrees using SPLASH:
 #' \url{https://doi.org/10.5281/zenodo.376293}.
@@ -15,7 +75,7 @@
 #' @param overwrite Boolean flag to indicate if the output file should be
 #'     overwritten (if it exists).
 #'
-#' @export
+#' @keywords internal
 splash_solar <- function(filename,
                          elv,
                          sf,
