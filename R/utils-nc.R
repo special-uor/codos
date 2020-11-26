@@ -499,7 +499,7 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          call. = FALSE)
 }
 
-#' Find growing season and save netCDF file
+#' Find mean growing season and save netCDF file
 #'
 #' @param thr Growing season threshold.
 #'
@@ -564,7 +564,8 @@ nc_gs <- function(filename,
                              }
   message("Done calculating growing season.")
   message("Reshaping output...")
-  gs_idx <- array(FALSE, dim = dim(var$data))
+  # gs_idx <- array(FALSE, dim = dim(var$data))
+  gs <- array(NA, dim = dim(var$data)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
@@ -572,36 +573,54 @@ nc_gs <- function(filename,
     pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
-    gs_idx[i, j, ] <- output[, k]
+    if (any(!is.na(output[, k])))
+      gs[i, j] <- mean(output[, k], na.rm = TRUE)
+    # gs_idx[i, j, ] <- output[, k]
   }
 
-  gs <- array(NA, dim = dim(var$data))
-  gs[gs_idx] <- var$data[gs_idx]
+  # gs <- array(NA, dim = dim(var$data))
+  # gs[gs_idx] <- var$data[gs_idx]
 
   message("Saving output to netCDF...")
   var_atts <- list()
   var_atts$description <- paste0("Growing season, values above ", thr, ".")
-  nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
-          var = list(id = varid,
-                     longname = ncdf4::ncatt_get(nc,
-                                                 varid,
-                                                 "long_name")$value,
-                     missval = ncdf4::ncatt_get(nc,
-                                                varid,
-                                                "missing_value")$value,
-                     prec = "double",
-                     units = var$units,
-                     vals = gs),
-          lat = list(id = "lat", units = lat$units, vals = lat$data),
-          lon = list(id = "lon", units = lon$units, vals = lon$data),
-          time = list(calendar = ncdf4::ncatt_get(nc,
-                                                  timeid,
-                                                  "calendar")$value,
-                      id = time$id,
-                      units = time$units,
-                      vals = time$data),
-          var_atts = var_atts,
-          overwrite = overwrite)
+  nc_save_timeless(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
+                   var = list(id = varid,
+                              longname = ncdf4::ncatt_get(nc,
+                                                          varid,
+                                                          "long_name")$value,
+                              missval = cdf4::ncatt_get(nc,
+                                                        varid,
+                                                        "missing_value")$value,
+                              prec = "double",
+                              units = var$units,
+                              vals = gs),
+                   lat = list(id = "lat", units = lat$units, vals = lat$data),
+                   lon = list(id = "lon", units = lon$units, vals = lon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+
+  # nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
+  #         var = list(id = varid,
+  #                    longname = ncdf4::ncatt_get(nc,
+  #                                                varid,
+  #                                                "long_name")$value,
+  #                    missval = ncdf4::ncatt_get(nc,
+  #                                               varid,
+  #                                               "missing_value")$value,
+  #                    prec = "double",
+  #                    units = var$units,
+  #                    vals = gs),
+  #         lat = list(id = "lat", units = lat$units, vals = lat$data),
+  #         lon = list(id = "lon", units = lon$units, vals = lon$data),
+  #         time = list(calendar = ncdf4::ncatt_get(nc,
+  #                                                 timeid,
+  #                                                 "calendar")$value,
+  #                     id = time$id,
+  #                     units = time$units,
+  #                     vals = time$data),
+  #         var_atts = var_atts,
+  #         overwrite = overwrite)
 
   message("Done. Bye!")
 }
