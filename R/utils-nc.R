@@ -573,8 +573,8 @@ nc_gs <- function(filename,
     pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
-    if (any(!is.na(output[, k])))
-      gs[i, j] <- mean(output[, k], na.rm = TRUE)
+    if (any(!is.na(var$data[i, j, output[, k]])))
+      gs[i, j] <- mean(var$data[i, j, output[, k]], na.rm = TRUE)
     # gs_idx[i, j, ] <- output[, k]
   }
 
