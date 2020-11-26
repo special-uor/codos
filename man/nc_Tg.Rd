@@ -18,7 +18,8 @@ nc_Tg(
 \arguments{
 \item{filename}{String with the output filename (.nc).}
 
-\item{dcl}{3D structure with solar declination angle data.}
+\item{dcl}{Numeric vector with solar declination angle data. These values
+can be calculated with \code{\link{splash_dcl}}.}
 
 \item{tmn}{3D structure with minimum temperature data.}
 
