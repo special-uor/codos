@@ -558,7 +558,6 @@ nc_gs <- function(filename,
                              }
   message("Done calculating growing season.")
   message("Reshaping output...")
-  # gs_idx <- array(FALSE, dim = dim(var$data))
   gs <- array(NA, dim = dim(var$data)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
@@ -870,7 +869,7 @@ nc_Tg <- function(filename,
   # ts_plot(c(unlist(lapply(seq_len(dim(tmn)[3]),
   #                       function(x, i, j) {
   #                         T_g(lat$data[j] * pi / 180,
-  #                             dcl[i, j, x] * pi / 180,
+  #                             dcl[x] * pi / 180,
   #                             tmx[i, j, x],
   #                             tmn[i, j, x]) },
   #                       i = i, j = j)),
@@ -996,13 +995,13 @@ nc_vpd <- function(filename,
   message("Calculating vapour pressure deficit...")
   # Calculate saturated vapour pressure (kPa)
   svp <- 0.6108 * exp(17.27 * Tg / (Tg + 237.3))
-  svp <- svp * 10 # Convert to hPa
+  svp <- svp * 10 # Convert kPa to hPa
   output <- foreach::foreach(k = seq_len(nrow(idx)),
                              .combine = cbind) %dopar% {
                                i <- idx$i[k]
                                j <- idx$j[k]
                                if (land_mask[i, j]) {
-                                 vap[i, j, ] - svp[i, j, ]
+                                 svp[i, j, ] - vap[i, j, ]
                                } else {
                                  rep(NA, dim(vap)[3])
                                }
@@ -1025,7 +1024,7 @@ nc_vpd <- function(filename,
   var_atts$description <- paste0("Vapour pressure deficit, calculated as a ",
                                  "function of actual vapour pressured and ",
                                  "saturated vapour pressured at a given ",
-                                 "temperature")
+                                 "temperature.")
                                  # "latitute, elevation, daily temperature, ",
                                  # "sunshine fraction, and precipitation. The ",
                                  # "calculations were done using SPLASH V1.0: ",
