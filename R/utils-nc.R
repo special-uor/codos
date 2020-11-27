@@ -994,8 +994,9 @@ nc_vpd <- function(filename,
   idx <- data.frame(i = seq_len(length(lon$data)),
                     j = rep(seq_along(lat$data), each = length(lon$data)))
   message("Calculating vapour pressure deficit...")
-  # Calculate saturated vapour pressure
+  # Calculate saturated vapour pressure (kPa)
   svp <- 0.6108 * exp(17.27 * Tg / (Tg + 237.3))
+  svp <- svp * 10 # Convert to hPa
   output <- foreach::foreach(k = seq_len(nrow(idx)),
                              .combine = cbind) %dopar% {
                                i <- idx$i[k]
@@ -1003,12 +1004,12 @@ nc_vpd <- function(filename,
                                if (land_mask[i, j]) {
                                  vap[i, j, ] - svp[i, j, ]
                                } else {
-                                 NA
+                                 rep(NA, dim(vap)[3])
                                }
                              }
   message("Done calculating vapour pressure deficit.")
   message("Reshaping output...")
-  vpd <- array(NA, dim = dim(vap)[1:2])
+  vpd <- array(NA, dim = dim(vap)) # [1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
@@ -1016,7 +1017,7 @@ nc_vpd <- function(filename,
     pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
-    vpd[i, j] <- output[k]
+    vpd[i, j, ] <- output[, k]
   }
 
   message("Saving output to netCDF...")
@@ -1029,17 +1030,33 @@ nc_vpd <- function(filename,
                                  # "sunshine fraction, and precipitation. The ",
                                  # "calculations were done using SPLASH V1.0: ",
                                  # "https://doi.org/10.5281/zenodo.376293")
-  nc_save_timeless(filename = filename,
-                   var = list(id = "vpd",
-                              longname = "vapour pressure deficit",
-                              missval = -999L,
-                              prec = "double",
-                              units = "kPa",
-                              vals = vpd),
-                   lat = list(id = "lat", units = lat$units, vals = lat$data),
-                   lon = list(id = "lon", units = lon$units, vals = lon$data),
-                   var_atts = var_atts,
-                   overwrite = overwrite)
+  # nc_save_timeless(filename = filename,
+  #                  var = list(id = "vpd",
+  #                             longname = "vapour pressure deficit",
+  #                             missval = -999L,
+  #                             prec = "double",
+  #                             units = "kPa",
+  #                             vals = vpd),
+  #                  lat = list(id = "lat", units = lat$units, vals = lat$data),
+  #                  lon = list(id = "lon", units = lon$units, vals = lon$data),
+  #                  var_atts = var_atts,
+  #                  overwrite = overwrite)
+
+  nc_save(filename = filename,
+          var = list(id = "vpd",
+                     longname = "vapour pressure deficit",
+                     missval = -999L,
+                     prec = "double",
+                     units = "hPa",
+                     vals = vpd),
+          lat = list(id = "lat", units = lat$units, vals = lat$data),
+          lon = list(id = "lon", units = lon$units, vals = lon$data),
+          time = list(calendar = "standard",
+                      id = "time",
+                      units = "days in a year",
+                      vals = seq_len(dim(vap)[3])),
+          var_atts = var_atts,
+          overwrite = overwrite)
 
   message("Done. Bye!")
 }
