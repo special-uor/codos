@@ -1,5 +1,5 @@
 #' Calculate potential evapotranspiration
-#' Calculate potential evapotranspiration in mm using SPLASH:
+#' Calculate potential evapotranspiration in mm using SPLASH V1.0:
 #' \url{https://doi.org/10.5281/zenodo.376293}.
 #'
 #' @importFrom foreach "%dopar%"
@@ -80,10 +80,10 @@ splash_evap <- function(filename,
   message("Saving output to netCDF...")
   var_atts <- list()
   var_atts$description <- paste0("Potential evapotranspiration, calculated as ",
-                                 "a function of",
+                                 "a function of ",
                                  "latitute, elevation, daily temperature, and ",
                                  "sunshine fraction. The calculations were ",
-                                 "done using SPLASH: ",
+                                 "done using SPLASH V1.0: ",
                                  "https://doi.org/10.5281/zenodo.376293")
   nc_save(filename = filename,
           var = list(id = "pet",
@@ -105,7 +105,7 @@ splash_evap <- function(filename,
 }
 
 #' Calculate solar declination
-#' Calculate solar declination angle in degrees using SPLASH:
+#' Calculate solar declination angle in degrees using SPLASH V1.0:
 #' \url{https://doi.org/10.5281/zenodo.376293}.
 #'
 #' @param year Numeric value with the year.
@@ -153,7 +153,7 @@ splash_dcl <- function(year) {
 }
 
 #' Calculate solar declination
-#' Calculate solar declination angle in degrees using SPLASH:
+#' Calculate solar declination angle in degrees using SPLASH V1.0:
 #' \url{https://doi.org/10.5281/zenodo.376293}.
 #'
 #' @importFrom foreach "%dopar%"
@@ -267,7 +267,7 @@ splash_solar <- function(filename,
                                  "function of",
                                  "latitute, elevation, daily temperature, and ",
                                  "sunshine fraction. The calculations were ",
-                                 "done using SPLASH: ",
+                                 "done using SPLASH V1.0: ",
                                  "https://doi.org/10.5281/zenodo.376293")
   nc_save(filename = filename,
           var = list(id = "dcl",

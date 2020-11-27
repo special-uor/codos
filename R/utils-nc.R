@@ -530,7 +530,7 @@ nc_gs <- function(filename,
   var <- codos:::nc_var_get(filename, varid)
 
   # Load land-sea mask
-  data("land_mask", envir = environment())
+  land_mask <- codos::land_mask
 
   # Check the number of CPUs does not exceed the availability
   avail_cpus <- parallel::detectCores() - 1
@@ -741,13 +741,13 @@ nc_mi <- function(filename,
          "- pre: (", paste0(dim(pre), collapse = ", "), ")\n")
 
   if (is.null(lat))
-    data("lat", envir = environment())
+    lat <- codos::lat
 
   if (is.null(lon))
-    data("lon", envir = environment())
+    lon <- codos::lon
 
   # Load land-sea mask
-  data("land_mask", envir = environment())
+  land_mask <- codos::land_mask
 
   # Check the number of CPUs does not exceed the availability
   avail_cpus <- parallel::detectCores() - 1
@@ -791,7 +791,7 @@ nc_mi <- function(filename,
                                  "function of ",
                                  "latitute, elevation, daily temperature, ",
                                  "sunshine fraction, and precipitation. The ",
-                                 "calculations were done using SPLASH: ",
+                                 "calculations were done using SPLASH V1.0: ",
                                  "https://doi.org/10.5281/zenodo.376293")
   nc_save_timeless(filename = filename,
                    var = list(id = "smi",
@@ -990,13 +990,13 @@ nc_vpd <- function(filename,
          "- vap: (", paste0(dim(vap), collapse = ", "), ")\n")
 
   if (is.null(lat))
-    data("lat", envir = environment())
+    lat <- codos::lat
 
   if (is.null(lon))
-    data("lon", envir = environment())
+    lon <- codos::lon
 
   # Load land-sea mask
-  data("land_mask", envir = environment())
+  land_mask <- codos::land_mask
 
   # Check the number of CPUs does not exceed the availability
   avail_cpus <- parallel::detectCores() - 1
@@ -1043,7 +1043,7 @@ nc_vpd <- function(filename,
                                  "temperature")
                                  # "latitute, elevation, daily temperature, ",
                                  # "sunshine fraction, and precipitation. The ",
-                                 # "calculations were done using SPLASH: ",
+                                 # "calculations were done using SPLASH V1.0: ",
                                  # "https://doi.org/10.5281/zenodo.376293")
   nc_save_timeless(filename = filename,
                    var = list(id = "vpd",
