@@ -3,7 +3,7 @@
 \name{splash_evap}
 \alias{splash_evap}
 \title{Calculate potential evapotranspiration
-Calculate potential evapotranspiration in mm using SPLASH:
+Calculate potential evapotranspiration in mm using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.}
 \usage{
 splash_evap(
@@ -40,6 +40,6 @@ overwritten (if it exists).}
 }
 \description{
 Calculate potential evapotranspiration
-Calculate potential evapotranspiration in mm using SPLASH:
+Calculate potential evapotranspiration in mm using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.
 }

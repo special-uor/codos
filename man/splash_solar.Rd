@@ -3,7 +3,7 @@
 \name{splash_solar}
 \alias{splash_solar}
 \title{Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH:
+Calculate solar declination angle in degrees using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.}
 \usage{
 splash_solar(
@@ -40,7 +40,7 @@ overwritten (if it exists).}
 }
 \description{
 Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH:
+Calculate solar declination angle in degrees using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.
 }
 \keyword{internal}

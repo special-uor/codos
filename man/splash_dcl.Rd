@@ -3,7 +3,7 @@
 \name{splash_dcl}
 \alias{splash_dcl}
 \title{Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH:
+Calculate solar declination angle in degrees using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.}
 \usage{
 splash_dcl(year)
@@ -17,7 +17,7 @@ given year.
 }
 \description{
 Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH:
+Calculate solar declination angle in degrees using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.
 }
 \examples{
