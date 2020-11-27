@@ -242,15 +242,22 @@ alpha_from_mi_om3 <- function(mi) {
 #'
 #' @param lat Latitude (\eqn{\lambda}).
 #' @param delta Monthly average solar declination (\eqn{\delta}).
-#' @param Temp_max Maximum value of temperature (\eqn{T_{max}}).
-#' @param Temp_min Minimum value of temperature (\eqn{T_{min}}).
+#' @param tmx Maximum value of temperature (\eqn{T_{max}}).
+#' @param tmn Minimum value of temperature (\eqn{T_{min}}).
 #'
 #' @return Mean daytime air temperature.
 #' @export
-T_g <- function(lat, delta, Temp_max, Temp_min) {
-  x <- -tan(lat) * tan(delta)
-  Temp_max * (0.5 + sqrt(1 - x^2) / 2 * acos(x)) +
-    Temp_min * (0.5 - sqrt(1 - x^2) / 2 * acos(x))
+T_g <- function(lat, delta, tmx, tmn) {
+  x <- tan(lat) * tan(delta)
+  if (x >= 1) { # Polar day, no sunset
+    x <- cos(pi)
+  } else if (x <= -1) { # Polar night, no sunrise
+    x <- cos(0)
+  } else {
+    x <- -x
+  }
+  tmx * (0.5 + sqrt(1 - x^2) / 2 * acos(x)) +
+    tmn * (0.5 - sqrt(1 - x^2) / 2 * acos(x))
 }
 
 ## Wrapper functions to find corrected moisture index #############
