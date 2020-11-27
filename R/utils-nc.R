@@ -499,6 +499,122 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          call. = FALSE)
 }
 
+#' Find mean growing season
+#'
+#' Find mean growing season and save output to a netCDF file.
+#'
+#' @importFrom foreach "%dopar%"
+#' @param thr Growing season threshold.
+#'
+#' @inheritParams nc_int
+#' @export
+nc_gs <- function(filename,
+                  varid,
+                  thr = 0,
+                  timeid = "time",
+                  latid = "lat",
+                  lonid = "lon",
+                  cpus = 2,
+                  overwrite = TRUE) {
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
+  nc <- ncdf4::nc_open(filename)
+  on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  time <- codos:::nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- codos:::nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- codos:::nc_var_get(filename, lonid, TRUE)    # Longitude
+
+  # Read main variable
+  var <- codos:::nc_var_get(filename, varid)
+
+  # Load land-sea mask
+  land_mask <- codos::land_mask
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(length(lon$data)),
+                    j = rep(seq_along(lat$data), each = length(lon$data)))
+  message("Calculating growing season...")
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (land_mask[i, j]) {
+                                 !is.na(var$data[i, j, ]) &
+                                   !is.null(var$data[i, j, ]) &
+                                   var$data[i, j, ] > thr
+                               } else {
+                                 rep(FALSE, length(time$data))
+                               }
+                             }
+  message("Done calculating growing season.")
+  message("Reshaping output...")
+  # gs_idx <- array(FALSE, dim = dim(var$data))
+  gs <- array(NA, dim = dim(var$data)[1:2])
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    if (any(!is.na(var$data[i, j, output[, k]])))
+      gs[i, j] <- mean(var$data[i, j, output[, k]], na.rm = TRUE)
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Growing season, values above ", thr, ".")
+  nc_save_timeless(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
+                   var = list(id = varid,
+                              longname = ncdf4::ncatt_get(nc,
+                                                          varid,
+                                                          "long_name")$value,
+                              missval = ncdf4::ncatt_get(nc,
+                                                        varid,
+                                                        "missing_value")$value,
+                              prec = "double",
+                              units = var$units,
+                              vals = gs),
+                   lat = list(id = "lat", units = lat$units, vals = lat$data),
+                   lon = list(id = "lon", units = lon$units, vals = lon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+
+  # nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
+  #         var = list(id = varid,
+  #                    longname = ncdf4::ncatt_get(nc,
+  #                                                varid,
+  #                                                "long_name")$value,
+  #                    missval = ncdf4::ncatt_get(nc,
+  #                                               varid,
+  #                                               "missing_value")$value,
+  #                    prec = "double",
+  #                    units = var$units,
+  #                    vals = gs),
+  #         lat = list(id = "lat", units = lat$units, vals = lat$data),
+  #         lon = list(id = "lon", units = lon$units, vals = lon$data),
+  #         time = list(calendar = ncdf4::ncatt_get(nc,
+  #                                                 timeid,
+  #                                                 "calendar")$value,
+  #                     id = time$id,
+  #                     units = time$units,
+  #                     vals = time$data),
+  #         var_atts = var_atts,
+  #         overwrite = overwrite)
+
+  message("Done. Bye!")
+}
+
 #' Interpolate netCDF file
 #'
 #' @importFrom foreach "%dopar%"
@@ -587,6 +703,227 @@ nc_int <- function(filename,
           overwrite = overwrite)
 }
 
+#' Calculate soil moisture index
+#'
+#' Calculate soil moisture index and save output to a netCDF file.
+#'
+#' @importFrom foreach "%dopar%"
+#'
+#' @param pet 3D structure with potential evapotranspiration data. These values
+#'     can be calculated with the function \code{\link{splash_evap}}.
+#' @param pre 3D structure with precipitation data.
+#' @inheritParams nc_Tg
+#' @export
+nc_mi <- function(filename,
+                  pet,
+                  pre,
+                  lat = NULL,
+                  lon = NULL,
+                  cpus = 2,
+                  overwrite = TRUE) {
+  if (length(dim(pet)) != length(dim(pre)) ||
+      any(dim(pet) != dim(pre)))
+    stop("The dimensions of pet and pre must be the same: \n",
+         "- pet: (", paste0(dim(pet), collapse = ", "), ")\n",
+         "- pre: (", paste0(dim(pre), collapse = ", "), ")\n")
+
+  if (is.null(lat))
+    lat <- codos::lat
+
+  if (is.null(lon))
+    lon <- codos::lon
+
+  # Load land-sea mask
+  land_mask <- codos::land_mask
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(length(lon$data)),
+                    j = rep(seq_along(lat$data), each = length(lon$data)))
+  message("Calculating moisture indices...")
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (land_mask[i, j]) {
+                                 sum(pre[i, j, ], na.rm = TRUE) /
+                                   sum(pet[i, j, ], na.rm = TRUE)
+                               } else {
+                                 NA
+                               }
+                             }
+  message("Done calculating moisture indices.")
+  message("Reshaping output...")
+  smi <- array(NA, dim = dim(pet)[1:2])
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    smi[i, j] <- output[k]
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Soil moisture index, calculated as a ",
+                                 "function of ",
+                                 "latitute, elevation, daily temperature, ",
+                                 "sunshine fraction, and precipitation. The ",
+                                 "calculations were done using SPLASH V1.0: ",
+                                 "https://doi.org/10.5281/zenodo.376293")
+  nc_save_timeless(filename = filename,
+                   var = list(id = "smi",
+                              longname = "soil moisture index",
+                              missval = -999L,
+                              prec = "double",
+                              units = "-",
+                              vals = smi),
+                   lat = list(id = "lat", units = lat$units, vals = lat$data),
+                   lon = list(id = "lon", units = lon$units, vals = lon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+
+  message("Done. Bye!")
+}
+
+#' Wrapper for \code{\link{T_g}}
+#'
+#' Wrapper for \code{\link{T_g}} (mean daytime air temperature).
+#'
+#' @importFrom foreach "%dopar%"
+#'
+#' @param filename String with the output filename (.nc).
+#' @param dcl Numeric vector with solar declination angle data. These values
+#'     can be calculated with the function \code{\link{splash_dcl}}.
+#' @param tmn 3D structure with minimum temperature data.
+#' @param tmx 3D structure with maximum temperature data.
+#' @param lat List with latitude \code{data} and variable \code{id}.
+#' @param lon List with longitude \code{data} and variable \code{id}.
+#' @param cpus Number of CPUs to use for the computation.
+#' @param overwrite Boolean flag to indicate if the output file should be
+#'     overwritten (if it exists).
+#' @export
+nc_Tg <- function(filename,
+                  dcl,
+                  tmn,
+                  tmx,
+                  lat = NULL,
+                  lon = NULL,
+                  cpus = 2,
+                  overwrite = TRUE) {
+
+  if (is.null(lat))
+    lat <- codos::lat
+
+  if (is.null(lon))
+    lon <- codos::lon
+
+  # Load land-sea mask
+  land_mask <- codos::land_mask
+
+  if (length(dim(tmn)) != length(dim(tmx)) ||
+      any(dim(tmn) != dim(tmx)))
+    stop("The dimensions of tmn and tmx must be the same: \n",
+         "- tmn: (", paste0(dim(tmn), collapse = ", "), ")\n",
+         "- tmx: (", paste0(dim(tmx), collapse = ", "), ")\n")
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(dim(tmn)[1]),
+                    j = rep(seq_along(lat$data), each = dim(tmn)[1]))
+  message("Calculating mean daytime temperature...")
+
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (land_mask[i, j]) {
+                                 unlist(lapply(seq_len(dim(tmn)[3]),
+                                               function(x, i, j) {
+                                                 T_g(lat$data[j] * pi / 180,
+                                                     dcl[x] * pi / 180,
+                                                     tmx[i, j, x],
+                                                     tmn[i, j, x]) },
+                                               i = i, j = j))
+                               } else {
+                                 rep(NA, dim(tmn)[3])
+                               }
+                             }
+  # i <- 225
+  # j <- 69
+  # ts_plot(c(unlist(lapply(seq_len(dim(tmn)[3]),
+  #                       function(x, i, j) {
+  #                         T_g(lat$data[j] * pi / 180,
+  #                             dcl[i, j, x] * pi / 180,
+  #                             tmx[i, j, x],
+  #                             tmn[i, j, x]) },
+  #                       i = i, j = j)),
+  #         tmn[i, j, ],
+  #         tmx[i, j, ]),
+  #         vars = c("Tg", "Tmin", "Tmax"),
+  #         main = paste("(", lat$data[j], ", ", lon$data[i], ")"),
+  #         xlab = "Days")
+  message("Done calculating mean daytime temperature.")
+  message("Reshaping output...")
+  tg <- array(NA, dim = dim(tmn))
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    tg[i, j, ] <- output[, k]
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Mean daytime temperature, calculated as a ",
+                                 "function of",
+                                 "latitute, solar declination angle [dcl], and ",
+                                 "maximum [tmx] & minimum [tmn] temperature. ",
+                                 "The calculations were done using the ",
+                                 "following equation: ",
+                                 "T_max * [0.5 + 0.5 * (1 - x^2)^0.5",
+                                 " * arccos(x)] + ",
+                                 "T_min * [0.5 - 0.5 * (1 - x^2)^0.5",
+                                 " * arccos(x)]; where ",
+                                 "x = -tan(lat) * tan(dcl)")
+  nc_save(filename = filename,
+          var = list(id = "mdt",
+                     longname = "mean daytime temperature",
+                     missval = -999L,
+                     prec = "double",
+                     units = "degrees Celsius",
+                     vals = tg),
+          lat = list(id = "lat", units = lat$units, vals = lat$data),
+          lon = list(id = "lon", units = lon$units, vals = lon$data),
+          time = list(calendar = "standard",
+                      id = "time",
+                      units = "days in a year",
+                      vals = seq_len(dim(tmn)[3])),
+          var_atts = var_atts,
+          overwrite = overwrite)
+
+  message("Done. Bye!")
+}
+
 #' Get variable from netCDF file
 #'
 #' @param is.dim Boolean flag to indicate if the variable is a dimension
@@ -611,6 +948,117 @@ nc_var_get <- function(filename, varid, is.dim = FALSE) {
        filename = filename,
        id = varid,
        units = var_units)
+}
+
+#' Calculate vapour pressure deficit
+#'
+#' Calculate vapour pressure deficit and save output to a netCDF file.
+#' @importFrom foreach "%dopar%"
+#'
+#' @param Tg 3D structure with potential evapotranspiration data. These values
+#'     can be calculated with the function \code{\link{splash_evap}}.
+#' @param vap 3D structure with vapour data.
+#' @inheritParams nc_Tg
+#' @export
+nc_vpd <- function(filename,
+                  Tg,
+                  vap,
+                  lat = NULL,
+                  lon = NULL,
+                  cpus = 2,
+                  overwrite = TRUE) {
+  if (length(dim(Tg)) != length(dim(vap)) ||
+      any(dim(Tg) != dim(vap)))
+    stop("The dimensions of Tg and vap must be the same: \n",
+         "- Tg: (", paste0(dim(Tg), collapse = ", "), ")\n",
+         "- vap: (", paste0(dim(vap), collapse = ", "), ")\n")
+
+  if (is.null(lat))
+    lat <- codos::lat
+
+  if (is.null(lon))
+    lon <- codos::lon
+
+  # Load land-sea mask
+  land_mask <- codos::land_mask
+
+  # Check the number of CPUs does not exceed the availability
+  avail_cpus <- parallel::detectCores() - 1
+  cpus <- ifelse(cpus > avail_cpus, avail_cpus, cpus)
+
+  # Start parallel backend
+  cl <- parallel::makeCluster(cpus)
+  on.exit(parallel::stopCluster(cl)) # Stop cluster
+  doParallel::registerDoParallel(cl)
+
+  idx <- data.frame(i = seq_len(length(lon$data)),
+                    j = rep(seq_along(lat$data), each = length(lon$data)))
+  message("Calculating vapour pressure deficit...")
+  # Calculate saturated vapour pressure (kPa)
+  svp <- 0.6108 * exp(17.27 * Tg / (Tg + 237.3))
+  svp <- svp * 10 # Convert to hPa
+  output <- foreach::foreach(k = seq_len(nrow(idx)),
+                             .combine = cbind) %dopar% {
+                               i <- idx$i[k]
+                               j <- idx$j[k]
+                               if (land_mask[i, j]) {
+                                 vap[i, j, ] - svp[i, j, ]
+                               } else {
+                                 rep(NA, dim(vap)[3])
+                               }
+                             }
+  message("Done calculating vapour pressure deficit.")
+  message("Reshaping output...")
+  vpd <- array(NA, dim = dim(vap)) # [1:2])
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = FALSE, width = 60)
+  for (k in seq_len(nrow(idx))) {
+    pb$tick()
+    i <- idx$i[k]
+    j <- idx$j[k]
+    vpd[i, j, ] <- output[, k]
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Vapour pressure deficit, calculated as a ",
+                                 "function of actual vapour pressured and ",
+                                 "saturated vapour pressured at a given ",
+                                 "temperature")
+                                 # "latitute, elevation, daily temperature, ",
+                                 # "sunshine fraction, and precipitation. The ",
+                                 # "calculations were done using SPLASH V1.0: ",
+                                 # "https://doi.org/10.5281/zenodo.376293")
+  # nc_save_timeless(filename = filename,
+  #                  var = list(id = "vpd",
+  #                             longname = "vapour pressure deficit",
+  #                             missval = -999L,
+  #                             prec = "double",
+  #                             units = "kPa",
+  #                             vals = vpd),
+  #                  lat = list(id = "lat", units = lat$units, vals = lat$data),
+  #                  lon = list(id = "lon", units = lon$units, vals = lon$data),
+  #                  var_atts = var_atts,
+  #                  overwrite = overwrite)
+
+  nc_save(filename = filename,
+          var = list(id = "vpd",
+                     longname = "vapour pressure deficit",
+                     missval = -999L,
+                     prec = "double",
+                     units = "hPa",
+                     vals = vpd),
+          lat = list(id = "lat", units = lat$units, vals = lat$data),
+          lon = list(id = "lon", units = lon$units, vals = lon$data),
+          time = list(calendar = "standard",
+                      id = "time",
+                      units = "days in a year",
+                      vals = seq_len(dim(vap)[3])),
+          var_atts = var_atts,
+          overwrite = overwrite)
+
+  message("Done. Bye!")
 }
 
 #' Convert netCDF to time series

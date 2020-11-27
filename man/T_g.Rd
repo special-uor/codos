@@ -4,16 +4,16 @@
 \alias{T_g}
 \title{Mean daytime air temperature}
 \usage{
-T_g(lat, delta, Temp_max, Temp_min)
+T_g(lat, delta, tmx, tmn)
 }
 \arguments{
 \item{lat}{Latitude (\eqn{\lambda}).}
 
 \item{delta}{Monthly average solar declination (\eqn{\delta}).}
 
-\item{Temp_max}{Maximum value of temperature (\eqn{T_{max}}).}
+\item{tmx}{Maximum value of temperature (\eqn{T_{max}}).}
 
-\item{Temp_min}{Minimum value of temperature (\eqn{T_{min}}).}
+\item{tmn}{Minimum value of temperature (\eqn{T_{min}}).}
 }
 \value{
 Mean daytime air temperature.
@@ -28,7 +28,8 @@ Given by (7):
 
 \eqn{T_g = T_{max}\left[\frac{1}{2} +
                         \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right] +
-           T_{min}\left[\frac{1}{2} + \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]}
+           T_{min}\left[\frac{1}{2} -
+                        \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]}
 
 where
 
