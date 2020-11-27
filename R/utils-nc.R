@@ -548,7 +548,7 @@ nc_gs <- function(filename,
                              .combine = cbind) %dopar% {
                                i <- idx$i[k]
                                j <- idx$j[k]
-                               if (!is.na(land_mask[i, j])) {
+                               if (land_mask[i, j]) {
                                  !is.na(var$data[i, j, ]) &
                                    !is.null(var$data[i, j, ]) &
                                    var$data[i, j, ] > thr
@@ -765,7 +765,7 @@ nc_mi <- function(filename,
                              .combine = cbind) %dopar% {
                                i <- idx$i[k]
                                j <- idx$j[k]
-                               if (!is.na(land_mask[i, j])) {
+                               if (land_mask[i, j]) {
                                  sum(pre[i, j, ], na.rm = TRUE) /
                                    sum(pet[i, j, ], na.rm = TRUE)
                                } else {
@@ -774,7 +774,7 @@ nc_mi <- function(filename,
                              }
   message("Done calculating moisture indices.")
   message("Reshaping output...")
-  smi <- array(NA, dim = dim(var$data)[1:2])
+  smi <- array(NA, dim = dim(pet)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
@@ -836,15 +836,12 @@ nc_Tg <- function(filename,
 
   if (is.null(lat))
     lat <- codos::lat
-    # data("lat", envir = environment())
 
   if (is.null(lon))
     lon <- codos::lon
-    # data("lon", envir = environment())
 
   # Load land-sea mask
   land_mask <- codos::land_mask
-  # data("land_mask", envir = environment())
 
   if (length(dim(tmn)) != length(dim(tmx)) ||
       any(dim(tmn) != dim(tmx)))
@@ -869,7 +866,7 @@ nc_Tg <- function(filename,
                              .combine = cbind) %dopar% {
                                i <- idx$i[k]
                                j <- idx$j[k]
-                               if (!is.na(land_mask[i, j])) {
+                               if (land_mask[i, j]) {
                                  unlist(lapply(seq_len(dim(tmn)[3]),
                                                function(x, i, j) {
                                                  T_g(lat$data[j] * pi / 180,
@@ -1016,7 +1013,7 @@ nc_vpd <- function(filename,
                              .combine = cbind) %dopar% {
                                i <- idx$i[k]
                                j <- idx$j[k]
-                               if (!is.na(land_mask[i, j])) {
+                               if (land_mask[i, j]) {
                                  vap[i, j, ] - svp[i, j, ]
                                } else {
                                  NA
@@ -1024,7 +1021,7 @@ nc_vpd <- function(filename,
                              }
   message("Done calculating vapour pressure deficit.")
   message("Reshaping output...")
-  vpd <- array(NA, dim = dim(var$data)[1:2])
+  vpd <- array(NA, dim = dim(vap)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
