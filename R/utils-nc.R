@@ -552,15 +552,6 @@ nc_gs <- function(filename,
                                  !is.na(var$data[i, j, ]) &
                                    !is.null(var$data[i, j, ]) &
                                    var$data[i, j, ] > thr
-                                 # unlist(lapply(seq_len(length(time$data)),
-                                 #               function(x, i, j) {
-                                 #                 if (is.na(var$data[i, j, x]) ||
-                                 #                     is.null(var$data[i, j, x]))
-                                 #                   return(FALSE)
-                                 #                 if (var$data[i, j, x] > thr)
-                                 #                   return(TRUE)
-                                 #                 return(FALSE) },
-                                 #               i = i, j = j))
                                } else {
                                  rep(FALSE, length(time$data))
                                }
@@ -578,11 +569,7 @@ nc_gs <- function(filename,
     j <- idx$j[k]
     if (any(!is.na(var$data[i, j, output[, k]])))
       gs[i, j] <- mean(var$data[i, j, output[, k]], na.rm = TRUE)
-    # gs_idx[i, j, ] <- output[, k]
   }
-
-  # gs <- array(NA, dim = dim(var$data))
-  # gs[gs_idx] <- var$data[gs_idx]
 
   message("Saving output to netCDF...")
   var_atts <- list()
