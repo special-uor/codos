@@ -833,14 +833,18 @@ nc_Tg <- function(filename,
                   lon = NULL,
                   cpus = 2,
                   overwrite = TRUE) {
+
   if (is.null(lat))
-    data("lat", envir = environment())
+    lat <- codos::lat
+    # data("lat", envir = environment())
 
   if (is.null(lon))
-    data("lon", envir = environment())
+    lon <- codos::lon
+    # data("lon", envir = environment())
 
   # Load land-sea mask
-  data("land_mask", envir = environment())
+  land_mask <- codos::land_mask
+  # data("land_mask", envir = environment())
 
   if (length(dim(tmn)) != length(dim(tmx)) ||
       any(dim(tmn) != dim(tmx)))
