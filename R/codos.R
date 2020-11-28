@@ -256,8 +256,8 @@ T_g <- function(lat, delta, tmx, tmn) {
   } else {
     x <- -x
   }
-  tmx * (0.5 + sqrt(1 - x^2) / 2 * acos(x)) +
-    tmn * (0.5 - sqrt(1 - x^2) / 2 * acos(x))
+  tmx * (0.5 + sqrt(1 - x^2) / (2 * acos(x))) +
+    tmn * (0.5 - sqrt(1 - x^2) / (2 * acos(x)))
 }
 
 ## Wrapper functions to find corrected moisture index #############
