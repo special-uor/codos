@@ -109,3 +109,87 @@ ggplot2::ggsave("ts-comparison.pdf",
 #     ggplot2::scale_color_brewer(palette = "Set1") +
 #     ggplot2::theme_bw()
 # }
+
+
+
+################################################################################
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+mdt <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+tmn <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn")$data
+tmx <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx")$data
+
+# Extract spatial dimensions
+lat <- codos::lat$data
+lon <- codos::lon$data
+
+lon_start <- 650
+lon_end <- 655
+lon_delta <- lon_end - lon_start + 1
+lat_start <- 120
+lat_end <- 125
+lat_delta <- lat_end - lat_start + 1
+plots <- vector("list", lon_delta * lat_delta)
+p <- 1
+for (j in rev(seq(lat_start, lat_end, 1))) {
+  for (i in seq(lon_start, lon_end, 1)) {
+    data <- c(mdt[i, j, ],
+              tmn[i, j, ],
+              tmx[i, j, ])
+    plots[[p]] <- ts_plot(data,
+                          vars = c("T_g", "tmn", "tmx"),
+                          main = paste0("Time series at (", lat[j], ", ", lon[i], ")"),
+                          xlab = "Days")
+    p <- p + 1
+  }
+}
+
+ggplot2::ggsave("ts-tg-tmn-tmx.pdf",
+                plot = gridExtra::grid.arrange(grobs = plots, nrow = lat_delta),
+                device = "pdf",
+                width = 5 * lon_delta,
+                height = 4 * lat_delta,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+
+
+################################################################################
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+mdt <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+vpd <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc"), "vpd")$data
+vap <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc"), "vap")$data
+
+# Extract spatial dimensions
+lat <- codos::lat$data
+lon <- codos::lon$data
+
+lon_start <- 650
+lon_end <- 655
+lon_delta <- lon_end - lon_start + 1
+lat_start <- 120
+lat_end <- 125
+lat_delta <- lat_end - lat_start + 1
+plots <- vector("list", lon_delta * lat_delta)
+p <- 1
+for (j in rev(seq(lat_start, lat_end, 1))) {
+  for (i in seq(lon_start, lon_end, 1)) {
+    print(range(mdt[i, j, ]))
+    print(range(vap[i, j, ]))
+    print(range(vpd[i, j, ]))
+    data <- c(mdt[i, j, ],
+              vap[i, j, ],
+              vpd[i, j, ])
+    plots[[p]] <- ts_plot(data,
+                          vars = c("T_g", "vap", "vpd"),
+                          main = paste0("Time series at (", lat[j], ", ", lon[i], ")"),
+                          xlab = "Days")
+    p <- p + 1
+  }
+}
+
+ggplot2::ggsave("ts-tg-vap-vpd.pdf",
+                plot = gridExtra::grid.arrange(grobs = plots, nrow = lat_delta),
+                device = "pdf",
+                width = 5 * lon_delta,
+                height = 4 * lat_delta,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
