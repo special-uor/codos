@@ -1,3 +1,21 @@
+#' Format latitude labels
+#'
+#' @param x Latitude numeric value.
+#'
+#' @return String with latitute and corresponding direction suffix.
+#' @export
+#'
+#' @examples
+#' lat_lab(-30)
+#' lat_lab(30)
+lat_lab <- function(x) {
+  ifelse(x < 0,
+         paste(x, "°S"),
+         ifelse(x > 0,
+                paste(x, "°N"),
+                x))
+}
+
 #' Compare time series
 #'
 #' Compare time series for climatologies (monthly) and interpolated (daily)
@@ -44,6 +62,7 @@ ts_comp <- function(climatology,
 #' @param data Numeric vector with the data.
 #' @param vars Vector of strings with variables to be plotted.
 #' @param count Numeric, number of observations of each variable.
+#' @param x Numeric vector with breaks for the x-axis.
 #' @param main String with title for the plot.
 #' @param xlab String with label for the x-axis.
 #' @param ylab String with label for the y-axis.
@@ -53,10 +72,11 @@ ts_comp <- function(climatology,
 ts_plot <- function(data,
                     vars = c("cld", "pre", "tmn", "tmx", "vap"),
                     count = length(data) / length(vars),
+                    x = rep(seq_len(count), length(vars)),
                     main = NULL,
                     xlab = NULL,
                     ylab = NULL) {
-  df <- data.frame(x = rep(seq_len(count), length(vars)),
+  df <- data.frame(x = x,
                    y = data,
                    variable = rep(vars, each = count))
   ggplot2::ggplot(df, ggplot2::aes(x, y)) +
