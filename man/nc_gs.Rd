@@ -12,6 +12,7 @@ nc_gs(
   latid = "lat",
   lonid = "lon",
   cpus = 2,
+  filter = NULL,
   overwrite = TRUE
 )
 }
@@ -29,6 +30,10 @@ nc_gs(
 \item{lonid}{String with the longitude dimension identifier.}
 
 \item{cpus}{Number of CPUs to use for the computation.}
+
+\item{filter}{Variable to be use as filter for the growing season, generally
+a structure with temperature data. It must have the same dimensions of
+the main variable.}
 
 \item{overwrite}{Boolean flag to indicate if the output file should be
 overwritten (if it exists).}
