@@ -2,7 +2,7 @@
 #'
 #' @param x Latitude numeric value.
 #'
-#' @return String with latitute and corresponding direction suffix.
+#' @return String with latitude and corresponding direction suffix.
 #' @export
 #'
 #' @examples
@@ -13,6 +13,24 @@ lat_lab <- function(x) {
          paste(x, "°S"),
          ifelse(x > 0,
                 paste(x, "°N"),
+                x))
+}
+
+#' Format longitude labels
+#'
+#' @param x Longitude numeric value.
+#'
+#' @return String with longitude and corresponding direction suffix.
+#' @export
+#'
+#' @examples
+#' lon_lab(-30)
+#' lon_lab(30)
+lon_lab <- function(x) {
+  ifelse(x < 0,
+         paste(x, "°E"),
+         ifelse(x > 0,
+                paste(x, "°W"),
                 x))
 }
 
