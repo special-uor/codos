@@ -7,7 +7,8 @@
 ts_plot(
   data,
   vars = c("cld", "pre", "tmn", "tmx", "vap"),
-  count = 365,
+  count = length(data)/length(vars),
+  x = rep(seq_len(count), length(vars)),
   main = NULL,
   xlab = NULL,
   ylab = NULL
@@ -19,6 +20,8 @@ ts_plot(
 \item{vars}{Vector of strings with variables to be plotted.}
 
 \item{count}{Numeric, number of observations of each variable.}
+
+\item{x}{Numeric vector with breaks for the x-axis.}
 
 \item{main}{String with title for the plot.}
 
