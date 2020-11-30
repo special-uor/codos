@@ -52,7 +52,7 @@ ts_comp <- function(climatology,
 #' @export
 ts_plot <- function(data,
                     vars = c("cld", "pre", "tmn", "tmx", "vap"),
-                    count = 365,
+                    count = length(data) / length(vars),
                     main = NULL,
                     xlab = NULL,
                     ylab = NULL) {
