@@ -6,7 +6,13 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, 
+                      eval = FALSE,
+                      comment = "#>",
+                      fig.path = "man/figures/cru-ts-4.04-",
+                      out.width = "100%",
+                      dpi = 300, 
+                      fig.width = 7)
 ```
 
 ## Raw data
@@ -105,7 +111,7 @@ remotes::install_github("villegar/splash", "dev")
 ```
 
 ### Solar declination
-```{r}
+```{r, echo = FALSE}
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "elv")$data
 lat <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lat")
@@ -118,14 +124,44 @@ output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc")
 codos::splash_solar(output_filename, elv, sf, tmp, 1961, lat, lon, cpus = 20)
 ```
 
-##### Output file
-```{bash}
+<!-- ##### Output file -->
+```{bash, echo = FALSE}
 "cru_ts4.04-clim-1961-1990-solar-dcl.nc"
 ```
 
-### Moisture Index
 ```{r}
+codos::splash_dcl(1961)
+```
+
+### Moisture Index (MI)
+
+##### Calculate potential evapotranspiration (PET)
+```{r}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "elv")$data
+lat <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lat")
+lon <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lon")
+tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.daily.tmp.nc"), "tmp")$data
+cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), "cld")$data
+sf <- 1 - cld / 100
+
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-pet.nc")
+codos::splash_evap(output_filename, elv, sf, tmp, 1961, lat, lon, cpus = 20)
+```
+
+##### Calculate MI
+$$MI_{i,j} = \frac{\text{Total precipitation}}{\text{Total PET}}$$
+```{r}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+pet <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-pet.nc"), "pet")$data
 pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-smi.nc")
+codos::nc_mi(output_filename, pet, pre, cpus = 10)
+```
+
+##### Output file
+```bash
+"cru_ts4.04-clim-1961-1990-smi.nc"
 ```
 
 ## Derive daytime temperature ($T_g$) with the following equation:
@@ -139,7 +175,7 @@ $$x = -\tan\lambda \tan \delta$$
 
 ```{r}
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-dcl <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc"), "dcl")$data
+dcl <- codos::splash_dcl(1961)
 tmn <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn")$data
 tmx <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx")$data
 output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc")
@@ -150,11 +186,215 @@ codos::nc_Tg(output_filename, dcl, tmn, tmx, cpus = 10)
 "cru_ts4.04-clim-1961-1990-mdt.nc"
 ```
 
-```{r, echo = FALSE}
-mdt <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+## Calculate mean growing season for daytime temperature ($T_g$)
+```{r}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt", thr = 0, cpus = 10)
+```
+
+##### Output file
+```bash
+"cru_ts4.04-clim-1961-1990-mdt-gs.nc"
+```
+
+## Calculate daily VPD
+```{r}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+vap <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc"), "vap")$data
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc")
+codos::nc_vpd(output_filename, Tg, vap, cpus = 10)
+```
+
+##### Output file
+```bash
+"cru_ts4.04-clim-1961-1990-vpd.nc"
+```
+
+## Calculate mean growing season for VPD
+```{r}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc"), "vpd", thr = 0, cpus = 10, filter = Tg)
 ```
 
 # Plots
+## Growing season VPD vs growing season daytime temperature
+```{r, eval = TRUE, echo = FALSE}
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+smi <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-smi.nc"), "smi")$data
+Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt-gs.nc"), "mdt")$data
+vpd <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-vpd-gs.nc"), "vpd")$data
+
+lat <- codos::lat
+lon <- codos::lon
+lat_lon <- data.frame(i = seq_len(length(lon$data)),
+                      j = rep(seq_along(lat$data), each = length(lon$data)))
+```
+
+### `0 < MI < 0.5`
+```{r gs-tg-vpd-smi-0-0.5, eval = TRUE, echo = FALSE}
+smi_min <- 0
+smi_max <- 0.5
+idx <- lat_lon[which(smi > smi_min & smi <= smi_max), ]
+tmp <- vpd
+tmp[!(smi > smi_min & smi <= smi_max)] <- NA
+filename <- paste0(path, 
+                   "cru_ts4.04-clim-1961-1990-smi-",
+                   smi_min, "-", smi_max, "-vpd.nc")
+# codos:::nc_save_timeless(filename = filename,
+#                    var = list(id = "vpd",
+#                               longname = "vapour pressure deficit",
+#                               missval = -999L,
+#                               prec = "double",
+#                               units = "hPa",
+#                               vals = tmp),
+#                    lat = list(id = lat$id, units = lat$units, vals = lat$data),
+#                    lon = list(id = lon$id, units = lon$units, vals = lon$data))
+# image(lon$data, lat$data, tmp)
+# image(lon$data, lat$data, Tg)
+j <- 181
+i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+               vars = c("Tg", "VPD"), 
+               x = lon$data[i], 
+               xlab = "Longitude",
+               main = paste0("Growing season at ", 
+                             codos::lat_lab(lat$data[j]), 
+                             " - SMI: ", smi_min, "-", smi_max))
+```
+
+```{r, echo = FALSE}
+plots <- list()
+p <- 1
+for (j in seq_len(360)) {
+  i <- smi[, j] > 0 & smi[, j] <= 0.5 & !is.na(smi[, j])
+  # if (sum(i, na.rm = TRUE) == 0) {
+  #   text = paste("\nThere are no data points that satisfy\n",
+  #            "0 < MI < 0.5\n",
+  #            "for latitude = ", lat$data[j], ".")
+  #   plots[[p]] <- ggplot2::ggplot() + 
+  #     ggplot2::annotate("text", x = 4, y = 25, size = 5, label = text) + 
+  #     ggplot2::theme_void()
+  # } else {
+  if (sum(i, na.rm = TRUE) > 0) {
+    plots[[p]] <- codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+                                 vars = c("Tg", "VPD"), 
+                                 x = lon$data[i], 
+                                 xlab = "Longitude",
+                                 main = paste0("Growing season at ", 
+                                               codos::lat_lab(lat$data[j]), 
+                                               " - SMI: 0-0.5"))
+    p <- p + 1
+  }
+}
+for (j in seq_along(plots))
+  ggplot2::ggsave(paste0("ts-tg-vpd-gs-", j, ".pdf"),
+                plot = plots[[j]],
+                device = "pdf",
+                width = 8,
+                height = 5,
+                path = "~/Desktop/iCloud/UoR/Data/codos/ts-tg-vpd")
+
+# ggplot2::ggsave("ts-tg-vpd-gs.pdf",
+#                 plot = gridExtra::grid.arrange(grobs = plots, nrow = 10),
+#                 device = "pdf",
+#                 width = 5 * 10,
+#                 height = 4 * 36,
+#                 path = "~/Desktop/iCloud/UoR/Data/codos",
+#                 limitsize = FALSE)
+```
+
+### `0.5 < MI < 1`
+```{r}
+idx <- lat_lon[which(smi > 0.5 & smi <= 1), ]
+
+```
+```{r gs-tg-vpd-smi-0.5-1, eval = TRUE, echo = FALSE}
+smi_min <- 0.5
+smi_max <- 1
+filename <- paste0(path, 
+                   "cru_ts4.04-clim-1961-1990-smi-",
+                   smi_min, "-", smi_max, "-vpd.nc")
+j <- 181
+i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+               vars = c("Tg", "VPD"), 
+               x = lon$data[i], 
+               xlab = "Longitude",
+               main = paste0("Growing season at ", 
+                             codos::lat_lab(lat$data[j]), 
+                             " - SMI: ", smi_min, "-", smi_max))
+```
+
+### `1 < MI < 1.5`
+```{r}
+idx <- lat_lon[which(smi > 1 & smi <= 1.5), ]
+
+```
+
+```{r gs-tg-vpd-smi-1-1.5, eval = TRUE, echo = FALSE}
+smi_min <- 1
+smi_max <- 1.5
+filename <- paste0(path, 
+                   "cru_ts4.04-clim-1961-1990-smi-",
+                   smi_min, "-", smi_max, "-vpd.nc")
+j <- 181
+i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+               vars = c("Tg", "VPD"), 
+               x = lon$data[i], 
+               xlab = "Longitude",
+               main = paste0("Growing season at ", 
+                             codos::lat_lab(lat$data[j]), 
+                             " - SMI: ", smi_min, "-", smi_max))
+```
+
+### `1.5 < MI < 2`
+```{r}
+idx <- lat_lon[which(smi > 1.5 & smi <= 2), ]
+
+```
+
+```{r gs-tg-vpd-smi-1.5-2, eval = TRUE, echo = FALSE}
+smi_min <- 1.5
+smi_max <- 2
+filename <- paste0(path, 
+                   "cru_ts4.04-clim-1961-1990-smi-",
+                   smi_min, "-", smi_max, "-vpd.nc")
+j <- 181
+i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+               vars = c("Tg", "VPD"), 
+               x = lon$data[i], 
+               xlab = "Longitude",
+               main = paste0("Growing season at ", 
+                             codos::lat_lab(lat$data[j]), 
+                             " - SMI: ", smi_min, "-", smi_max))
+```
+
+### `MI > 2`
+```{r}
+idx <- lat_lon[which(smi > 2), ]
+
+```
+
+```{r gs-tg-vpd-smi-2, eval = TRUE, echo = FALSE}
+smi_min <- 2
+filename <- paste0(path, 
+                   "cru_ts4.04-clim-1961-1990-smi-",
+                   smi_min, "-vpd.nc")
+j <- 181
+i <- smi[, j] > smi_min & !is.na(smi[, j])
+codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+               vars = c("Tg", "VPD"), 
+               x = lon$data[i], 
+               xlab = "Longitude",
+               main = paste0("Growing season at ", 
+                             codos::lat_lab(lat$data[j]), 
+                             " - SMI: >", smi_min))
+```
+
 ## Climatologies vs Interpolated values
 ##### Inputs
 ```{r}

@@ -232,9 +232,9 @@ alpha_from_mi_om3 <- function(mi) {
 #' Given by (7):
 #'
 #' \eqn{T_g = T_{max}\left[\frac{1}{2} +
-#'                         \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right] +
+#'                         \frac{(1-x^2)^{1/2}}{2 \cos^{-1}{x}}\right] +
 #'            T_{min}\left[\frac{1}{2} -
-#'                         \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]}
+#'                         \frac{(1-x^2)^{1/2}}{2 \cos^{-1}{x}}\right]}
 #'
 #' where
 #'

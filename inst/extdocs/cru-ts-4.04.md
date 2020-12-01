@@ -112,6 +112,16 @@ remotes::install_github("villegar/splash", "dev")
 
 ### Solar declination
 
+<!-- ##### Output file -->
+
+``` r
+codos::splash_dcl(1961)
+```
+
+### Moisture Index (MI)
+
+##### Calculate potential evapotranspiration (PET)
+
 ``` r
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "elv")$data
@@ -121,20 +131,29 @@ tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.daily.tmp.nc"), 
 cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), "cld")$data
 sf <- 1 - cld / 100
 
-output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc")
-codos::splash_solar(output_filename, elv, sf, tmp, 1961, lat, lon, cpus = 20)
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-pet.nc")
+codos::splash_evap(output_filename, elv, sf, tmp, 1961, lat, lon, cpus = 20)
+```
+
+##### Calculate MI
+
+  
+![MI\_{i,j} = \\frac{\\text{Total precipitation}}{\\text{Total
+PET}}](https://latex.codecogs.com/png.latex?MI_%7Bi%2Cj%7D%20%3D%20%5Cfrac%7B%5Ctext%7BTotal%20precipitation%7D%7D%7B%5Ctext%7BTotal%20PET%7D%7D
+"MI_{i,j} = \\frac{\\text{Total precipitation}}{\\text{Total PET}}")  
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+pet <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-pet.nc"), "pet")$data
+pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-smi.nc")
+codos::nc_mi(output_filename, pet, pre, cpus = 10)
 ```
 
 ##### Output file
 
 ``` bash
-"cru_ts4.04-clim-1961-1990-solar-dcl.nc"
-```
-
-### Moisture Index
-
-``` r
-pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
+"cru_ts4.04-clim-1961-1990-smi.nc"
 ```
 
 ## Derive daytime temperature (![T\_g](https://latex.codecogs.com/png.latex?T_g "T_g")) with the following equation:
@@ -157,7 +176,7 @@ where
 
 ``` r
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-dcl <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-solar-dcl.nc"), "dcl")$data
+dcl <- codos::splash_dcl(1961)
 tmn <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn")$data
 tmx <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx")$data
 output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc")
@@ -170,7 +189,82 @@ codos::nc_Tg(output_filename, dcl, tmn, tmx, cpus = 10)
 "cru_ts4.04-clim-1961-1990-mdt.nc"
 ```
 
+## Calculate mean growing season for daytime temperature (![T\_g](https://latex.codecogs.com/png.latex?T_g "T_g"))
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt", thr = 0, cpus = 10)
+```
+
+##### Output file
+
+``` bash
+"cru_ts4.04-clim-1961-1990-mdt-gs.nc"
+```
+
+## Calculate daily VPD
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+vap <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc"), "vap")$data
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc")
+codos::nc_vpd(output_filename, Tg, vap, cpus = 10)
+```
+
+##### Output file
+
+``` bash
+"cru_ts4.04-clim-1961-1990-vpd.nc"
+```
+
+## Calculate mean growing season for VPD
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc"), "vpd", thr = 0, cpus = 10, filter = Tg)
+```
+
 # Plots
+
+## Growing season VPD vs growing season daytime temperature
+
+### `0 < MI < 0.5`
+
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-0-0.5-1.png" width="100%" />
+
+### `0.5 < MI < 1`
+
+``` r
+idx <- lat_lon[which(smi > 0.5 & smi <= 1), ]
+```
+
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-0.5-1-1.png" width="100%" />
+
+### `1 < MI < 1.5`
+
+``` r
+idx <- lat_lon[which(smi > 1 & smi <= 1.5), ]
+```
+
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-1-1.5-1.png" width="100%" />
+
+### `1.5 < MI < 2`
+
+``` r
+idx <- lat_lon[which(smi > 1.5 & smi <= 2), ]
+```
+
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-1.5-2-1.png" width="100%" />
+
+### `MI > 2`
+
+``` r
+idx <- lat_lon[which(smi > 2), ]
+```
+
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-2-1.png" width="100%" />
 
 ## Climatologies vs Interpolated values
 

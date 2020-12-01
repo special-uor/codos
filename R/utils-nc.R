@@ -505,6 +505,9 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
 #'
 #' @importFrom foreach "%dopar%"
 #' @param thr Growing season threshold.
+#' @param filter Variable to be use as filter for the growing season, generally
+#'     a structure with temperature data. It must have the same dimensions of
+#'     the main variable.
 #'
 #' @inheritParams nc_int
 #' @export
@@ -515,6 +518,7 @@ nc_gs <- function(filename,
                   latid = "lat",
                   lonid = "lon",
                   cpus = 2,
+                  filter = NULL,
                   overwrite = TRUE) {
   # Check and open netCDF file
   nc_check(filename, varid, timeid, latid, lonid)
@@ -531,6 +535,11 @@ nc_gs <- function(filename,
 
   # Load land-sea mask
   land_mask <- codos::land_mask
+
+
+  # Check filter variable
+  if (is.null(filter))
+    filter <- var$data
 
   # Check the number of CPUs does not exceed the availability
   avail_cpus <- parallel::detectCores() - 1
@@ -549,9 +558,9 @@ nc_gs <- function(filename,
                                i <- idx$i[k]
                                j <- idx$j[k]
                                if (land_mask[i, j]) {
-                                 !is.na(var$data[i, j, ]) &
-                                   !is.null(var$data[i, j, ]) &
-                                   var$data[i, j, ] > thr
+                                 !is.na(filter[i, j, ]) &
+                                   !is.null(filter[i, j, ]) &
+                                   filter[i, j, ] > thr
                                } else {
                                  rep(FALSE, length(time$data))
                                }
