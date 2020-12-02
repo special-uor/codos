@@ -1030,7 +1030,7 @@ nc_vpd <- function(filename,
   # Replace negative values of VPD by 0
   idx <- vpd < 0 & !is.na(vpd)
   if (sum(idx) > 0) {
-    warning(paste0(idx, " entries were replaced by zero."))
+    warning(paste0(sum(idx), " entries were replaced by zero."))
     vpd[idx] <- 0
   }
 
