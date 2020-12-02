@@ -711,9 +711,9 @@ nc_int <- function(filename,
           overwrite = overwrite)
 }
 
-#' Calculate soil moisture index
+#' Calculate moisture index
 #'
-#' Calculate soil moisture index and save output to a netCDF file.
+#' Calculate moisture index and save output to a netCDF file.
 #'
 #' @importFrom foreach "%dopar%"
 #'
@@ -769,7 +769,7 @@ nc_mi <- function(filename,
                              }
   message("Done calculating moisture indices.")
   message("Reshaping output...")
-  smi <- array(NA, dim = dim(pet)[1:2])
+  mi <- array(NA, dim = dim(pet)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
@@ -777,24 +777,23 @@ nc_mi <- function(filename,
     pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
-    smi[i, j] <- output[k]
+    mi[i, j] <- output[k]
   }
 
   message("Saving output to netCDF...")
   var_atts <- list()
-  var_atts$description <- paste0("Soil moisture index, calculated as a ",
-                                 "function of ",
+  var_atts$description <- paste0("Moisture index, calculated as a function of ",
                                  "latitute, elevation, daily temperature, ",
                                  "sunshine fraction, and precipitation. The ",
                                  "calculations were done using SPLASH V1.0: ",
                                  "https://doi.org/10.5281/zenodo.376293")
   nc_save_timeless(filename = filename,
-                   var = list(id = "smi",
-                              longname = "soil moisture index",
+                   var = list(id = "mi",
+                              longname = "moisture index",
                               missval = -999L,
                               prec = "double",
                               units = "-",
-                              vals = smi),
+                              vals = mi),
                    lat = list(id = "lat", units = lat$units, vals = lat$data),
                    lon = list(id = "lon", units = lon$units, vals = lon$data),
                    var_atts = var_atts,
