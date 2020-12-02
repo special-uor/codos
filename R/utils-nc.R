@@ -908,10 +908,10 @@ nc_Tg <- function(filename,
                                  "maximum [tmx] & minimum [tmn] temperature. ",
                                  "The calculations were done using the ",
                                  "following equation: ",
-                                 "T_max * [0.5 + 0.5 * (1 - x^2)^0.5",
-                                 " * arccos(x)] + ",
-                                 "T_min * [0.5 - 0.5 * (1 - x^2)^0.5",
-                                 " * arccos(x)]; where ",
+                                 "T_max * [0.5 + (1 - x^2)^0.5",
+                                 " / (0.5 * arccos(x))] + ",
+                                 "T_min * [0.5 - (1 - x^2)^0.5",
+                                 " / (0.5 * arccos(x))]; where ",
                                  "x = -tan(lat) * tan(dcl)")
   nc_save(filename = filename,
           var = list(id = "mdt",
@@ -1028,27 +1028,19 @@ nc_vpd <- function(filename,
     vpd[i, j, ] <- output[, k]
   }
 
+  # Replace negative values of VPD by 0
+  idx <- vpd < 0 & !is.na(vpd)
+  if (sum(idx) > 0) {
+    warning(paste0(idx, " entries were replaced by zero."))
+    vpd[idx] <- 0
+  }
+
   message("Saving output to netCDF...")
   var_atts <- list()
   var_atts$description <- paste0("Vapour pressure deficit, calculated as a ",
                                  "function of actual vapour pressured and ",
                                  "saturated vapour pressured at a given ",
                                  "temperature.")
-                                 # "latitute, elevation, daily temperature, ",
-                                 # "sunshine fraction, and precipitation. The ",
-                                 # "calculations were done using SPLASH V1.0: ",
-                                 # "https://doi.org/10.5281/zenodo.376293")
-  # nc_save_timeless(filename = filename,
-  #                  var = list(id = "vpd",
-  #                             longname = "vapour pressure deficit",
-  #                             missval = -999L,
-  #                             prec = "double",
-  #                             units = "kPa",
-  #                             vals = vpd),
-  #                  lat = list(id = "lat", units = lat$units, vals = lat$data),
-  #                  lon = list(id = "lon", units = lon$units, vals = lon$data),
-  #                  var_atts = var_atts,
-  #                  overwrite = overwrite)
 
   nc_save(filename = filename,
           var = list(id = "vpd",
