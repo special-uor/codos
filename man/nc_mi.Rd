@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils-nc.R
 \name{nc_mi}
 \alias{nc_mi}
-\title{Calculate soil moisture index}
+\title{Calculate moisture index}
 \usage{
 nc_mi(filename, pet, pre, lat = NULL, lon = NULL, cpus = 2, overwrite = TRUE)
 }
@@ -24,5 +24,5 @@ can be calculated with the function \code{\link{splash_evap}}.}
 overwritten (if it exists).}
 }
 \description{
-Calculate soil moisture index and save output to a netCDF file.
+Calculate moisture index and save output to a netCDF file.
 }
