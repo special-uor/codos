@@ -139,8 +139,8 @@ codos::splash_dcl(1961)
 ```{r}
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "elv")$data
-lat <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lat")
-lon <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lon")
+lat <- codos::lat
+lon <- codos::lon
 tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.daily.tmp.nc"), "tmp")$data
 cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), "cld")$data
 sf <- 1 - cld / 100
@@ -155,19 +155,19 @@ $$MI_{i,j} = \frac{\text{Total precipitation}}{\text{Total PET}}$$
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 pet <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-pet.nc"), "pet")$data
 pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
-output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-smi.nc")
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mi.nc")
 codos::nc_mi(output_filename, pet, pre, cpus = 10)
 ```
 
 ##### Output file
 ```bash
-"cru_ts4.04-clim-1961-1990-smi.nc"
+"cru_ts4.04-clim-1961-1990-mi.nc"
 ```
 
 ## Derive daytime temperature ($T_g$) with the following equation:
 $$T_g = T_{max}\left[\frac{1}{2} +
-                         \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right] +
-            T_{min}\left[\frac{1}{2} - \frac{(1-x^2)^{1/2}}{2} \cos^{-1}{x}\right]$$
+                         \frac{(1-x^2)^{1/2}}{2 \cos^{-1}{x}}\right] +
+            T_{min}\left[\frac{1}{2} - \frac{(1-x^2)^{1/2}}{2 \cos^{-1}{x}}\right]$$
 
 where
 
@@ -180,6 +180,18 @@ tmn <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-196
 tmx <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx")$data
 output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc")
 codos::nc_Tg(output_filename, dcl, tmn, tmx, cpus = 10)
+```
+
+```{r, echo = FALSE}
+# Scratch
+mdt <- matrix(NA, 720, 360)
+for (i in seq_len(720)) {
+  for (j in seq_len(360)) {
+    mdt[i, j] <- T_g(lat$data[j] * pi / 180, dcl[x] * pi / 180, tmx[i, j, 1], tmn[i, j, 1])
+    if (is.na(mdt[i, j]) & land_mask[i, j])
+      print(paste0("i: ", i, " - j: ", j))
+  }
+}
 ```
 ##### Output file
 ```bash
@@ -222,7 +234,7 @@ codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc"), "vpd", thr = 0
 ## Growing season VPD vs growing season daytime temperature
 ```{r, eval = TRUE, echo = FALSE}
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-smi <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-smi.nc"), "smi")$data
+mi <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mi.nc"), "mi")$data
 Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt-gs.nc"), "mdt")$data
 vpd <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-vpd-gs.nc"), "vpd")$data
 
@@ -232,16 +244,250 @@ lat_lon <- data.frame(i = seq_len(length(lon$data)),
                       j = rep(seq_along(lat$data), each = length(lon$data)))
 ```
 
+## Create long vectors of `MI`, `Tg` and `VPD`
+```{r}
+mi_cat <- ifelse(is.na(mi), "UNK", 
+            ifelse(mi >= 0 & mi <= 0.5, "0-0.5",
+              ifelse(mi > 0.5 & mi <= 1, "0.5-1",
+                ifelse(mi > 1 & mi <= 1.5, "1-1.5",
+                  ifelse(mi > 1.5 & mi < 2, "1.5-2", "2+")))))
+# mi_cat[is.na(mi_cat)] <- "UNK"
+mi_long <- matrix(mi, nrow = 1, byrow = TRUE)
+mi_long_cat <- matrix(mi_cat, nrow = 1, byrow = TRUE)
+Tg_cat <- ifelse(is.na(Tg), "UNK",
+            ifelse(Tg >= 0 & Tg <= 5, "0-5",
+              ifelse(Tg > 5 & Tg <= 10, "5-10",
+                ifelse(Tg > 10 & Tg <= 15, "10-15",
+                  ifelse(Tg > 15 & Tg <= 20, "15-20",
+                    ifelse(Tg > 20 & Tg <= 25, "20-25",
+                      ifelse(Tg > 25 & Tg <= 30, "25-30",
+                        ifelse(Tg > 30 & Tg <= 35, "30-35", "35+"))))))))
+Tg_long <- matrix(Tg, nrow = 1, byrow = TRUE)
+Tg_long_cat <- matrix(Tg_cat, nrow = 1, byrow = TRUE)
+vpd_long <- matrix(vpd, nrow = 1, byrow = TRUE)
+df <- data.frame(Tg = Tg_long[1, ], 
+                 vpd = vpd_long[1, ],
+                 MI = mi_long[1, ],
+                 mi = as.factor(mi_long_cat[1, ]),
+                 tg = factor(Tg_long_cat[1, ], c("0-5", "5-10", "10-15", 
+                                                 "15-20", "20-25", "25-30", 
+                                                 "30-35", "35+", "UNK")))
+```
+
+## Plots of `VPD` vs `Tg`
+```{r}
+df <- df[!is.na(df$Tg) & !is.na(df$vpd), ]
+ggplot2::ggplot(df[df$mi == "2+",], ggplot2::aes(Tg, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(alpha = 0.5)) + #ggplot2::aes(color = mi)) +
+                  ggplot2::scale_color_manual(values = c("#E69F00", "#56B4E9")) +
+                  ggplot2::theme_bw()
+
+all <- ggplot2::ggplot(df, ggplot2::aes(Tg, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+                  ggplot2::labs(title = NULL, x = "Tg [°C]", y = "vpd [hPa]") +
+                  ggplot2::theme_bw()
+
+ggplot2::ggsave("tg-vpd.pdf",
+                plot = all,
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+plots <- list()
+p <- 1
+for (i in levels(df$mi)[-6]) {
+  plots[[p]] <- ggplot2::ggplot(df[df$mi == i,], ggplot2::aes(Tg, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+                  ggplot2::scale_color_manual(values = c("#E69F00")) +
+                  # ggplot2::scale_color_brewer(palette = "Set1") +
+                  ggplot2::theme_bw()
+  ggplot2::ggsave(paste0("tg-vpd-", i, ".pdf"),
+                plot = plots[[p]]  +
+                  ggplot2::labs(title = paste0("MI: ", i), 
+                                x = "Tg [°C]", 
+                                y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-lm.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, formula = y ~ x)  +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Linear regression"), 
+                                x = "Tg [°C]", 
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ x),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-lm-x2.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ poly(x, 2, raw = TRUE)) +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Polynomial regression"), 
+                                x = "Tg [°C]", y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ poly(x, 2, raw = TRUE)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-splines.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ splines::bs(x, df = 3)) +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Spline regression (df = 3)"), 
+                                x = "Tg [°C]", y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ splines::bs(x, df = 3)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  formula <- with(df, vpd ~ s(Tg))
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-gam.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = "gam", 
+                                       formula = y ~ s(x)) +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Generalized additive models (GAM)"), 
+                                x = "Tg [°C]", y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  p <- p + 1
+}
+```
+
+## Plots of `VPD` vs `MI`
+```{r}
+df <- df[!is.na(df$MI) & !is.na(df$vpd), ]
+                  
+all <- ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
+        ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
+        ggplot2::labs(title = NULL, x = "MI [-]", y = "vpd [hPa]") +
+        ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
+        ggplot2::theme_bw()
+
+ggplot2::ggsave("mi-vpd.pdf",
+                plot = all,
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+plots <- list()
+p <- 1
+for (i in levels(df$tg)[-c(8:9)]) {
+  plots[[p]] <- ggplot2::ggplot(df[df$tg == i,], ggplot2::aes(MI, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
+                  ggplot2::scale_color_manual(values = c("#8c94c0"), guide = FALSE) +
+                  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 8)) + 
+                  ggplot2::theme_bw()
+  ggplot2::ggsave(paste0("mi-vpd-", i, ".pdf"),
+                plot = plots[[p]]  +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C]"), 
+                                x = "MI [-]", 
+                                y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-lm.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, formula = y ~ x)  +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Linear regression"), 
+                                x = "MI [-]", 
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ x),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-lm-x2.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ poly(x, 2, raw = TRUE)) +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Polynomial regression"), 
+                                x = "MI [-]",
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ poly(x, 2, raw = TRUE)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-splines.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ splines::bs(x, df = 3)) +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Spline regression (df = 3)"), 
+                                x = "MI [-]",
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ splines::bs(x, df = 3)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  formula <- with(df, vpd ~ s(Tg))
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-gam.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = "gam", 
+                                       formula = y ~ s(x)) +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Generalized additive models (GAM)"), 
+                                x = "MI [-]",
+                                y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  p <- p + 1
+}
+```
+                  
 ### `0 < MI < 0.5`
-```{r gs-tg-vpd-smi-0-0.5, eval = TRUE, echo = FALSE}
-smi_min <- 0
-smi_max <- 0.5
-idx <- lat_lon[which(smi > smi_min & smi <= smi_max), ]
+```{r gs-tg-vpd-mi-0-0.5, eval = TRUE, echo = FALSE}
+mi_min <- 0
+mi_max <- 0.5
+idx <- lat_lon[which(mi > mi_min & mi <= mi_max), ]
 tmp <- vpd
-tmp[!(smi > smi_min & smi <= smi_max)] <- NA
+tmp[!(mi > mi_min & mi <= mi_max)] <- NA
 filename <- paste0(path, 
-                   "cru_ts4.04-clim-1961-1990-smi-",
-                   smi_min, "-", smi_max, "-vpd.nc")
+                   "cru_ts4.04-clim-1961-1990-mi-",
+                   mi_min, "-", mi_max, "-vpd.nc")
 # codos:::nc_save_timeless(filename = filename,
 #                    var = list(id = "vpd",
 #                               longname = "vapour pressure deficit",
@@ -251,24 +497,160 @@ filename <- paste0(path,
 #                               vals = tmp),
 #                    lat = list(id = lat$id, units = lat$units, vals = lat$data),
 #                    lon = list(id = lon$id, units = lon$units, vals = lon$data))
-# image(lon$data, lat$data, tmp)
-# image(lon$data, lat$data, Tg)
 j <- 181
-i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
 codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
                vars = c("Tg", "VPD"), 
                x = lon$data[i], 
                xlab = "Longitude",
                main = paste0("Growing season at ", 
                              codos::lat_lab(lat$data[j]), 
-                             " - SMI: ", smi_min, "-", smi_max))
+                             " - MI: ", mi_min, "-", mi_max))
+  # ggplot2::stat_smooth(data = data.frame(Tg = Tg[i, j], vpd = vpd[i, j]),
+  #                      mapping = ggplot2::aes(Tg = Tg, vpd = vpd),
+  #                      method = lm, formula = vpd ~ Tg)
+```
+
+#### Fit different regression models
+##### Linear regression
+```{r, echo = FALSE, eval = TRUE}
+j <- 181
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
+ip <- mi[, j + 1] > mi_min & mi[, j + 1] <= mi_max & !is.na(mi[, j + 1])
+
+train.data <- data.frame(Tg = Tg[i, j], vpd = vpd[i, j])
+test.data <-  data.frame(Tg = Tg[ip, j + 1], vpd = vpd[ip, j + 1])
+
+# Build the model
+model <- lm(vpd ~ Tg, train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ x)
+```
+
+##### Polynomial regression
+##### 2nd degree
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ poly(Tg, 2, raw = TRUE), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+```
+
+<!-- ##### 3rd degree -->
+```{r, echo = FALSE, eval = FALSE}
+# Build the model
+model <- lm(vpd ~ poly(Tg, 3, raw = TRUE), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 3, raw = TRUE))
+```
+
+<!-- ##### Log transformation -->
+```{r, echo = FALSE, eval = FALSE}
+# Build the model
+model <- lm(vpd ~ log(Tg), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ log(x))
+```
+
+##### Spline regression
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ splines2::bSpline(Tg,df = 3), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
+```
+
+##### Generalized additive models (GAM)
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- mgcv::gam(vpd ~ s(Tg), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ mgcv::s(x))
 ```
 
 ```{r, echo = FALSE}
 plots <- list()
 p <- 1
 for (j in seq_len(360)) {
-  i <- smi[, j] > 0 & smi[, j] <= 0.5 & !is.na(smi[, j])
+  i <- mi[, j] > 0 & mi[, j] <= 0.5 & !is.na(mi[, j])
   # if (sum(i, na.rm = TRUE) == 0) {
   #   text = paste("\nThere are no data points that satisfy\n",
   #            "0 < MI < 0.5\n",
@@ -284,7 +666,7 @@ for (j in seq_len(360)) {
                                  xlab = "Longitude",
                                  main = paste0("Growing season at ", 
                                                codos::lat_lab(lat$data[j]), 
-                                               " - SMI: 0-0.5"))
+                                               " - MI: 0-0.5"))
     p <- p + 1
   }
 }
@@ -294,7 +676,7 @@ for (j in seq_along(plots))
                 device = "pdf",
                 width = 8,
                 height = 5,
-                path = "~/Desktop/iCloud/UoR/Data/codos/ts-tg-vpd")
+                path = "~/Desktop/iCloud/UoR/Data/codos/ts-tg-vpd/0-0.5")
 
 # ggplot2::ggsave("ts-tg-vpd-gs.pdf",
 #                 plot = gridExtra::grid.arrange(grobs = plots, nrow = 10),
@@ -307,92 +689,406 @@ for (j in seq_along(plots))
 
 ### `0.5 < MI < 1`
 ```{r}
-idx <- lat_lon[which(smi > 0.5 & smi <= 1), ]
+idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 
 ```
-```{r gs-tg-vpd-smi-0.5-1, eval = TRUE, echo = FALSE}
-smi_min <- 0.5
-smi_max <- 1
+```{r gs-tg-vpd-mi-0.5-1, eval = TRUE, echo = FALSE}
+mi_min <- 0.5
+mi_max <- 1
 filename <- paste0(path, 
-                   "cru_ts4.04-clim-1961-1990-smi-",
-                   smi_min, "-", smi_max, "-vpd.nc")
+                   "cru_ts4.04-clim-1961-1990-mi-",
+                   mi_min, "-", mi_max, "-vpd.nc")
 j <- 181
-i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
 codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
                vars = c("Tg", "VPD"), 
                x = lon$data[i], 
                xlab = "Longitude",
                main = paste0("Growing season at ", 
                              codos::lat_lab(lat$data[j]), 
-                             " - SMI: ", smi_min, "-", smi_max))
+                             " - MI: ", mi_min, "-", mi_max))
+```
+
+#### Fit different regression models
+##### Linear regression
+```{r, echo = FALSE, eval = TRUE}
+j <- 181
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
+ip <- mi[, j + 1] > mi_min & mi[, j + 1] <= mi_max & !is.na(mi[, j + 1])
+
+train.data <- data.frame(Tg = Tg[i, j], vpd = vpd[i, j])
+test.data <-  data.frame(Tg = Tg[ip, j + 1], vpd = vpd[ip, j + 1])
+
+# Build the model
+model <- lm(vpd ~ Tg, train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ x)
+```
+
+##### Polynomial regression
+##### 2nd degree
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ poly(Tg, 2, raw = TRUE), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+```
+
+##### Spline regression
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ splines2::bSpline(Tg,df = 3), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
+```
+
+```{r, echo = FALSE}
+plots <- list()
+p <- 1
+for (j in seq_len(360)) {
+  i <- mi[, j] > 0.5 & mi[, j] <= 1 & !is.na(mi[, j])
+  if (sum(i, na.rm = TRUE) > 0) {
+    plots[[p]] <- codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
+                                 vars = c("Tg", "VPD"), 
+                                 x = lon$data[i], 
+                                 xlab = "Longitude",
+                                 main = paste0("Growing season at ", 
+                                               codos::lat_lab(lat$data[j]), 
+                                               " - MI: 0.5-1"))
+    p <- p + 1
+  }
+}
+for (j in seq_along(plots))
+  ggplot2::ggsave(paste0("ts-tg-vpd-gs-", j, ".pdf"),
+                plot = plots[[j]],
+                device = "pdf",
+                width = 8,
+                height = 5,
+                path = "~/Desktop/iCloud/UoR/Data/codos/ts-tg-vpd/0.5-1")
+
 ```
 
 ### `1 < MI < 1.5`
 ```{r}
-idx <- lat_lon[which(smi > 1 & smi <= 1.5), ]
+idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 
 ```
 
-```{r gs-tg-vpd-smi-1-1.5, eval = TRUE, echo = FALSE}
-smi_min <- 1
-smi_max <- 1.5
+```{r gs-tg-vpd-mi-1-1.5, eval = TRUE, echo = FALSE}
+mi_min <- 1
+mi_max <- 1.5
 filename <- paste0(path, 
-                   "cru_ts4.04-clim-1961-1990-smi-",
-                   smi_min, "-", smi_max, "-vpd.nc")
+                   "cru_ts4.04-clim-1961-1990-mi-",
+                   mi_min, "-", mi_max, "-vpd.nc")
 j <- 181
-i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
 codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
                vars = c("Tg", "VPD"), 
                x = lon$data[i], 
                xlab = "Longitude",
                main = paste0("Growing season at ", 
                              codos::lat_lab(lat$data[j]), 
-                             " - SMI: ", smi_min, "-", smi_max))
+                             " - MI: ", mi_min, "-", mi_max))
+```
+
+#### Fit different regression models
+##### Linear regression
+```{r, echo = FALSE, eval = TRUE}
+j <- 181
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
+ip <- mi[, j + 1] > mi_min & mi[, j + 1] <= mi_max & !is.na(mi[, j + 1])
+
+train.data <- data.frame(Tg = Tg[i, j], vpd = vpd[i, j])
+test.data <-  data.frame(Tg = Tg[ip, j + 1], vpd = vpd[ip, j + 1])
+
+# Build the model
+model <- lm(vpd ~ Tg, train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ x)
+```
+
+##### Polynomial regression
+##### 2nd degree
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ poly(Tg, 2, raw = TRUE), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+```
+
+##### Spline regression
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ splines2::bSpline(Tg,df = 3), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
 ```
 
 ### `1.5 < MI < 2`
 ```{r}
-idx <- lat_lon[which(smi > 1.5 & smi <= 2), ]
+idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 
 ```
 
-```{r gs-tg-vpd-smi-1.5-2, eval = TRUE, echo = FALSE}
-smi_min <- 1.5
-smi_max <- 2
+```{r gs-tg-vpd-mi-1.5-2, eval = TRUE, echo = FALSE}
+mi_min <- 1.5
+mi_max <- 2
 filename <- paste0(path, 
-                   "cru_ts4.04-clim-1961-1990-smi-",
-                   smi_min, "-", smi_max, "-vpd.nc")
+                   "cru_ts4.04-clim-1961-1990-mi-",
+                   mi_min, "-", mi_max, "-vpd.nc")
 j <- 181
-i <- smi[, j] > smi_min & smi[, j] <= smi_max & !is.na(smi[, j])
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
 codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
                vars = c("Tg", "VPD"), 
                x = lon$data[i], 
                xlab = "Longitude",
                main = paste0("Growing season at ", 
                              codos::lat_lab(lat$data[j]), 
-                             " - SMI: ", smi_min, "-", smi_max))
+                             " - MI: ", mi_min, "-", mi_max))
+```
+
+#### Fit different regression models
+##### Linear regression
+```{r, echo = FALSE, eval = TRUE}
+j <- 181
+i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
+ip <- mi[, j + 1] > mi_min & mi[, j + 1] <= mi_max & !is.na(mi[, j + 1])
+
+train.data <- data.frame(Tg = Tg[i, j], vpd = vpd[i, j])
+test.data <-  data.frame(Tg = Tg[ip, j + 1], vpd = vpd[ip, j + 1])
+
+# Build the model
+model <- lm(vpd ~ Tg, train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ x)
+```
+
+##### Polynomial regression
+##### 2nd degree
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ poly(Tg, 2, raw = TRUE), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+```
+
+##### Spline regression
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ splines2::bSpline(Tg,df = 3), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
 ```
 
 ### `MI > 2`
 ```{r}
-idx <- lat_lon[which(smi > 2), ]
+idx <- lat_lon[which(mi > 2), ]
 
 ```
 
-```{r gs-tg-vpd-smi-2, eval = TRUE, echo = FALSE}
-smi_min <- 2
+```{r gs-tg-vpd-mi-2, eval = TRUE, echo = FALSE}
+mi_min <- 2
 filename <- paste0(path, 
-                   "cru_ts4.04-clim-1961-1990-smi-",
-                   smi_min, "-vpd.nc")
+                   "cru_ts4.04-clim-1961-1990-mi-",
+                   mi_min, "-vpd.nc")
 j <- 181
-i <- smi[, j] > smi_min & !is.na(smi[, j])
+i <- mi[, j] > mi_min & !is.na(mi[, j])
 codos::ts_plot(c(Tg[i, j], vpd[i, j]), 
                vars = c("Tg", "VPD"), 
                x = lon$data[i], 
                xlab = "Longitude",
                main = paste0("Growing season at ", 
                              codos::lat_lab(lat$data[j]), 
-                             " - SMI: >", smi_min))
+                             " - MI: >", mi_min))
+```
+
+#### Fit different regression models
+##### Linear regression
+```{r, echo = FALSE, eval = TRUE}
+j <- 181
+i <- mi[, j] > mi_min & !is.na(mi[, j])
+ip <- mi[, j + 1] > mi_min & !is.na(mi[, j + 1])
+
+train.data <- data.frame(Tg = Tg[i, j], vpd = vpd[i, j])
+test.data <-  data.frame(Tg = Tg[ip, j + 1], vpd = vpd[ip, j + 1])
+
+# Build the model
+model <- lm(vpd ~ Tg, train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ x)
+```
+
+##### Polynomial regression
+##### 2nd degree
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ poly(Tg, 2, raw = TRUE), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+```
+
+##### Spline regression
+```{r, echo = FALSE, eval = TRUE}
+# Build the model
+model <- lm(vpd ~ splines2::bSpline(Tg,df = 3), data = train.data)
+# Make predictions
+predictions <- predict(model, test.data)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, test.data$vpd),
+  R2 = caret::R2(predictions, test.data$vpd)
+))
+
+ggplot2::ggplot(train.data, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
 ```
 
 ## Climatologies vs Interpolated values

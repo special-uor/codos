@@ -125,8 +125,8 @@ codos::splash_dcl(1961)
 ``` r
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "elv")$data
-lat <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lat")
-lon <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), "lon")
+lat <- codos::lat
+lon <- codos::lon
 tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.daily.tmp.nc"), "tmp")$data
 cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), "cld")$data
 sf <- 1 - cld / 100
@@ -146,26 +146,26 @@ PET}}](https://latex.codecogs.com/png.latex?MI_%7Bi%2Cj%7D%20%3D%20%5Cfrac%7B%5C
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 pet <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-pet.nc"), "pet")$data
 pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
-output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-smi.nc")
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-mi.nc")
 codos::nc_mi(output_filename, pet, pre, cpus = 10)
 ```
 
 ##### Output file
 
 ``` bash
-"cru_ts4.04-clim-1961-1990-smi.nc"
+"cru_ts4.04-clim-1961-1990-mi.nc"
 ```
 
 ## Derive daytime temperature (![T\_g](https://latex.codecogs.com/png.latex?T_g "T_g")) with the following equation:
 
   
-![T\_g = T\_{max}\\left\[\\frac{1}{2} +&#10; \\frac{(1-x^2)^{1/2}}{2}
-\\cos^{-1}{x}\\right\] +&#10; T\_{min}\\left\[\\frac{1}{2} -
-\\frac{(1-x^2)^{1/2}}{2}
-\\cos^{-1}{x}\\right\]](https://latex.codecogs.com/png.latex?T_g%20%3D%20T_%7Bmax%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20T_%7Bmin%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20-%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%7D%20%5Ccos%5E%7B-1%7D%7Bx%7D%5Cright%5D
+![T\_g = T\_{max}\\left\[\\frac{1}{2} +&#10; \\frac{(1-x^2)^{1/2}}{2
+\\cos^{-1}{x}}\\right\] +&#10; T\_{min}\\left\[\\frac{1}{2} -
+\\frac{(1-x^2)^{1/2}}{2
+\\cos^{-1}{x}}\\right\]](https://latex.codecogs.com/png.latex?T_g%20%3D%20T_%7Bmax%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%20%5Ccos%5E%7B-1%7D%7Bx%7D%7D%5Cright%5D%20%2B%0A%20%20%20%20%20%20%20%20%20%20%20%20T_%7Bmin%7D%5Cleft%5B%5Cfrac%7B1%7D%7B2%7D%20-%20%5Cfrac%7B%281-x%5E2%29%5E%7B1%2F2%7D%7D%7B2%20%5Ccos%5E%7B-1%7D%7Bx%7D%7D%5Cright%5D
 "T_g = T_{max}\\left[\\frac{1}{2} +
-                         \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right] +
-            T_{min}\\left[\\frac{1}{2} - \\frac{(1-x^2)^{1/2}}{2} \\cos^{-1}{x}\\right]")  
+                         \\frac{(1-x^2)^{1/2}}{2 \\cos^{-1}{x}}\\right] +
+            T_{min}\\left[\\frac{1}{2} - \\frac{(1-x^2)^{1/2}}{2 \\cos^{-1}{x}}\\right]")  
 
 where
 
@@ -230,41 +230,433 @@ codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc"), "vpd", thr = 0
 
 ## Growing season VPD vs growing season daytime temperature
 
+## Create long vectors of `MI`, `Tg` and `VPD`
+
+``` r
+mi_cat <- ifelse(is.na(mi), "UNK", 
+            ifelse(mi >= 0 & mi <= 0.5, "0-0.5",
+              ifelse(mi > 0.5 & mi <= 1, "0.5-1",
+                ifelse(mi > 1 & mi <= 1.5, "1-1.5",
+                  ifelse(mi > 1.5 & mi < 2, "1.5-2", "2+")))))
+# mi_cat[is.na(mi_cat)] <- "UNK"
+mi_long <- matrix(mi, nrow = 1, byrow = TRUE)
+mi_long_cat <- matrix(mi_cat, nrow = 1, byrow = TRUE)
+Tg_cat <- ifelse(is.na(Tg), "UNK",
+            ifelse(Tg >= 0 & Tg <= 5, "0-5",
+              ifelse(Tg > 5 & Tg <= 10, "5-10",
+                ifelse(Tg > 10 & Tg <= 15, "10-15",
+                  ifelse(Tg > 15 & Tg <= 20, "15-20",
+                    ifelse(Tg > 20 & Tg <= 25, "20-25",
+                      ifelse(Tg > 25 & Tg <= 30, "25-30",
+                        ifelse(Tg > 30 & Tg <= 35, "30-35", "35+"))))))))
+Tg_long <- matrix(Tg, nrow = 1, byrow = TRUE)
+Tg_long_cat <- matrix(Tg_cat, nrow = 1, byrow = TRUE)
+vpd_long <- matrix(vpd, nrow = 1, byrow = TRUE)
+df <- data.frame(Tg = Tg_long[1, ], 
+                 vpd = vpd_long[1, ],
+                 MI = mi_long[1, ],
+                 mi = as.factor(mi_long_cat[1, ]),
+                 tg = factor(Tg_long_cat[1, ], c("0-5", "5-10", "10-15", 
+                                                 "15-20", "20-25", "25-30", 
+                                                 "30-35", "35+", "UNK")))
+```
+
+## Plots of `VPD` vs `Tg`
+
+``` r
+df <- df[!is.na(df$Tg) & !is.na(df$vpd), ]
+ggplot2::ggplot(df[df$mi == "2+",], ggplot2::aes(Tg, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(alpha = 0.5)) + #ggplot2::aes(color = mi)) +
+                  ggplot2::scale_color_manual(values = c("#E69F00", "#56B4E9")) +
+                  ggplot2::theme_bw()
+
+all <- ggplot2::ggplot(df, ggplot2::aes(Tg, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+                  ggplot2::labs(title = NULL, x = "Tg [°C]", y = "vpd [hPa]") +
+                  ggplot2::theme_bw()
+
+ggplot2::ggsave("tg-vpd.pdf",
+                plot = all,
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+plots <- list()
+p <- 1
+for (i in levels(df$mi)[-6]) {
+  plots[[p]] <- ggplot2::ggplot(df[df$mi == i,], ggplot2::aes(Tg, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+                  ggplot2::scale_color_manual(values = c("#E69F00")) +
+                  # ggplot2::scale_color_brewer(palette = "Set1") +
+                  ggplot2::theme_bw()
+  ggplot2::ggsave(paste0("tg-vpd-", i, ".pdf"),
+                plot = plots[[p]]  +
+                  ggplot2::labs(title = paste0("MI: ", i), 
+                                x = "Tg [°C]", 
+                                y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-lm.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, formula = y ~ x)  +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Linear regression"), 
+                                x = "Tg [°C]", 
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ x),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-lm-x2.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ poly(x, 2, raw = TRUE)) +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Polynomial regression"), 
+                                x = "Tg [°C]", y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ poly(x, 2, raw = TRUE)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-splines.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ splines::bs(x, df = 3)) +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Spline regression (df = 3)"), 
+                                x = "Tg [°C]", y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ splines::bs(x, df = 3)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  formula <- with(df, vpd ~ s(Tg))
+  ggplot2::ggsave(paste0("tg-vpd-", i, "-gam.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = "gam", 
+                                       formula = y ~ s(x)) +
+                  ggplot2::labs(title = paste0("MI: ", i, " - Generalized additive models (GAM)"), 
+                                x = "Tg [°C]", y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  p <- p + 1
+}
+```
+
+## Plots of `VPD` vs `MI`
+
+``` r
+df <- df[!is.na(df$MI) & !is.na(df$vpd), ]
+                  
+all <- ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
+        ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
+        ggplot2::labs(title = NULL, x = "MI [-]", y = "vpd [hPa]") +
+        ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
+        ggplot2::theme_bw()
+
+ggplot2::ggsave("mi-vpd.pdf",
+                plot = all,
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+plots <- list()
+p <- 1
+for (i in levels(df$tg)[-c(8:9)]) {
+  plots[[p]] <- ggplot2::ggplot(df[df$tg == i,], ggplot2::aes(MI, vpd)) +
+                  ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
+                  ggplot2::scale_color_manual(values = c("#8c94c0"), guide = FALSE) +
+                  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 8)) + 
+                  ggplot2::theme_bw()
+  ggplot2::ggsave(paste0("mi-vpd-", i, ".pdf"),
+                plot = plots[[p]]  +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C]"), 
+                                x = "MI [-]", 
+                                y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-lm.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, formula = y ~ x)  +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Linear regression"), 
+                                x = "MI [-]", 
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ x),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-lm-x2.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ poly(x, 2, raw = TRUE)) +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Polynomial regression"), 
+                                x = "MI [-]",
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ poly(x, 2, raw = TRUE)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-splines.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = lm, 
+                                       formula = y ~ splines::bs(x, df = 3)) +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Spline regression (df = 3)"), 
+                                x = "MI [-]",
+                                y = "vpd [hPa]") +
+                  ggpubr::stat_regline_equation(
+                      ggplot2::aes(label = paste(..eq.label.., 
+                                                 ..adj.rr.label.., 
+                                                 sep = "~~~~")),
+                      formula = y ~ splines::bs(x, df = 3)),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  formula <- with(df, vpd ~ s(Tg))
+  ggplot2::ggsave(paste0("mi-vpd-", i, "-gam.pdf"),
+                plot = plots[[p]] +
+                  ggplot2::stat_smooth(method = "gam", 
+                                       formula = y ~ s(x)) +
+                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Generalized additive models (GAM)"), 
+                                x = "MI [-]",
+                                y = "vpd [hPa]"),
+                device = "pdf",
+                width = 20,
+                height = 12,
+                path = "~/Desktop/iCloud/UoR/Data/codos",
+                limitsize = FALSE)
+  p <- p + 1
+}
+```
+
 ### `0 < MI < 0.5`
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-0-0.5-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-0-0.5-1.png" width="100%" />
+
+#### Fit different regression models
+
+##### Linear regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.443287 | 0.3734772 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-27-1.png" width="100%" />
+
+##### Polynomial regression
+
+##### 2nd degree
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.452681 | 0.4130953 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-28-1.png" width="100%" />
+
+<!-- ##### 3rd degree -->
+
+<!-- ##### Log transformation -->
+
+##### Spline regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.238615 | 0.5346439 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-31-1.png" width="100%" />
+
+##### Generalized additive models (GAM)
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.443287 | 0.3734772 |
+
+    #> Warning: Computation failed in `stat_smooth()`:
+    #> invalid type (list) for variable 'mgcv::s(x)'
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-32-1.png" width="100%" />
 
 ### `0.5 < MI < 1`
 
 ``` r
-idx <- lat_lon[which(smi > 0.5 & smi <= 1), ]
+idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-0.5-1-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-0.5-1-1.png" width="100%" />
+
+#### Fit different regression models
+
+##### Linear regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 2.564277 | 0.4633298 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-35-1.png" width="100%" />
+
+##### Polynomial regression
+
+##### 2nd degree
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 2.616412 | 0.4359085 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-36-1.png" width="100%" />
+
+##### Spline regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 2.294565 | 0.5397364 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-37-1.png" width="100%" />
 
 ### `1 < MI < 1.5`
 
 ``` r
-idx <- lat_lon[which(smi > 1 & smi <= 1.5), ]
+idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-1-1.5-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-1-1.5-1.png" width="100%" />
+
+#### Fit different regression models
+
+##### Linear regression
+
+|      RMSE |        R2 |
+| --------: | --------: |
+| 0.9281112 | 0.6149759 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-40-1.png" width="100%" />
+
+##### Polynomial regression
+
+##### 2nd degree
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 0.965347 | 0.5816934 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-41-1.png" width="100%" />
+
+##### Spline regression
+
+|      RMSE |        R2 |
+| --------: | --------: |
+| 0.9214318 | 0.6532935 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-42-1.png" width="100%" />
 
 ### `1.5 < MI < 2`
 
 ``` r
-idx <- lat_lon[which(smi > 1.5 & smi <= 2), ]
+idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-1.5-2-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-1.5-2-1.png" width="100%" />
+
+#### Fit different regression models
+
+##### Linear regression
+
+|     RMSE |       R2 |
+| -------: | -------: |
+| 1.059768 | 0.567364 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-44-1.png" width="100%" />
+
+##### Polynomial regression
+
+##### 2nd degree
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 0.973731 | 0.5663199 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-45-1.png" width="100%" />
+
+##### Spline regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.167638 | 0.6144156 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-46-1.png" width="100%" />
 
 ### `MI > 2`
 
 ``` r
-idx <- lat_lon[which(smi > 2), ]
+idx <- lat_lon[which(mi > 2), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-smi-2-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-2-1.png" width="100%" />
+
+#### Fit different regression models
+
+##### Linear regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.154557 | 0.3420974 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-48-1.png" width="100%" />
+
+##### Polynomial regression
+
+##### 2nd degree
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.161443 | 0.3335234 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-49-1.png" width="100%" />
+
+##### Spline regression
+
+|     RMSE |        R2 |
+| -------: | --------: |
+| 1.170048 | 0.3294056 |
+
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-50-1.png" width="100%" />
 
 ## Climatologies vs Interpolated values
 
