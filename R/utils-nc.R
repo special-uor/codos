@@ -802,6 +802,135 @@ nc_mi <- function(filename,
   message("Done. Bye!")
 }
 
+#' @param output_filename Output filename.
+#' @inheritParams monthly_clim
+#' @keywords internal
+nc_regrid <- function(filename,
+                      varid,
+                      timeid = NULL,
+                      latid = "lat",
+                      lonid = "lon",
+                      newgrid = c(0.5, 0.5),
+                      output_filename = paste0(filename, ".nc"),
+                      overwrite = TRUE) {
+
+  # Check newgrid is a vector of two elements
+  if (length(newgrid) != 2)
+    stop("The parameter newgrid must have two elements: \n",
+         "(lon_dim, lat_dim)",
+         call. = FALSE)
+
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
+  # nc <- ncdf4::nc_open(filename)
+  # on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  if (!is.null(timeid))
+    time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)      # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)      # Longitude
+
+  # Read main variable
+  var <- nc_var_get(filename, varid)
+
+  # Check if longitude ranges from 0 to 360, if so adjust to -180 to 180
+  if (max(lon$data) > 180) {
+    lon$data <- lon$data - 180
+    var$data <- rbind(var$data[181:360,], var$data[1:180,])
+  }
+  # image(lon$data, lat$data, var$data)
+
+  # Get the current grid size
+  oldgrid <- c(length(lon$data) / 360, length(lat$data) / 180)
+
+  # Check if the grids are different
+  if (all(oldgrid == newgrid)) {
+    message("The current grid dimensions satisfy the requested ones")
+    return(invisible())
+  }
+
+  # Create new dimension vectors
+  nlon <- list(data = seq(min(lon$data) - newgrid[1] / 2,
+                          max(lon$data) + newgrid[1] / 2,
+                          newgrid[1]),
+               id = lon$id,
+               units = lon$units)
+  nlat <- list(data = seq(min(lat$data) - newgrid[2] / 2,
+                          max(lat$data) + newgrid[2] / 2,
+                          newgrid[2]),
+               id = lat$id,
+               units = lat$units)
+
+  # Create new main variable
+  nvar <- list(data = matrix(NA,
+                             nrow = length(nlon$data),
+                             ncol = length(nlat$data)),
+               id = var$id,
+               units = var$units)
+
+  for (i in seq_len(length(lon$data))) {
+    # lonx <- as.integer(lon$data[i])
+    for(j in seq_len(length(lat$data))) {
+      # latx <- as.integer(lat$data[j])
+      # laty <- as.integer(nlat$data[c(2*j, 2*j - 1)])
+      nvar$data[c(2*i, 2*i - 1), c(2*j, 2*j - 1)] <- var$data[i, j]
+    }
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Regrided file.")
+  nc_save_timeless(filename = output_filename,
+                   var = list(id = varid,
+                              longname = varid,
+                              missval = -999L,
+                              prec = "double",
+                              units = var$units,
+                              vals = nvar$data),
+                   lat = list(id = "lat", units = nlat$units, vals = nlat$data),
+                   lon = list(id = "lon", units = nlon$units, vals = nlon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+  message("Done. Bye!")
+
+  # image(nlon$data, nlat$data, nvar$data)
+  # # Create data frame with old/original data
+  # old <- data.frame(x = as.numeric(matrix(lon$data,
+  #                                         ncol = length(lat$data),
+  #                                         nrow = length(lon$data),
+  #                                         byrow = TRUE)),
+  #                   y = as.numeric(matrix(lat$data,
+  #                                         ncol = length(lat$data),
+  #                                         nrow = length(lon$data),
+  #                                         byrow = FALSE)),
+  #                   z = as.numeric(var$data))
+  #
+  # new <- EFDR::regrid(df = old,
+  #                     n1 = length(nlon$data),
+  #                     n2 = length(nlat$data))
+  # image(unique(new2$x),
+  #       unique(new2$y),
+  #       matrix(new2$z, nrow = 720, ncol = 360, byrow = TRUE))
+  #
+  # new <- akima::interp(x = old$x,
+  #                      y = old$y,
+  #                      z = old$z,
+  #                      xo = nlon$data,
+  #                      yo = nlat$data,
+  #                      linear = FALSE,
+  #                      extrap = TRUE,
+  #                      duplicate = TRUE)
+  # image(new$x,
+  #       new$y,
+  #       matrix(as.numeric(new$z), nrow = 720, ncol = 360, byrow = TRUE))
+  # new2 <- EFDR::regrid(old, 720, 360)
+  # image(unique(new2$x),
+  #       unique(new2$y),
+  #       matrix(new2$z, nrow = 720, ncol = 360, byrow = TRUE))
+  # image(lon$data, lat$data, var$data)
+}
+
 #' Wrapper for \code{\link{T_g}}
 #'
 #' Wrapper for \code{\link{T_g}} (mean daytime air temperature).
