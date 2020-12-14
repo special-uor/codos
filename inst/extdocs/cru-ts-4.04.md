@@ -265,6 +265,96 @@ df <- data.frame(Tg = Tg_long[1, ],
 
 ``` r
 df <- df[!is.na(df$Tg) & !is.na(df$vpd), ]
+
+# Subset data
+set.seed(1)
+idx <- sample(seq_len(nrow(df)), size = floor(nrow(df) * 0.7), replace = FALSE)
+df_train <- df[idx, ]
+df_test <- df[-idx, ]
+
+model1 <- nls(vpd ~ a * exp(kTg * Tg - kMI * MI + kMITg * MI * Tg),
+              df_train,
+              start = list(a = exp(coef(lmod)[1]),
+                           kTg = coef(lmod)[2],
+                           kMI = coef(lmod)[3],
+                           kMITg = coef(lmod)[4]),
+              control = list(maxiter = 200))
+
+
+a <- coef(model1)[1]
+kTg <- coef(model1)[2]
+kMI <- coef(model1)[3]
+kaTg <- coef(model1)[4]
+kaMI <- 2
+```
+
+``` r
+df2 <- data.frame(x = rep(seq(0, 6.6, 0.1), 7),
+                  y = unlist(lapply(c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5),
+                                    # function(x) a[1] * exp(kTg[1] * x -  x ^ kaTg - kMI[1] * seq(0, 6.6, 0.1) ^ kaMI))),
+                                    function(x) a[1] * exp(kTg[1] * x - kMI[1] * seq(0, 6.6, 0.1) + kaTg * x * seq(0, 6.6, 0.1)))),
+                  z = rep(c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35"),
+                          each = length(seq(0, 6.6, 0.1))))
+ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  # ggplot2::geom_point(ggplot2::aes(y = vpd_calc, color = tg), alpha = 0.3) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTg, 3),
+                               " Tg - ",
+                               # "Tg^{",
+                               # round(kaTg, 3),
+                               # "} - ",
+                               round(kMI, 3),
+                               " MI",
+                               # "^",
+                               # round(kaMI, 3),
+                               " + ",
+                               round(kaTg, 4),
+                               " MI * Tg",
+                               ")"),
+                x = "MI [-]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
+  ggplot2::theme_bw()
+```
+
+``` r
+df2 <- data.frame(x = rep(seq(0, 35, 1), 5),
+                  y = unlist(lapply(c(0.25, 0.75, 1.25, 1.75, 2.25),
+                                    # function(x) a[1] * exp(kTg[1] * seq(0, 35, 1) - seq(0, 35, 1) ^ kaTg - kMI[1] * x ^ kaMI))),
+                                    function(x) a[1] * exp(kTg[1] * seq(0, 35, 1) - kMI[1] * x + kaTg * x * seq(0, 35, 1)))),
+                  z = rep(c("0-0.5", "0.5-1", "1-1.5", "1.5-2", "2+"),
+                          each = length(seq(0, 35, 1))))
+ggplot2::ggplot(df, ggplot2::aes(Tg, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTg, 3),
+                               " Tg - ",
+                               # "Tg^{",
+                               # round(kaTg, 3),
+                               # "} - ",
+                               round(kMI, 3),
+                               " MI",
+                               # "^",
+                               # round(kaMI, 3),
+                               " + ",
+                               round(kaTg, 4),
+                               " MI * Tg",
+                               ")"),
+                x = "Tg [°C]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
+  ggplot2::theme_bw()
+```
+
+``` r
+df <- df[!is.na(df$Tg) & !is.na(df$vpd), ]
 ggplot2::ggplot(df[df$mi == "2+",], ggplot2::aes(Tg, vpd)) +
                   ggplot2::geom_point(ggplot2::aes(alpha = 0.5)) + #ggplot2::aes(color = mi)) +
                   ggplot2::scale_color_manual(values = c("#E69F00", "#56B4E9")) +
@@ -479,7 +569,7 @@ for (i in levels(df$tg)[-c(8:9)]) {
 | -------: | --------: |
 | 1.443287 | 0.3734772 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-27-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-30-1.png" width="100%" />
 
 ##### Polynomial regression
 
@@ -489,7 +579,7 @@ for (i in levels(df$tg)[-c(8:9)]) {
 | -------: | --------: |
 | 1.452681 | 0.4130953 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-28-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-31-1.png" width="100%" />
 
 <!-- ##### 3rd degree -->
 
@@ -501,7 +591,7 @@ for (i in levels(df$tg)[-c(8:9)]) {
 | -------: | --------: |
 | 1.238615 | 0.5346439 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-31-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-34-1.png" width="100%" />
 
 ##### Generalized additive models (GAM)
 
@@ -512,7 +602,7 @@ for (i in levels(df$tg)[-c(8:9)]) {
     #> Warning: Computation failed in `stat_smooth()`:
     #> invalid type (list) for variable 'mgcv::s(x)'
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-32-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-35-1.png" width="100%" />
 
 ### `0.5 < MI < 1`
 
@@ -530,7 +620,7 @@ idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 | -------: | --------: |
 | 2.564277 | 0.4633298 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-35-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-38-1.png" width="100%" />
 
 ##### Polynomial regression
 
@@ -540,7 +630,7 @@ idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 | -------: | --------: |
 | 2.616412 | 0.4359085 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-36-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-39-1.png" width="100%" />
 
 ##### Spline regression
 
@@ -548,7 +638,7 @@ idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 | -------: | --------: |
 | 2.294565 | 0.5397364 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-37-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-40-1.png" width="100%" />
 
 ### `1 < MI < 1.5`
 
@@ -566,7 +656,7 @@ idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 | --------: | --------: |
 | 0.9281112 | 0.6149759 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-40-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-43-1.png" width="100%" />
 
 ##### Polynomial regression
 
@@ -576,7 +666,7 @@ idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 | -------: | --------: |
 | 0.965347 | 0.5816934 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-41-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-44-1.png" width="100%" />
 
 ##### Spline regression
 
@@ -584,7 +674,7 @@ idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 | --------: | --------: |
 | 0.9214318 | 0.6532935 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-42-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-45-1.png" width="100%" />
 
 ### `1.5 < MI < 2`
 
@@ -602,7 +692,7 @@ idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 | -------: | -------: |
 | 1.059768 | 0.567364 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-44-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-47-1.png" width="100%" />
 
 ##### Polynomial regression
 
@@ -612,7 +702,7 @@ idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 | -------: | --------: |
 | 0.973731 | 0.5663199 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-45-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-48-1.png" width="100%" />
 
 ##### Spline regression
 
@@ -620,7 +710,7 @@ idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 | -------: | --------: |
 | 1.167638 | 0.6144156 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-46-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-49-1.png" width="100%" />
 
 ### `MI > 2`
 
@@ -638,7 +728,7 @@ idx <- lat_lon[which(mi > 2), ]
 | -------: | --------: |
 | 1.154557 | 0.3420974 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-48-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-51-1.png" width="100%" />
 
 ##### Polynomial regression
 
@@ -648,7 +738,7 @@ idx <- lat_lon[which(mi > 2), ]
 | -------: | --------: |
 | 1.161443 | 0.3335234 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-49-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-52-1.png" width="100%" />
 
 ##### Spline regression
 
@@ -656,7 +746,7 @@ idx <- lat_lon[which(mi > 2), ]
 | -------: | --------: |
 | 1.170048 | 0.3294056 |
 
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-50-1.png" width="100%" />
+<img src="man/figures/cru-ts-4.04-unnamed-chunk-53-1.png" width="100%" />
 
 ## Climatologies vs Interpolated values
 
