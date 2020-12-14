@@ -26,3 +26,6 @@ devtools::install_github("special-uor/codos", "dev")
 ```
 
 ## Example
+
+  - CRU TS 4.04:
+    [inst/extdocs/cru-ts-4.04.md](inst/extdocs/cru-ts-4.04.md)

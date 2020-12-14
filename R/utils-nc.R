@@ -711,9 +711,9 @@ nc_int <- function(filename,
           overwrite = overwrite)
 }
 
-#' Calculate soil moisture index
+#' Calculate moisture index
 #'
-#' Calculate soil moisture index and save output to a netCDF file.
+#' Calculate moisture index and save output to a netCDF file.
 #'
 #' @importFrom foreach "%dopar%"
 #'
@@ -769,7 +769,7 @@ nc_mi <- function(filename,
                              }
   message("Done calculating moisture indices.")
   message("Reshaping output...")
-  smi <- array(NA, dim = dim(pet)[1:2])
+  mi <- array(NA, dim = dim(pet)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
     total = nrow(idx), clear = FALSE, width = 60)
@@ -777,30 +777,158 @@ nc_mi <- function(filename,
     pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
-    smi[i, j] <- output[k]
+    mi[i, j] <- output[k]
   }
 
   message("Saving output to netCDF...")
   var_atts <- list()
-  var_atts$description <- paste0("Soil moisture index, calculated as a ",
-                                 "function of ",
+  var_atts$description <- paste0("Moisture index, calculated as a function of ",
                                  "latitute, elevation, daily temperature, ",
                                  "sunshine fraction, and precipitation. The ",
                                  "calculations were done using SPLASH V1.0: ",
                                  "https://doi.org/10.5281/zenodo.376293")
   nc_save_timeless(filename = filename,
-                   var = list(id = "smi",
-                              longname = "soil moisture index",
+                   var = list(id = "mi",
+                              longname = "moisture index",
                               missval = -999L,
                               prec = "double",
                               units = "-",
-                              vals = smi),
+                              vals = mi),
                    lat = list(id = "lat", units = lat$units, vals = lat$data),
                    lon = list(id = "lon", units = lon$units, vals = lon$data),
                    var_atts = var_atts,
                    overwrite = overwrite)
 
   message("Done. Bye!")
+}
+
+#' @param output_filename Output filename.
+#' @inheritParams monthly_clim
+#' @keywords internal
+nc_regrid <- function(filename,
+                      varid,
+                      timeid = NULL,
+                      latid = "lat",
+                      lonid = "lon",
+                      newgrid = c(0.5, 0.5),
+                      output_filename = paste0(filename, ".nc"),
+                      overwrite = TRUE) {
+
+  # Check newgrid is a vector of two elements
+  if (length(newgrid) != 2)
+    stop("The parameter newgrid must have two elements: \n",
+         "(lon_dim, lat_dim)",
+         call. = FALSE)
+
+  # Check and open netCDF file
+  nc_check(filename, varid, timeid, latid, lonid)
+  # nc <- ncdf4::nc_open(filename)
+  # on.exit(ncdf4::nc_close(nc)) # Close the file
+
+  # Read dimensions
+  if (!is.null(timeid))
+    time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)      # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)      # Longitude
+
+  # Read main variable
+  var <- nc_var_get(filename, varid)
+
+  # Check if longitude ranges from 0 to 360, if so adjust to -180 to 180
+  if (max(lon$data) > 180) {
+    lon$data <- lon$data - 180
+    var$data <- rbind(var$data[181:360,], var$data[1:180,])
+  }
+  # image(lon$data, lat$data, var$data)
+
+  # Get the current grid size
+  oldgrid <- c(length(lon$data) / 360, length(lat$data) / 180)
+
+  # Check if the grids are different
+  if (all(oldgrid == newgrid)) {
+    message("The current grid dimensions satisfy the requested ones")
+    return(invisible())
+  }
+
+  # Create new dimension vectors
+  nlon <- list(data = seq(min(lon$data) - newgrid[1] / 2,
+                          max(lon$data) + newgrid[1] / 2,
+                          newgrid[1]),
+               id = lon$id,
+               units = lon$units)
+  nlat <- list(data = seq(min(lat$data) - newgrid[2] / 2,
+                          max(lat$data) + newgrid[2] / 2,
+                          newgrid[2]),
+               id = lat$id,
+               units = lat$units)
+
+  # Create new main variable
+  nvar <- list(data = matrix(NA,
+                             nrow = length(nlon$data),
+                             ncol = length(nlat$data)),
+               id = var$id,
+               units = var$units)
+
+  for (i in seq_len(length(lon$data))) {
+    # lonx <- as.integer(lon$data[i])
+    for(j in seq_len(length(lat$data))) {
+      # latx <- as.integer(lat$data[j])
+      # laty <- as.integer(nlat$data[c(2*j, 2*j - 1)])
+      nvar$data[c(2*i, 2*i - 1), c(2*j, 2*j - 1)] <- var$data[i, j]
+    }
+  }
+
+  message("Saving output to netCDF...")
+  var_atts <- list()
+  var_atts$description <- paste0("Regrided file.")
+  nc_save_timeless(filename = output_filename,
+                   var = list(id = varid,
+                              longname = varid,
+                              missval = -999L,
+                              prec = "double",
+                              units = var$units,
+                              vals = nvar$data),
+                   lat = list(id = "lat", units = nlat$units, vals = nlat$data),
+                   lon = list(id = "lon", units = nlon$units, vals = nlon$data),
+                   var_atts = var_atts,
+                   overwrite = overwrite)
+  message("Done. Bye!")
+
+  # image(nlon$data, nlat$data, nvar$data)
+  # # Create data frame with old/original data
+  # old <- data.frame(x = as.numeric(matrix(lon$data,
+  #                                         ncol = length(lat$data),
+  #                                         nrow = length(lon$data),
+  #                                         byrow = TRUE)),
+  #                   y = as.numeric(matrix(lat$data,
+  #                                         ncol = length(lat$data),
+  #                                         nrow = length(lon$data),
+  #                                         byrow = FALSE)),
+  #                   z = as.numeric(var$data))
+  #
+  # new <- EFDR::regrid(df = old,
+  #                     n1 = length(nlon$data),
+  #                     n2 = length(nlat$data))
+  # image(unique(new2$x),
+  #       unique(new2$y),
+  #       matrix(new2$z, nrow = 720, ncol = 360, byrow = TRUE))
+  #
+  # new <- akima::interp(x = old$x,
+  #                      y = old$y,
+  #                      z = old$z,
+  #                      xo = nlon$data,
+  #                      yo = nlat$data,
+  #                      linear = FALSE,
+  #                      extrap = TRUE,
+  #                      duplicate = TRUE)
+  # image(new$x,
+  #       new$y,
+  #       matrix(as.numeric(new$z), nrow = 720, ncol = 360, byrow = TRUE))
+  # new2 <- EFDR::regrid(old, 720, 360)
+  # image(unique(new2$x),
+  #       unique(new2$y),
+  #       matrix(new2$z, nrow = 720, ncol = 360, byrow = TRUE))
+  # image(lon$data, lat$data, var$data)
 }
 
 #' Wrapper for \code{\link{T_g}}
@@ -908,10 +1036,10 @@ nc_Tg <- function(filename,
                                  "maximum [tmx] & minimum [tmn] temperature. ",
                                  "The calculations were done using the ",
                                  "following equation: ",
-                                 "T_max * [0.5 + 0.5 * (1 - x^2)^0.5",
-                                 " * arccos(x)] + ",
-                                 "T_min * [0.5 - 0.5 * (1 - x^2)^0.5",
-                                 " * arccos(x)]; where ",
+                                 "T_max * [0.5 + (1 - x^2)^0.5",
+                                 " / (0.5 * arccos(x))] + ",
+                                 "T_min * [0.5 - (1 - x^2)^0.5",
+                                 " / (0.5 * arccos(x))]; where ",
                                  "x = -tan(lat) * tan(dcl)")
   nc_save(filename = filename,
           var = list(id = "mdt",
@@ -1028,27 +1156,19 @@ nc_vpd <- function(filename,
     vpd[i, j, ] <- output[, k]
   }
 
+  # Replace negative values of VPD by 0
+  idx <- vpd < 0 & !is.na(vpd)
+  if (sum(idx) > 0) {
+    warning(paste0(sum(idx), " entries were replaced by zero."))
+    vpd[idx] <- 0
+  }
+
   message("Saving output to netCDF...")
   var_atts <- list()
   var_atts$description <- paste0("Vapour pressure deficit, calculated as a ",
                                  "function of actual vapour pressured and ",
                                  "saturated vapour pressured at a given ",
                                  "temperature.")
-                                 # "latitute, elevation, daily temperature, ",
-                                 # "sunshine fraction, and precipitation. The ",
-                                 # "calculations were done using SPLASH V1.0: ",
-                                 # "https://doi.org/10.5281/zenodo.376293")
-  # nc_save_timeless(filename = filename,
-  #                  var = list(id = "vpd",
-  #                             longname = "vapour pressure deficit",
-  #                             missval = -999L,
-  #                             prec = "double",
-  #                             units = "kPa",
-  #                             vals = vpd),
-  #                  lat = list(id = "lat", units = lat$units, vals = lat$data),
-  #                  lon = list(id = "lon", units = lon$units, vals = lon$data),
-  #                  var_atts = var_atts,
-  #                  overwrite = overwrite)
 
   nc_save(filename = filename,
           var = list(id = "vpd",
