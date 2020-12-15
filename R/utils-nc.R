@@ -15,7 +15,8 @@ convert_units <- function(filename,
                           latid = "lat",
                           lonid = "lon",
                           overwrite = TRUE,
-                          FUN = `*`) {
+                          FUN = `*`,
+                          output_filename = NULL) {
   # Check and open netCDF file
   nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
@@ -52,7 +53,9 @@ convert_units <- function(filename,
 
   message("Saving output to netCDF...")
   var_atts <- ncdf4::ncatt_get(nc, varid)
-  nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-new.nc"),
+  if (is.null(output_filename))
+    output_filename <- paste0(gsub("\\.nc$", "", filename), "-new.nc")
+  nc_save(filename = output_filename,
           var = list(id = varid,
                      longname = ncdf4::ncatt_get(nc,
                                                  varid,
@@ -86,7 +89,8 @@ convert_units.m2d <- function(filename,
                               timeid = "time",
                               latid = "lat",
                               lonid = "lon",
-                              FUN = `*`) {
+                              FUN = `*`,
+                              output_filename = NULL) {
   if (!file.exists(filename))
     stop("The given netCDF file was not found: \n", filename, call. = FALSE)
 
@@ -119,7 +123,8 @@ convert_units.m2d <- function(filename,
                 latid,
                 lonid,
                 conv_factor = days_in_month(dates),
-                FUN = `/`)
+                FUN = `/`,
+                output_filename = output_filename)
 }
 
 #' Calculate daily temperature from \eqn{T_{min}} and \eqn{T_{max}}
@@ -283,7 +288,8 @@ grim2nc <- function(filename,
                     lat = NULL,
                     lon = NULL,
                     FUN = `*`,
-                    overwrite = TRUE) {
+                    overwrite = TRUE,
+                    output_filename = NULL) {
   if (!file.exists(filename))
     stop("The given file does not exist: \n", filename)
 
@@ -333,7 +339,9 @@ grim2nc <- function(filename,
   var_atts <- list()
   var_atts$description <- paste0("File converted from GRIM file: ",
                                  basename(filename))
-  nc_save_timeless(filename = paste0(filename, ".nc"),
+  if (is.null(output_filename))
+    output_filename <- paste0(filename, ".nc")
+  nc_save_timeless(filename = output_filename,
                    var = list(id = varid,
                               longname = ifelse(is.null(longname),
                                                 varid,
@@ -382,6 +390,7 @@ julian_day <- function(year, month, day) {
 #' @param e_year Numeric value with the end year.
 #' @param overwrite Boolean flag to indicate if the output file should be
 #'     overwritten (if it exists).
+#' @param output_filename Output filename.
 #'
 #' @inheritParams nc2ts
 #'
@@ -393,7 +402,8 @@ monthly_clim <- function(filename,
                          timeid = "time",
                          latid = "lat",
                          lonid = "lon",
-                         overwrite = TRUE) {
+                         overwrite = TRUE,
+                         output_filename = NULL) {
   if (s_year > e_year) {
     warning("Swapping start and end years: \n",
             s_year, "-", e_year, " => ", e_year, "-", s_year)
@@ -450,8 +460,10 @@ monthly_clim <- function(filename,
                                  e_year,
                                  " from ",
                                  basename(filename))
-  nc_save(filename = paste0(gsub("\\.nc$", "", filename),
-                            "-clim-", s_year, "-", e_year, ".nc"),
+  if (is.null(output_filename))
+    output_filename <- paste0(gsub("\\.nc$", "", filename),
+                              "-clim-", s_year, "-", e_year, ".nc")
+  nc_save(filename = output_filename,
           var = list(id = varid,
                      longname = ncdf4::ncatt_get(nc,
                                                  varid,
@@ -522,7 +534,8 @@ nc_gs <- function(filename,
                   lonid = "lon",
                   cpus = 2,
                   filter = NULL,
-                  overwrite = TRUE) {
+                  overwrite = TRUE,
+                  output_filename = NULL) {
   # Check and open netCDF file
   nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
@@ -585,7 +598,9 @@ nc_gs <- function(filename,
   message("Saving output to netCDF...")
   var_atts <- list()
   var_atts$description <- paste0("Growing season, values above ", thr, ".")
-  nc_save_timeless(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
+  if (is.null(output_filename))
+    output_filename <- paste0(gsub("\\.nc$", "", filename), "-gs.nc")
+  nc_save_timeless(filename = output_filename,
                    var = list(id = varid,
                               longname = ncdf4::ncatt_get(nc,
                                                           varid,
@@ -641,7 +656,8 @@ nc_int <- function(filename,
                    lonid = "lon",
                    cpus = 2,
                    s_year = 1961,
-                   overwrite = TRUE) {
+                   overwrite = TRUE,
+                   output_filename = NULL) {
 
   # Check and open netCDF file
   nc_check(filename, varid, timeid, latid, lonid)
@@ -691,7 +707,9 @@ nc_int <- function(filename,
   var_atts <- ncdf4::ncatt_get(nc, varid)
   var_atts$description <- paste0("Daily values interpolated from ",
                                  "a monthly climatology.")
-  nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-int.nc"),
+  if (is.null(output_filename))
+    output_filename <- paste0(gsub("\\.nc$", "", filename), "-int.nc")
+  nc_save(filename = output_filename,
           var = list(id = varid,
                      longname = ncdf4::ncatt_get(nc,
                                                  varid,
@@ -790,6 +808,7 @@ nc_mi <- function(filename,
                                  "sunshine fraction, and precipitation. The ",
                                  "calculations were done using SPLASH V1.0: ",
                                  "https://doi.org/10.5281/zenodo.376293")
+
   nc_save_timeless(filename = filename,
                    var = list(id = "mi",
                               longname = "moisture index",
@@ -1105,7 +1124,8 @@ nc_vpd <- function(filename,
                   lat = NULL,
                   lon = NULL,
                   cpus = 2,
-                  overwrite = TRUE) {
+                  overwrite = TRUE,
+                  output_filename = NULL) {
   if (length(dim(Tg)) != length(dim(vap)) ||
       any(dim(Tg) != dim(vap)))
     stop("The dimensions of Tg and vap must be the same: \n",
