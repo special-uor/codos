@@ -136,7 +136,8 @@ daily_temp <- function(tmin,
                        timeid = "time",
                        latid = "lat",
                        lonid = "lon",
-                       overwrite = TRUE) {
+                       overwrite = TRUE,
+                       output_filename = NULL) {
   # Check and open netCDF files
   nc_check(tmin$filename, tmin$id, timeid, latid, lonid)
   nc_check(tmax$filename, tmax$id, timeid, latid, lonid)
@@ -163,8 +164,10 @@ daily_temp <- function(tmin,
   var_atts$description <- paste0("Daily temperature calculated as a mean of ",
                                  "Tmin: ", basename(tmin$filename), " and ",
                                  "Tmax: ", basename(tmax$filename), ".")
-  nc_save(filename = paste0(strsplit(tmin$filename, tmin$id)[[1]][1],
-                            "daily.tmp.nc"),
+  if (is.null(output_filename))
+    output_filename <- paste0(strsplit(tmin$filename, tmin$id)[[1]][1],
+                              "daily.tmp.nc")
+  nc_save(filename = output_filename,
           var = list(id = varid,
                      longname = "daily mean temperature",
                      missval = ncdf4::ncatt_get(nc_tmin,
