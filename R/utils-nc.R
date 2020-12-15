@@ -824,6 +824,8 @@ nc_mi <- function(filename,
   message("Done. Bye!")
 }
 
+#' Regrid netCDF file
+#'
 #' @param output_filename Output filename.
 #' @inheritParams monthly_clim
 #' @keywords internal
@@ -1119,13 +1121,13 @@ nc_var_get <- function(filename, varid, is.dim = FALSE) {
 #' @inheritParams nc_Tg
 #' @export
 nc_vpd <- function(filename,
-                  Tg,
-                  vap,
-                  lat = NULL,
-                  lon = NULL,
-                  cpus = 2,
-                  overwrite = TRUE,
-                  output_filename = NULL) {
+                   Tg,
+                   vap,
+                   lat = NULL,
+                   lon = NULL,
+                   cpus = 2,
+                   overwrite = TRUE,
+                   output_filename = NULL) {
   if (length(dim(Tg)) != length(dim(vap)) ||
       any(dim(Tg) != dim(vap)))
     stop("The dimensions of Tg and vap must be the same: \n",
