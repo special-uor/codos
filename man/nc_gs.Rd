@@ -13,7 +13,8 @@ nc_gs(
   lonid = "lon",
   cpus = 2,
   filter = NULL,
-  overwrite = TRUE
+  overwrite = TRUE,
+  output_filename = NULL
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ the main variable.}
 
 \item{overwrite}{Boolean flag to indicate if the output file should be
 overwritten (if it exists).}
+
+\item{output_filename}{Output filename.}
 }
 \description{
 Find mean growing season and save output to a netCDF file.
