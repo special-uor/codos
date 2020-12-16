@@ -564,13 +564,20 @@ nc_gs <- function(filename,
   # Start parallel backend
   cl <- parallel::makeCluster(cpus)
   on.exit(parallel::stopCluster(cl)) # Stop cluster
-  doParallel::registerDoParallel(cl)
+  # doParallel::registerDoParallel(cl)
+  doSNOW::registerDoSNOW(cl)
 
   idx <- data.frame(i = seq_len(length(lon$data)),
                     j = rep(seq_along(lat$data), each = length(lon$data)))
   message("Calculating growing season...")
+  pb <- progress::progress_bar$new(
+    format = "(:current/:total) [:bar] :percent",
+    total = nrow(idx), clear = TRUE, width = 80)
+  progress <- function(n) pb$tick()
+  opts <- list(progress = progress)
   output <- foreach::foreach(k = seq_len(nrow(idx)),
-                             .combine = cbind) %dopar% {
+                             .combine = cbind,
+                             .options.snow = opts) %dopar% {
                                i <- idx$i[k]
                                j <- idx$j[k]
                                if (land_mask[i, j]) {
