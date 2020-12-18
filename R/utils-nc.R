@@ -265,6 +265,35 @@ extract_data <- function(filename,
        time = list(data = time$data[idx], units = time$units))
 }
 
+#' Find growing degree days above \code{thr}
+#'
+#' ind growing degree days above \code{thr} and save output to a netCDF file.
+#' @inheritParams nc_gs
+#' @export
+gdd0 <- function(filename,
+                 varid,
+                 thr = 0,
+                 timeid = "time",
+                 latid = "lat",
+                 lonid = "lon",
+                 cpus = 2,
+                 filter = NULL,
+                 overwrite = TRUE,
+                 output_filename = NULL,
+                 FUN = sum) {
+  nc_gs(filename,
+        varid,
+        thr,
+        timeid,
+        latid,
+        lonid,
+        cpus,
+        filter,
+        overwrite,
+        output_filename,
+        FUN)
+}
+
 #' Convert GRIM file to netCDF
 #'
 #' @param longname String with the output variable's long name.
