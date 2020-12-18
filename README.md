@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# CO<sub>dos</sub>: CO<sub>2</sub> conversion
+# CO<sub>dos</sub>: CO<sub>2</sub> Correction Utils <img src="inst/images/logo.png" alt="logo" align="right" height=200px/>
 
 <!-- badges: start -->
 
