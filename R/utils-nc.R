@@ -514,16 +514,17 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          call. = FALSE)
 }
 
-#' Find mean growing season
+#' Find growing season
 #'
-#' Find mean growing season and save output to a netCDF file.
+#' Find growing season and save output to a netCDF file.
 #'
 #' @importFrom foreach "%dopar%"
 #' @param thr Growing season threshold.
 #' @param filter Variable to be use as filter for the growing season, generally
 #'     a structure with temperature data. It must have the same dimensions of
 #'     the main variable.
-#'
+#' @param FUN function to apply to get the growing season. Typically
+#'     \code{mean} or \code{sum}.
 #' @inheritParams nc_int
 #' @export
 nc_gs <- function(filename,
@@ -535,7 +536,8 @@ nc_gs <- function(filename,
                   cpus = 2,
                   filter = NULL,
                   overwrite = TRUE,
-                  output_filename = NULL) {
+                  output_filename = NULL,
+                  FUN = mean) {
   # Check and open netCDF file
   nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
@@ -599,7 +601,7 @@ nc_gs <- function(filename,
     i <- idx$i[k]
     j <- idx$j[k]
     if (any(!is.na(var$data[i, j, output[, k]])))
-      gs[i, j] <- mean(var$data[i, j, output[, k]], na.rm = TRUE)
+      gs[i, j] <- FUN(var$data[i, j, output[, k]], na.rm = TRUE)
   }
 
   message("Saving output to netCDF...")
