@@ -623,28 +623,6 @@ nc_gs <- function(filename,
                    var_atts = var_atts,
                    overwrite = overwrite)
 
-  # nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
-  #         var = list(id = varid,
-  #                    longname = ncdf4::ncatt_get(nc,
-  #                                                varid,
-  #                                                "long_name")$value,
-  #                    missval = ncdf4::ncatt_get(nc,
-  #                                               varid,
-  #                                               "missing_value")$value,
-  #                    prec = "double",
-  #                    units = var$units,
-  #                    vals = gs),
-  #         lat = list(id = "lat", units = lat$units, vals = lat$data),
-  #         lon = list(id = "lon", units = lon$units, vals = lon$data),
-  #         time = list(calendar = ncdf4::ncatt_get(nc,
-  #                                                 timeid,
-  #                                                 "calendar")$value,
-  #                     id = time$id,
-  #                     units = time$units,
-  #                     vals = time$data),
-  #         var_atts = var_atts,
-  #         overwrite = overwrite)
-
   message("Done. Bye!")
 }
 
