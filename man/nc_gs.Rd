@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils-nc.R
 \name{nc_gs}
 \alias{nc_gs}
-\title{Find mean growing season}
+\title{Find growing season}
 \usage{
 nc_gs(
   filename,
@@ -14,7 +14,8 @@ nc_gs(
   cpus = 2,
   filter = NULL,
   overwrite = TRUE,
-  output_filename = NULL
+  output_filename = NULL,
+  FUN = mean
 )
 }
 \arguments{
@@ -40,7 +41,10 @@ the main variable.}
 overwritten (if it exists).}
 
 \item{output_filename}{Output filename.}
+
+\item{FUN}{function to apply to get the growing season. Typically
+\code{mean} or \code{sum}.}
 }
 \description{
-Find mean growing season and save output to a netCDF file.
+Find growing season and save output to a netCDF file.
 }
