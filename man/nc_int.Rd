@@ -12,7 +12,8 @@ nc_int(
   lonid = "lon",
   cpus = 2,
   s_year = 1961,
-  overwrite = TRUE
+  overwrite = TRUE,
+  output_filename = NULL
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ nc_int(
 
 \item{overwrite}{Boolean flag to indicate if the output file should be
 overwritten (if it exists).}
+
+\item{output_filename}{Output filename.}
 }
 \description{
 Interpolate netCDF file

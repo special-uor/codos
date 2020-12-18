@@ -13,7 +13,8 @@ convert_units(
   latid = "lat",
   lonid = "lon",
   overwrite = TRUE,
-  FUN = `*`
+  FUN = `*`,
+  output_filename = NULL
 )
 }
 \arguments{
@@ -35,6 +36,8 @@ convert_units(
 overwritten (if it exists).}
 
 \item{FUN}{Infix function to perform the conversion.}
+
+\item{output_filename}{Output filename.}
 }
 \description{
 Convert units from a netCDF file

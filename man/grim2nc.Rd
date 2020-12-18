@@ -13,7 +13,8 @@ grim2nc(
   lat = NULL,
   lon = NULL,
   FUN = `*`,
-  overwrite = TRUE
+  overwrite = TRUE,
+  output_filename = NULL
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ grim2nc(
 
 \item{overwrite}{Boolean flag to indicate if the output file should be
 overwritten (if it exists).}
+
+\item{output_filename}{Output filename.}
 }
 \description{
 Convert GRIM file to netCDF

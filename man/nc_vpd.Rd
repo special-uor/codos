@@ -4,7 +4,16 @@
 \alias{nc_vpd}
 \title{Calculate vapour pressure deficit}
 \usage{
-nc_vpd(filename, Tg, vap, lat = NULL, lon = NULL, cpus = 2, overwrite = TRUE)
+nc_vpd(
+  filename,
+  Tg,
+  vap,
+  lat = NULL,
+  lon = NULL,
+  cpus = 2,
+  overwrite = TRUE,
+  output_filename = NULL
+)
 }
 \arguments{
 \item{filename}{String with the output filename (.nc).}

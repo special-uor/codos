@@ -10,7 +10,8 @@ convert_units.m2d(
   timeid = "time",
   latid = "lat",
   lonid = "lon",
-  FUN = `*`
+  FUN = `*`,
+  output_filename = NULL
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ convert_units.m2d(
 \item{lonid}{String with the longitude dimension identifier.}
 
 \item{FUN}{Infix function to perform the conversion.}
+
+\item{output_filename}{Output filename.}
 }
 \description{
 Convert units from monthly to daily

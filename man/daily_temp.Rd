@@ -11,7 +11,8 @@ daily_temp(
   timeid = "time",
   latid = "lat",
   lonid = "lon",
-  overwrite = TRUE
+  overwrite = TRUE,
+  output_filename = NULL
 )
 }
 \arguments{
