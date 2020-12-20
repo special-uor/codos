@@ -1,6 +1,6 @@
-#' @title P-model inverter class
-#' @docType class
-#' @description This class allows to create objects of the \code{P-model}.
+#' P-model inverter class
+#' @description
+#' This class allows to create objects of the \code{P-model}.
 #'
 #' @examples
 #' P_model_inverter$new(T_diff = 1.334567,
@@ -8,7 +8,6 @@
 #'                      m_rec = 0.3357231,
 #'                      c_ratio = 0.7361765,
 #'                      lat = -30)$calculate_m_true()
-#' @export
 P_model_inverter <-
   R6::R6Class(classname = "P_model_inverter",
               cloneable = FALSE,
@@ -126,6 +125,7 @@ P_model_inverter <-
                   aux <- private$delta_H / private$R
                   42.75 * exp(aux * (1 / 298 - 1 / (273.15 + Temp)))
                 },
+                # @description Determines if the compensation point 'law' is upheld.
                 compensation_point_held = function(m) {
                   aux <- private$true_compensation_point(private$T_rec)
                   private$c_i(private$T_rec,
@@ -146,6 +146,22 @@ P_model_inverter <-
                   aux <- abs(1 + private$pow(m, private$omega))
                   pre_E_q * (private$pow(aux, (1 / private$omega)) - m )
                 },
+                # Viscosity of water
+                #
+                # @details
+                # Given by (2.8):
+                # \eqn{\eta = 0.024258 exp{\frac{580}{T_K} - 183}}.
+                #
+                # @return Annual net radiation at the vegetated surface.
+                # @references
+                # I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+                # "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+                # plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+                # DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
+                #
+                # @param Temp Temperature.
+                #
+                # @return Viscosity of water.
                 eta = function(Temp) {
                   0.024258 * exp(580 / (Temp + private$visc_offset))
                 },
@@ -169,11 +185,37 @@ P_model_inverter <-
                   aux3 <- 1 + private$gamma * aux1 / private$abc * aux2
                   private$R_n(Temp, m) / private$lam * private$pow(aux3, -1)
                 },
+                # @description Internal c_i for the plant.
                 get_c_i = function() {
                   private$c_i(private$T_rec,
                               private$c_ratio * private$modern_CO2,
                               private$m_rec)
                 },
+                # Effective Michaelis-Menten coefficient for carboxylation
+                #
+                # @details
+                # Given by (2.9):
+                #
+                # \eqn{K = K_C \left(1 + \frac{O}{K_O}\right)}.
+                #
+                # where
+                #
+                # \eqn{K_C = 404.9 \exp\left[\frac{\Delta H_C}{R}\left(\frac{1}{298} - \frac{1}{T_K}\right)\right]}
+                #
+                # and
+                #
+                # \eqn{K_O = 278.4 \exp\left[\left(\frac{\Delta H_O}{R}\right)\left(\frac{1}{298} - \frac{1}{T_K}\right)\right]}.
+                #
+                # @return Annual net radiation at the vegetated surface.
+                # @references
+                # I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+                # "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+                # plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+                # DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
+                #
+                # @param Temp Temperature.
+                #
+                # @return Viscosity of water.
                 K = function(Temp) {
                   pre_calc <- 1 /private$R * (1 / 298 - 1 / (Temp + 273.15))
                   404.9 * exp(private$dHc * pre_calc) * ( 1 + private$O / (278.4 * exp(private$dHo * pre_calc)))
@@ -187,6 +229,19 @@ P_model_inverter <-
                 pre_section_E_q = function(Temp) {
                   private$pow(1 + private$gamma * private$pow(private$c + Temp, 2) / private$abc * exp(-private$b *Temp / (private$c + Temp)), -1) / private$lam
                 },
+                # Gives the value for R_n in MJ kg^(-1) a^(-1) mm
+                # Annual net radiation at the vegetated surface
+                #
+                # @details
+                # Given by (2.4):
+                # \eqn{R_n = 0.83 R_0 (0.25 + 0.5 S_f) - (107 - T)(0.2 + 0.8 S_f)}.
+                #
+                # @return Annual net radiation at the vegetated surface.
+                # @references
+                # I.C. Prentice, S.F. Cleator, Y.H. Huang, S.P. Harrison, I. Roulstone,
+                # "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
+                # plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
+                # DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
                 R_n = function(Temp, m, lat = -30 ) {
                   scale_factor <- 365.24 * 24 * 60 * 60 * 10 ^ -6
                   scale_factor * (0.83 * private$R_o * (0.25 + 0.5 * S_f(m)) -
@@ -200,6 +255,7 @@ P_model_inverter <-
                   aux <- private$dark_scale * private$K(Temp)
                   private$compensation_point(Temp) + aux
                 },
+                # @description The version of E without unnecessary constants.
                 useable_e = function(Temp, m, pre_K, pre_eta, pre_sec_E_q) {
                   # We pre-calculate E_q so we don't have to calculate it twice
                   # in the different eqm functions
