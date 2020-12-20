@@ -1,16 +1,6 @@
 #' @title P-model inverter class
 #' @docType class
 #' @description This class allows to create objects of the \code{P-model}.
-#' @field T_diff Temperature difference.
-#' @field T_ref Reference temperature (e.g. modern temperature).
-#' @field m_rec Reconstructed moisture index.
-#' @field c_ratio CO2 ratio.
-#' @field lat Latitute.
-#'
-#' @section Methods:
-#' \describe{
-#' \item{calculate_m_true Calculate true moisture index.}
-#' }
 #'
 #' @examples
 #' P_model_inverter$new(T_diff = 1.334567,
@@ -21,18 +11,27 @@
 #' @export
 P_model_inverter <-
   R6::R6Class(classname = "P_model_inverter",
+              cloneable = FALSE,
               public = list(
+                #' @description
+                #' Create a new \code{p-model} object.
+                #' @param T_diff Temperature difference.
+                #' @param T_ref Reference temperature (e.g. modern temperature).
+                #' @param m_rec Reconstructed moisture index.
+                #' @param c_ratio CO2 ratio.
+                #' @param lat Latitude.
+                #' @param ... Optional parameters (not used).
                 initialize = function(T_diff,
                                       T_ref,
                                       m_rec,
                                       c_ratio,
                                       lat = -30,
-                                      solver_args = NULL)  {
+                                      ...)  {
                   stopifnot(is.numeric(T_diff) | is.null(T_diff))
                   stopifnot(is.numeric(T_ref) | is.null(T_ref))
                   stopifnot(is.numeric(m_rec) | is.null(m_rec))
                   stopifnot(is.numeric(c_ratio) | is.null(c_ratio))
-                  private$solver_args <- solver_args
+                  private$solver_args <- list(...)
                   private$lat <- lat
                   private$T_rec <- T_diff + T_ref
                   private$T_ref <- T_ref
@@ -59,35 +58,55 @@ P_model_inverter <-
                                       private$E_q_sec_ref)
 
                 },
+                #' @description
+                #' Calculate true moisture index.
+                #' @return A list with three elements:
+                #' \describe{
+                #'     \item{\code{mi}:} Numeric value of moisture index.
+                #'     \item{\code{cph}:} Boolean flat to indicate whether or not the compensation point 'law' is upheld.
+                #'     \item{\code{ci}:} Numeric value of c_i.
+                #' }
                 calculate_m_true = function() {
                   delta_m <- private$solve_for_delta_m()
-                  comp_point_held <- private$compensation_point_held(private$m_rec)
+                  comp_point_held <-
+                    private$compensation_point_held(private$m_rec)
 
                   output <- private$m_rec
                   if (comp_point_held)
                     output <- output + delta_m
 
-                  list(mi = output, cph = comp_point_held, ci = private$get_c_i())
+                  list(mi = output,
+                       cph = comp_point_held,
+                       ci = private$get_c_i())
                 }
               ),
               private = list(
                 omega = 3,
-                lam = 2.45, # Latent heat of vaporisation (MJ kg^-1)
-                gamma = 0.067, # psychrometer constant (kPa K^-1)
+                # @field lam Latent heat of vaporisation (MJ kg^-1).
+                lam = 2.45,
+                # @field gamma Psychrometric constant (kPa K^-1).
+                gamma = 0.067,
                 a = 0.6108,
                 b = 17.27,
                 c = 237.3,
-                abc = 2503.1628468, # a * b * c
+                # @field abc \code{a * b * c}
+                abc = 2503.1628468,
                 dark_scale = 0.025,
                 visc_offset = 138,
                 R_o = 400,
-                R = 8.314, # Universal gas constant (J mol^-1 K^-1)
-                dHc = 79430, # Carbon activation energy (J mol^-1)
-                dHo = 36380, # Oxygen activation energy (J mol^-1)
-                delta_H = 37830, # Compensation point activation energy (J mol^-1)
-                O = 210, # Atmospheric concentration of oxygen
+                # @field R Universal gas constant (J mol^-1 K^-1).
+                R = 8.314,
+                # @field dHc Carbon activation energy (J mol^-1).
+                dHc = 79430,
+                # @field dHo Oxygen activation energy (J mol^-1).
+                dHo = 36380,
+                # @field delta_H Compensation point activation energy (J mol^-1).
+                delta_H = 37830,
+                # @field O Atmospheric concentration of oxygen.
+                O = 210,
                 C = 14.76,
-                modern_CO2 = 340, # Modern CO2 concentration in ppm
+                # @field modern_CO2 Modern CO2 concentration in ppm.
+                modern_CO2 = 340,
                 D_root_factor = 4,
                 # T_diff = NULL,
                 T_ref = NULL,
@@ -173,6 +192,7 @@ P_model_inverter <-
                   scale_factor * (0.83 * private$R_o * (0.25 + 0.5 * S_f(m)) -
                                     (107 - Temp) * (0.2 + 0.8 * S_f(m)))
                 },
+                # @description Find the optimal MI given the set variables.
                 solve_for_delta_m = function() {
                   abs(private$e_difference()) - private$m_rec
                 },
