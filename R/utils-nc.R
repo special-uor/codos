@@ -265,6 +265,35 @@ extract_data <- function(filename,
        time = list(data = time$data[idx], units = time$units))
 }
 
+#' Find growing degree days above \code{thr}
+#'
+#' ind growing degree days above \code{thr} and save output to a netCDF file.
+#' @inheritParams nc_gs
+#' @export
+gdd0 <- function(filename,
+                 varid,
+                 thr = 0,
+                 timeid = "time",
+                 latid = "lat",
+                 lonid = "lon",
+                 cpus = 2,
+                 filter = NULL,
+                 overwrite = TRUE,
+                 output_filename = NULL,
+                 FUN = sum) {
+  nc_gs(filename,
+        varid,
+        thr,
+        timeid,
+        latid,
+        lonid,
+        cpus,
+        filter,
+        overwrite,
+        output_filename,
+        FUN)
+}
+
 #' Convert GRIM file to netCDF
 #'
 #' @param longname String with the output variable's long name.
@@ -514,16 +543,17 @@ nc_check <- function(filename, varid, timeid, latid, lonid) {
          call. = FALSE)
 }
 
-#' Find mean growing season
+#' Find growing season
 #'
-#' Find mean growing season and save output to a netCDF file.
+#' Find growing season and save output to a netCDF file.
 #'
 #' @importFrom foreach "%dopar%"
 #' @param thr Growing season threshold.
 #' @param filter Variable to be use as filter for the growing season, generally
 #'     a structure with temperature data. It must have the same dimensions of
 #'     the main variable.
-#'
+#' @param FUN function to apply to get the growing season. Typically
+#'     \code{mean} or \code{sum}.
 #' @inheritParams nc_int
 #' @export
 nc_gs <- function(filename,
@@ -535,7 +565,8 @@ nc_gs <- function(filename,
                   cpus = 2,
                   filter = NULL,
                   overwrite = TRUE,
-                  output_filename = NULL) {
+                  output_filename = NULL,
+                  FUN = mean) {
   # Check and open netCDF file
   nc_check(filename, varid, timeid, latid, lonid)
   nc <- ncdf4::nc_open(filename)
@@ -593,13 +624,13 @@ nc_gs <- function(filename,
   gs <- array(NA, dim = dim(var$data)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
-    total = nrow(idx), clear = FALSE, width = 60)
+    total = nrow(idx), clear = TRUE, width = 60)
   for (k in seq_len(nrow(idx))) {
     pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
     if (any(!is.na(var$data[i, j, output[, k]])))
-      gs[i, j] <- mean(var$data[i, j, output[, k]], na.rm = TRUE)
+      gs[i, j] <- FUN(var$data[i, j, output[, k]], na.rm = TRUE)
   }
 
   message("Saving output to netCDF...")
@@ -622,28 +653,6 @@ nc_gs <- function(filename,
                    lon = list(id = "lon", units = lon$units, vals = lon$data),
                    var_atts = var_atts,
                    overwrite = overwrite)
-
-  # nc_save(filename = paste0(gsub("\\.nc$", "", filename), "-gs.nc"),
-  #         var = list(id = varid,
-  #                    longname = ncdf4::ncatt_get(nc,
-  #                                                varid,
-  #                                                "long_name")$value,
-  #                    missval = ncdf4::ncatt_get(nc,
-  #                                               varid,
-  #                                               "missing_value")$value,
-  #                    prec = "double",
-  #                    units = var$units,
-  #                    vals = gs),
-  #         lat = list(id = "lat", units = lat$units, vals = lat$data),
-  #         lon = list(id = "lon", units = lon$units, vals = lon$data),
-  #         time = list(calendar = ncdf4::ncatt_get(nc,
-  #                                                 timeid,
-  #                                                 "calendar")$value,
-  #                     id = time$id,
-  #                     units = time$units,
-  #                     vals = time$data),
-  #         var_atts = var_atts,
-  #         overwrite = overwrite)
 
   message("Done. Bye!")
 }
