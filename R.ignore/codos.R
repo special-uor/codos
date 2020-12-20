@@ -54,17 +54,21 @@ p_model_inverter <- function(T_diff,
 
 # Find the optimal MI given the set variables
 solve_for_delta_m <- function(self) {
-  # abs(pracma::fsolve(f = e_difference,
-  #                    x0 = 1,
-  #                    self = self)) - self$m_rec
   abs(e_difference(self = self)) - self$m_rec
+  # optim(par = 1,
+  #       fn = function(m) {
+  #         abs(e_difference(self = self, m_true = m) - self$m_rec)
+  #       },
+  #       method = "Brent",
+  #       lower = 0,
+  #       upper = 3)$par
 }
 
-e_difference <- function(self, m_true = 0, x0 = 1) {
+e_difference <- function(self, m_true = 0) {
   # m_true <- abs(m_true)
   # return abs(fsolve(self.e_difference, 1, *self.solver_args)[0]) - self.m_rec #The 1 here is because the valve is most likely between 0 and 3
   # abs(useable_e(self, self$T_rec, m_true, self$K_rec, self$eta_rec, self$E_q_sec_rec) - self$use_e_pre)
-  optim(par = x0,
+  optim(par = 1,
         fn = function(m) {
           abs(useable_e(self = self,
                         Temp = self$T_rec,
