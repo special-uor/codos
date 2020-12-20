@@ -1,3 +1,24 @@
+#' @title P-model inverter class
+#' @docType class
+#' @description This class allows to create objects of the \code{P-model}.
+#' @field T_diff Temperature difference.
+#' @field T_ref Reference temperature (e.g. modern temperature).
+#' @field m_rec Reconstructed moisture index.
+#' @field c_ratio CO2 ratio.
+#' @field lat Latitute.
+#'
+#' @section Methods:
+#' \describe{
+#' \item{calculate_m_true Calculate true moisture index.}
+#' }
+#'
+#' @examples
+#' P_model_inverter$new(T_diff = 1.334567,
+#'                      T_ref = 11.57957,
+#'                      m_rec = 0.3357231,
+#'                      c_ratio = 0.7361765,
+#'                      lat = -30)$calculate_m_true()
+#' @export
 P_model_inverter <-
   R6::R6Class(classname = "P_model_inverter",
               public = list(
@@ -167,5 +188,3 @@ P_model_inverter <-
                   cur_eqm * (private$C * sqrt(pre_eta/pre_K) * cur_eqm ^ (1 / private$D_root_factor) + 1) ^ -1
                 }
               ))
-p1 <- P_model_inverter$new(ca_temp, m2$present_t, m2$recon_mi, ca_co2)
-p1$calculate_m_true()
