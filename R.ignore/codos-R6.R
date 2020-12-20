@@ -42,11 +42,11 @@ P_model_inverter <-
                   delta_m <- private$solve_for_delta_m()
                   comp_point_held <- private$compensation_point_held(private$m_rec)
 
-                  output <- m_rec
+                  output <- private$m_rec
                   if (comp_point_held)
                     output <- output + delta_m
 
-                  c(output, comp_point_held, private$get_c_i())
+                  list(mi = output, cph = comp_point_held, ci = private$get_c_i())
                 }
               ),
               private = list(
@@ -82,9 +82,12 @@ P_model_inverter <-
                 E_q_sec_rec = NULL,
                 E_q_sec_ref = NULL,
                 use_e_pre = NULL,
+                compensation_point = function(Temp) {
+                  aux <- private$delta_H / private$R
+                  42.75 * exp(aux * (1 / 298 - 1 / (273.15 + Temp)))
+                },
                 compensation_point_held = function(m) {
-                  aux <- self$true_compensation_point(private$T_rec)
-                  print(aux)
+                  aux <- private$true_compensation_point(private$T_rec)
                   private$c_i(private$T_rec,
                               private$c_ratio * private$modern_CO2,
                               m) > aux
@@ -121,13 +124,13 @@ P_model_inverter <-
                         upper = upper)$par
                 },
                 E_q = function(Temp, m) {
-                  aux1 <- pow(private$c + Temp, 2)
+                  aux1 <- private$pow(private$c + Temp, 2)
                   aux2 <- exp(-private$b * Temp / (private$c + Temp))
                   aux3 <- 1 + private$gamma * aux1 / private$abc * aux2
                   private$R_n(Temp, m) / private$lam * private$pow(aux3, -1)
                 },
                 get_c_i = function() {
-                  privat$ec_i(private$T_rec,
+                  private$c_i(private$T_rec,
                               private$c_ratio * private$modern_CO2,
                               private$m_rec)
                 },
