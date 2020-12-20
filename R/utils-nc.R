@@ -624,7 +624,7 @@ nc_gs <- function(filename,
   gs <- array(NA, dim = dim(var$data)[1:2])
   pb <- progress::progress_bar$new(
     format = "(:current/:total) [:bar] :percent",
-    total = nrow(idx), clear = FALSE, width = 60)
+    total = nrow(idx), clear = TRUE, width = 60)
   for (k in seq_len(nrow(idx))) {
     pb$tick()
     i <- idx$i[k]
