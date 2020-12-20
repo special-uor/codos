@@ -2,6 +2,8 @@
 #' @description
 #' This class allows to create objects of the \code{P-model}.
 #'
+#' @export
+#'
 #' @examples
 #' P_model_inverter$new(T_diff = 1.334567,
 #'                      T_ref = 11.57957,
