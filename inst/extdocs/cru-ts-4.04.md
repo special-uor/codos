@@ -71,14 +71,69 @@ for (i in seq_along(ncfiles_raw))
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 tmin <- file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc")
 tmax <- file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc")
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp.nc")
 codos::daily_temp(tmin = list(filename = tmin, id = "tmn"),
-                  tmax = list(filename = tmax, id = "tmx"))
+                  tmax = list(filename = tmax, id = "tmx"),
+                  output_filename = output_filename)
 ```
 
 ##### Output file
 
 ``` bash
-"cru_ts4.04.1901.2019.daily.tmp.nc"
+"cru_ts4.04-clim-1961-1990-daily.tmp.nc"
+```
+
+## Calculate mean growing season for daily temperature (![tmp](https://latex.codecogs.com/png.latex?tmp "tmp"))
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp.nc"), "tmp", thr = 0, cpus = 10)
+```
+
+##### Output file
+
+``` bash
+"cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"
+```
+
+## Calculate GDD0 for `tmp`
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::gdd0(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp.nc"), "tmp", thr = 0, cpus = 10, output_filename = file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gdd0.nc"))
+```
+
+## Calculate mean growing season for `Tmin`
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::nc_gs(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn", thr = 0, cpus = 10)
+```
+
+##### Output file
+
+``` bash
+"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int-gs.nc"
+```
+
+## Calculate GDD0 for `Tmin`
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::gdd0(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"), "tmn", thr = 0, cpus = 10, output_filename = file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int-gdd0.nc"))
+```
+
+##### Output file
+
+``` bash
+"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int-gdd0.nc"
+```
+
+## Calculate GDD0 for `Tmax`
+
+``` r
+path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+codos::gdd0(file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"), "tmx", thr = 0, cpus = 10, output_filename = file.path(path, "cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int-gdd0.nc"))
 ```
 
 ## Calculate solar declination and moisture index with [SPLASH](https://bitbucket.org/labprentice/splash)
@@ -193,7 +248,7 @@ codos::nc_Tg(output_filename, dcl, tmn, tmx, cpus = 10)
 
 ``` r
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt", thr = 0, cpus = 10)
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt", thr = 0, cpus = 2)
 ```
 
 ##### Output file
@@ -206,31 +261,33 @@ codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt", thr = 0
 
 ``` r
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+# Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp.nc"), "tmp")$data
 vap <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc"), "vap")$data
-output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc")
-codos::nc_vpd(output_filename, Tg, vap, cpus = 10)
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-vpd-tmp.nc")
+codos::nc_vpd(output_filename, tmp, vap, cpus = 10)
 ```
 
 ##### Output file
 
 ``` bash
-"cru_ts4.04-clim-1961-1990-vpd.nc"
+"cru_ts4.04-clim-1961-1990-vpd-tmp.nc"
 ```
 
 ## Calculate mean growing season for VPD
 
 ``` r
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
-codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd.nc"), "vpd", thr = 0, cpus = 10, filter = Tg)
+# Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt.nc"), "mdt")$data
+tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp.nc"), "tmp")$data
+codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd-tmp.nc"), "vpd", thr = 0, cpus = 10, filter = tmp)
 ```
 
 # Plots
 
-## Growing season VPD vs growing season daytime temperature
+## Growing season VPD vs growing season ~~daytime~~ daily temperature
 
-## Create long vectors of `MI`, `Tg` and `VPD`
+## Create long vectors of `MI`, `Tmp` and `VPD`
 
 ``` r
 mi_cat <- ifelse(is.na(mi), "UNK", 
@@ -241,30 +298,32 @@ mi_cat <- ifelse(is.na(mi), "UNK",
 # mi_cat[is.na(mi_cat)] <- "UNK"
 mi_long <- matrix(mi, nrow = 1, byrow = TRUE)
 mi_long_cat <- matrix(mi_cat, nrow = 1, byrow = TRUE)
-Tg_cat <- ifelse(is.na(Tg), "UNK",
-            ifelse(Tg >= 0 & Tg <= 5, "0-5",
-              ifelse(Tg > 5 & Tg <= 10, "5-10",
-                ifelse(Tg > 10 & Tg <= 15, "10-15",
-                  ifelse(Tg > 15 & Tg <= 20, "15-20",
-                    ifelse(Tg > 20 & Tg <= 25, "20-25",
-                      ifelse(Tg > 25 & Tg <= 30, "25-30",
-                        ifelse(Tg > 30 & Tg <= 35, "30-35", "35+"))))))))
-Tg_long <- matrix(Tg, nrow = 1, byrow = TRUE)
-Tg_long_cat <- matrix(Tg_cat, nrow = 1, byrow = TRUE)
+Tmp_cat <- ifelse(is.na(Tmp), "UNK",
+            ifelse(Tmp >= 0 & Tmp <= 5, "0-5",
+              ifelse(Tmp > 5 & Tmp <= 10, "5-10",
+                ifelse(Tmp > 10 & Tmp <= 15, "10-15",
+                  ifelse(Tmp > 15 & Tmp <= 20, "15-20",
+                    ifelse(Tmp > 20 & Tmp <= 25, "20-25",
+                      ifelse(Tmp > 25 & Tmp <= 30, "25-30",
+                        ifelse(Tmp > 30 & Tmp <= 35, "30-35", "35+"))))))))
+Tmp_long <- matrix(Tmp, nrow = 1, byrow = TRUE)
+Tmp_long_cat <- matrix(Tmp_cat, nrow = 1, byrow = TRUE)
 vpd_long <- matrix(vpd, nrow = 1, byrow = TRUE)
-df <- data.frame(Tg = Tg_long[1, ], 
+df <- data.frame(Tmp = Tmp_long[1, ], 
                  vpd = vpd_long[1, ],
                  MI = mi_long[1, ],
                  mi = as.factor(mi_long_cat[1, ]),
-                 tg = factor(Tg_long_cat[1, ], c("0-5", "5-10", "10-15", 
+                 tmp = factor(Tmp_long_cat[1, ], c("0-5", "5-10", "10-15", 
                                                  "15-20", "20-25", "25-30", 
                                                  "30-35", "35+", "UNK")))
 ```
 
-## Plots of `VPD` vs `Tg`
+## Plots of `VPD` vs `Tmp`
+
+### With interaction term
 
 ``` r
-df <- df[!is.na(df$Tg) & !is.na(df$vpd), ]
+df <- df[!is.na(df$Tmp) & !is.na(df$vpd) & !is.na(df$MI), ]
 
 # Subset data
 set.seed(1)
@@ -272,84 +331,181 @@ idx <- sample(seq_len(nrow(df)), size = floor(nrow(df) * 0.7), replace = FALSE)
 df_train <- df[idx, ]
 df_test <- df[-idx, ]
 
-model1 <- nls(vpd ~ a * exp(kTg * Tg - kMI * MI + kMITg * MI * Tg),
-              df_train,
+## Start with a simple model to find the start points
+lmod <- lm(log(vpd) ~ Tmp * MI,# poly(Tmp, 2) + poly(MI, 2),
+           data = df)
+
+model1 <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI + kMITmp * MI * Tmp) + b,
+              df,
               start = list(a = exp(coef(lmod)[1]),
-                           kTg = coef(lmod)[2],
+                           kTmp = coef(lmod)[2],
                            kMI = coef(lmod)[3],
-                           kMITg = coef(lmod)[4]),
+                           kMITmp = coef(lmod)[4],
+                           b = 0),
               control = list(maxiter = 200))
 
 
 a <- coef(model1)[1]
-kTg <- coef(model1)[2]
+kTmp <- coef(model1)[2]
 kMI <- coef(model1)[3]
-kaTg <- coef(model1)[4]
-kaMI <- 2
+kMITmp <- coef(model1)[4]
+b <- coef(model1)[5]
 ```
 
 ``` r
-df2 <- data.frame(x = rep(seq(0, 6.6, 0.1), 7),
-                  y = unlist(lapply(c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5),
-                                    # function(x) a[1] * exp(kTg[1] * x -  x ^ kaTg - kMI[1] * seq(0, 6.6, 0.1) ^ kaMI))),
-                                    function(x) a[1] * exp(kTg[1] * x - kMI[1] * seq(0, 6.6, 0.1) + kaTg * x * seq(0, 6.6, 0.1)))),
-                  z = rep(c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35"),
-                          each = length(seq(0, 6.6, 0.1))))
+mi_test <- seq(0, 6.6, 0.1)
+tmp_test <- c(7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+df2 <- data.frame(x = rep(mi_test, length(tmp_test)),
+                  y = unlist(lapply(tmp_test,
+                                    function(x) a[1] * exp(kTmp[1] * x - kMI[1] * mi_test + kMITmp * x * mi_test) + b)),
+                  z = rep(tmp_labs,
+                          each = length(mi_test)))
+# df2$z <- factor(df2$z, c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35"), ordered = TRUE)
 ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
-  ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
+  ggplot2::geom_point(ggplot2::aes(color = tmp), alpha = 0.5) +
   ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
   ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
-  # ggplot2::geom_point(ggplot2::aes(y = vpd_calc, color = tg), alpha = 0.3) +
+  # ggplot2::geom_point(ggplot2::aes(y = vpd_calc, color = tmp), alpha = 0.3) +
   ggplot2::labs(title = paste0("vpd = ",
                                round(a, 3),
                                " exp(",
-                               round(kTg, 3),
-                               " Tg - ",
-                               # "Tg^{",
-                               # round(kaTg, 3),
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               # "Tmp^{",
+                               # round(kaTmp, 3),
                                # "} - ",
                                round(kMI, 3),
                                " MI",
                                # "^",
                                # round(kaMI, 3),
-                               " + ",
-                               round(kaTg, 4),
-                               " MI * Tg",
-                               ")"),
+                               ifelse(kMITmp >= 0, "-", " "),
+                               round(kMITmp, 4),
+                               " MI * Tmp",
+                               ") + ",
+                               round(b, 3)),
                 x = "MI [-]", y = "vpd [hPa]") +
-  ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]", 
+                              palette = "Spectral", 
+                              direction = -1) +
   ggplot2::theme_bw()
 ```
 
 ``` r
-df2 <- data.frame(x = rep(seq(0, 35, 1), 5),
-                  y = unlist(lapply(c(0.25, 0.75, 1.25, 1.75, 2.25),
-                                    # function(x) a[1] * exp(kTg[1] * seq(0, 35, 1) - seq(0, 35, 1) ^ kaTg - kMI[1] * x ^ kaMI))),
-                                    function(x) a[1] * exp(kTg[1] * seq(0, 35, 1) - kMI[1] * x + kaTg * x * seq(0, 35, 1)))),
-                  z = rep(c("0-0.5", "0.5-1", "1-1.5", "1.5-2", "2+"),
-                          each = length(seq(0, 35, 1))))
-ggplot2::ggplot(df, ggplot2::aes(Tg, vpd)) +
+mi_labs <- c("0-0.5","0.5-1", "1-1.5", "1.5-2", "2+")
+mi_test <- c(0.25, 0.75, 1.25, 1.75, 2.25)
+tmp_test <- seq(5, 35, 1)
+df2 <- data.frame(x = rep(tmp_test, length(mi_test)),
+                  y = unlist(lapply(mi_test,
+                                    function(x) a[1] * exp(kTmp[1] * tmp_test - kMI[1] * x + kMITmp * x * tmp_test) + b)),
+                  z = rep(mi_labs,
+                          each = length(tmp_test)))
+ggplot2::ggplot(df, ggplot2::aes(Tmp, vpd)) +
   ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
   ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
   ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
   ggplot2::labs(title = paste0("vpd = ",
                                round(a, 3),
                                " exp(",
-                               round(kTg, 3),
-                               " Tg - ",
-                               # "Tg^{",
-                               # round(kaTg, 3),
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               # "Tmp^{",
+                               # round(kaTmp, 3),
                                # "} - ",
                                round(kMI, 3),
                                " MI",
                                # "^",
                                # round(kaMI, 3),
-                               " + ",
-                               round(kaTg, 4),
-                               " MI * Tg",
-                               ")"),
-                x = "Tg [°C]", y = "vpd [hPa]") +
-  ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
+                               ifelse(kMITmp >= 0, "-", " "),
+                               round(kMITmp, 4),
+                               " MI * Tmp",
+                               ") + ",
+                               round(b, 3)),
+                x = "Tmp [°C]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "MI [-]",
+                              palette = "Spectral", 
+                              direction = -1) +
+  ggplot2::theme_bw()
+```
+
+### Without interaction term
+
+``` r
+## Start with a simple model to find the start points
+lmod2 <- lm(log(vpd) ~ Tmp + MI,# poly(Tmp, 2) + poly(MI, 2),
+           data = df_train)
+
+model2 <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI) + b,
+              df_train,
+              start = list(a = exp(coef(lmod2)[1]),
+                           kTmp = coef(lmod2)[2],
+                           kMI = coef(lmod2)[3],
+                           b = 0),
+              control = list(maxiter = 200))
+
+
+a <- coef(model2)[1]
+kTmp <- coef(model2)[2]
+kMI <- coef(model2)[3]
+b <- coef(model2)[4]
+```
+
+``` r
+mi_test <- seq(0, 6.6, 0.1)
+tmp_labels <- c("5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+tmp_test <- c(7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+df5 <- data.frame(x = rep(mi_test, length(tmp_test)),
+                  y = unlist(lapply(tmp_test,
+                                    function(x) (a * exp(kTmp[1] * x - kMI[1] * mi_test) + b))),
+                  z = rep(tmp_labels,
+                          each = length(mi_test)))
+ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = tmp), alpha = 0.5) +
+  ggplot2::geom_line(data = df5, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df5, ggplot2::aes(x = x, y = y)) +
+  # ggplot2::geom_point(ggplot2::aes(y = vpd_calc, color = tmp), alpha = 0.3) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               round(kMI, 3),
+                               " MI",
+                               ") + ",
+                               round(b, 3)),
+                x = "MI [-]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral", 
+                              direction = -1) +
+  ggplot2::theme_bw()
+```
+
+``` r
+mi_labels <- c("0-0.5", "0.5-1", "1-1.5", "1.5-2", "2+")
+mi_test <- c(0.25, 0.75, 1.25, 1.75, 2.25)
+tmp_test <- seq(5, 35, 1)
+df6 <- data.frame(x = rep(tmp_test, length(mi_test)),
+                  y = unlist(lapply(mi_test,
+                                    function(x) a[1] * exp(kTmp[1] * tmp_test - kMI[1] * x) + b)),
+                  z = rep(mi_labels,
+                          each = length(tmp_test)))
+ggplot2::ggplot(df, ggplot2::aes(Tmp, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+  ggplot2::geom_line(data = df6, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df6, ggplot2::aes(x = x, y = y)) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               round(kMI, 3),
+                               " MI",
+                               ") + ",
+                               round(b, 3)),
+                x = "Tmp [°C]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "MI [-]", 
+                              palette = "Spectral", 
+                              direction = -1) +
   ggplot2::theme_bw()
 ```
 
@@ -559,27 +715,13 @@ for (i in levels(df$tg)[-c(8:9)]) {
 
 ### `0 < MI < 0.5`
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-0-0.5-1.png" width="100%" />
-
 #### Fit different regression models
 
 ##### Linear regression
 
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.443287 | 0.3734772 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-30-1.png" width="100%" />
-
 ##### Polynomial regression
 
 ##### 2nd degree
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.452681 | 0.4130953 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-31-1.png" width="100%" />
 
 <!-- ##### 3rd degree -->
 
@@ -587,22 +729,7 @@ for (i in levels(df$tg)[-c(8:9)]) {
 
 ##### Spline regression
 
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.238615 | 0.5346439 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-34-1.png" width="100%" />
-
 ##### Generalized additive models (GAM)
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.443287 | 0.3734772 |
-
-    #> Warning: Computation failed in `stat_smooth()`:
-    #> invalid type (list) for variable 'mgcv::s(x)'
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-35-1.png" width="100%" />
 
 ### `0.5 < MI < 1`
 
@@ -610,35 +737,15 @@ for (i in levels(df$tg)[-c(8:9)]) {
 idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-0.5-1-1.png" width="100%" />
-
 #### Fit different regression models
 
 ##### Linear regression
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 2.564277 | 0.4633298 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-38-1.png" width="100%" />
 
 ##### Polynomial regression
 
 ##### 2nd degree
 
-|     RMSE |        R2 |
-| -------: | --------: |
-| 2.616412 | 0.4359085 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-39-1.png" width="100%" />
-
 ##### Spline regression
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 2.294565 | 0.5397364 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-40-1.png" width="100%" />
 
 ### `1 < MI < 1.5`
 
@@ -646,35 +753,15 @@ idx <- lat_lon[which(mi > 0.5 & mi <= 1), ]
 idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-1-1.5-1.png" width="100%" />
-
 #### Fit different regression models
 
 ##### Linear regression
-
-|      RMSE |        R2 |
-| --------: | --------: |
-| 0.9281112 | 0.6149759 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-43-1.png" width="100%" />
 
 ##### Polynomial regression
 
 ##### 2nd degree
 
-|     RMSE |        R2 |
-| -------: | --------: |
-| 0.965347 | 0.5816934 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-44-1.png" width="100%" />
-
 ##### Spline regression
-
-|      RMSE |        R2 |
-| --------: | --------: |
-| 0.9214318 | 0.6532935 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-45-1.png" width="100%" />
 
 ### `1.5 < MI < 2`
 
@@ -682,35 +769,15 @@ idx <- lat_lon[which(mi > 1 & mi <= 1.5), ]
 idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-1.5-2-1.png" width="100%" />
-
 #### Fit different regression models
 
 ##### Linear regression
-
-|     RMSE |       R2 |
-| -------: | -------: |
-| 1.059768 | 0.567364 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-47-1.png" width="100%" />
 
 ##### Polynomial regression
 
 ##### 2nd degree
 
-|     RMSE |        R2 |
-| -------: | --------: |
-| 0.973731 | 0.5663199 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-48-1.png" width="100%" />
-
 ##### Spline regression
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.167638 | 0.6144156 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-49-1.png" width="100%" />
 
 ### `MI > 2`
 
@@ -718,35 +785,15 @@ idx <- lat_lon[which(mi > 1.5 & mi <= 2), ]
 idx <- lat_lon[which(mi > 2), ]
 ```
 
-<img src="man/figures/cru-ts-4.04-gs-tg-vpd-mi-2-1.png" width="100%" />
-
 #### Fit different regression models
 
 ##### Linear regression
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.154557 | 0.3420974 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-51-1.png" width="100%" />
 
 ##### Polynomial regression
 
 ##### 2nd degree
 
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.161443 | 0.3335234 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-52-1.png" width="100%" />
-
 ##### Spline regression
-
-|     RMSE |        R2 |
-| -------: | --------: |
-| 1.170048 | 0.3294056 |
-
-<img src="man/figures/cru-ts-4.04-unnamed-chunk-53-1.png" width="100%" />
 
 ## Climatologies vs Interpolated values
 
