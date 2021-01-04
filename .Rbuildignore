@@ -7,3 +7,4 @@
 ^README\.Rmd$
 ^inst$
 ^data-raw$
+^R\.ignore$
