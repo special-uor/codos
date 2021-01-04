@@ -175,6 +175,9 @@ int_acm2 <- function(y_points, month_len) {
 #'
 # @examples
 m2d <- function(data, time, cpus = 2, thr = 12) {
+  # Local binding
+  i <- NULL
+
   if (min(time) < 1 | max(time) > 31)
     stop("The time vector must contain values between 1 and 31, corresponding ",
          "to the days in each month. Use the following functions to compute ",

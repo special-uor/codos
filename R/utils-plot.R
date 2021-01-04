@@ -56,6 +56,9 @@ ts_comp <- function(climatology,
                     main = NULL,
                     xlab = NULL,
                     ylab = NULL) {
+  # Local binding
+  variable <- x <- y <- NULL
+
   days = sum(month_len)
   months = length(month_len)
   df <- data.frame(x = rep(seq_len(days), length(vars)),
