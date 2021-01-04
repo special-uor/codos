@@ -573,12 +573,12 @@ nc_gs <- function(filename,
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read dimensions
-  time <- codos:::nc_var_get(filename, timeid, TRUE)  # Time
-  lat <- codos:::nc_var_get(filename, latid, TRUE)    # Latitude
-  lon <- codos:::nc_var_get(filename, lonid, TRUE)    # Longitude
+  time <- nc_var_get(filename, timeid, TRUE)  # Time
+  lat <- nc_var_get(filename, latid, TRUE)    # Latitude
+  lon <- nc_var_get(filename, lonid, TRUE)    # Longitude
 
   # Read main variable
-  var <- codos:::nc_var_get(filename, varid)
+  var <- nc_var_get(filename, varid)
 
   # Load land-sea mask
   land_mask <- codos::land_mask
