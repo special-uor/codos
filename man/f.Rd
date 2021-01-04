@@ -18,12 +18,12 @@ f(u, t0)
 Function to calculate \eqn{u}
 }
 \details{
-This function is used to optimise for values x and y, based on the equation
-for MAT based on GDD0 and MTCO.
+This function is used to optimise values x and y, for the equation to
+calculate MAT based on GDD0 and MTCO.
 
 This equation is only used when MTCO < 0 and GDD0 > 0
 
-If MTCO > 0, GDD0 must be > 0, T0 = GDD0/2*pi
+If MTCO > 0, GDD0 must be > 0, T0 = GDD0 / 2 * pi
 Units:
 GDD0 = K rad
 

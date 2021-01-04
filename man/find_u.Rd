@@ -14,13 +14,13 @@ find_u(t0, min_u = -1, max_u = 0.9999999999999, method = "Brent")
 \item{max_u}{Maximum value for \eqn{u (MAT/(MAT-MTCO))}, numeric, unitless.}
 }
 \value{
-\eqn{u: (MAT/MAT-MTCO)}.
+\eqn{u: MAT / (MAT-MTCO)}.
 }
 \description{
 Function used to optimise \eqn{u}
 }
 \examples{
-find_u(-4525.758, -1, 0.9999999)
-find_u(-9613.333, -1, 0.9999999)
+codos:::find_u(-4525.758, -1, 0.9999999)
+codos:::find_u(-9613.333, -1, 0.9999999)
 }
 \keyword{internal}

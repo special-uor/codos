@@ -59,9 +59,9 @@ Calculate true moisture index.
 \subsection{Returns}{
 A list with three elements:
 \describe{
-\item{\code{mi}:} Numeric value of moisture index.
-\item{\code{cph}:} Boolean flat to indicate whether or not the compensation point 'law' is upheld.
-\item{\code{ci}:} Numeric value of c_i.
+\item{\code{mi}:}{Numeric value of moisture index.}
+\item{\code{cph}:}{Boolean flat to indicate whether or not the compensation point 'law' is upheld.}
+\item{\code{ci}:}{Numeric value of c_i.}
 }
 }
 }
