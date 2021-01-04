@@ -1303,6 +1303,8 @@ nc2ts <- function(filename,
 
 #' Create simple map
 #'
+#' @importFrom graphics image
+#'
 #' @param data 2D array with the data to be mapped.
 #' @param lat Numeric array with latitude data (y-axis).
 #' @param lon Numeric array with longitude data (x-axis).
