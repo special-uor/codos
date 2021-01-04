@@ -132,6 +132,9 @@ convert_units.m2d <- function(filename,
 #' @param tmin List with \eqn{T_{min}} \code{data} and variable \code{id}.
 #' @param tmax List with \eqn{T_{max}} \code{data} and variable \code{id}.
 #' @param varid String with variable ID for daily temperature.
+#' @param overwrite Boolean flag to indicate if the output file should be
+#'     overwritten (if it exists).
+#' @param output_filename Output filename.
 #' @inheritParams nc2ts
 #'
 #' @export
@@ -300,6 +303,7 @@ gdd0 <- function(filename,
 #' @param units String with the output units.
 #' @param lat Numeric vector with the latitude values.
 #' @param lon Numeric vector with the longitude values.
+#' @param scale_factor Numeric value with scale factor (units conversion).
 #' @inheritParams convert_units
 #'
 #' @export
@@ -1134,6 +1138,7 @@ nc_var_get <- function(filename, varid, is.dim = FALSE) {
 #' @param Tg 3D structure with potential evapotranspiration data. These values
 #'     can be calculated with the function \code{\link{splash_evap}}.
 #' @param vap 3D structure with vapour data.
+#' @param output_filename Output filename.
 #' @inheritParams nc_Tg
 #' @export
 nc_vpd <- function(filename,

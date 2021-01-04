@@ -169,6 +169,7 @@ int_acm2 <- function(y_points, month_len) {
 #' @param data Numeric vector with monthly entries.
 #' @param time Numeric vector with the days in month for a particular time step.
 #' @param cpus Numeric value with the number of CPUs to use for the computation.
+#' @param thr Numeric value with the temporal length of the output, in months.
 #'
 #' @return Numeric value for the daily values interpolated.
 #' @export
