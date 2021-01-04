@@ -63,9 +63,9 @@ P_model_inverter <-
                 #' Calculate true moisture index.
                 #' @return A list with three elements:
                 #' \describe{
-                #'     \item{\code{mi}:} Numeric value of moisture index.
-                #'     \item{\code{cph}:} Boolean flat to indicate whether or not the compensation point 'law' is upheld.
-                #'     \item{\code{ci}:} Numeric value of c_i.
+                #'     \item{\code{mi}:}{Numeric value of moisture index.}
+                #'     \item{\code{cph}:}{Boolean flat to indicate whether or not the compensation point 'law' is upheld.}
+                #'     \item{\code{ci}:}{Numeric value of c_i.}
                 #' }
                 calculate_m_true = function() {
                   delta_m <- private$solve_for_delta_m()
