@@ -3,11 +3,11 @@
 #' @param x Latitude numeric value.
 #'
 #' @return String with latitude and corresponding direction suffix.
-#' @export
+#' @keywords internal
 #'
 #' @examples
-#' lat_lab(-30)
-#' lat_lab(30)
+#' codos:::lat_lab(-30)
+#' codos:::lat_lab(30)
 lat_lab <- function(x) {
   ifelse(x < 0,
          paste(x, "°S"),
@@ -21,11 +21,11 @@ lat_lab <- function(x) {
 #' @param x Longitude numeric value.
 #'
 #' @return String with longitude and corresponding direction suffix.
-#' @export
+#' @keywords internal
 #'
 #' @examples
-#' lon_lab(-30)
-#' lon_lab(30)
+#' codos:::lon_lab(-30)
+#' codos:::lon_lab(30)
 lon_lab <- function(x) {
   ifelse(x < 0,
          paste(x, "°E"),
@@ -48,7 +48,7 @@ lon_lab <- function(x) {
 #' @param ylab String with label for the y-axis.
 #'
 #' @return \code{ggplot2} graphic object.
-#' @export
+#' @keywords internal
 ts_comp <- function(climatology,
                     interpolated,
                     month_len,
@@ -89,7 +89,7 @@ ts_comp <- function(climatology,
 #' @param ylab String with label for the y-axis.
 #'
 #' @return \code{ggplot2} graphic object.
-#' @export
+#' @keywords internal
 ts_plot <- function(data,
                     vars = c("cld", "pre", "tmn", "tmx", "vap"),
                     count = length(data) / length(vars),
@@ -97,6 +97,9 @@ ts_plot <- function(data,
                     main = NULL,
                     xlab = NULL,
                     ylab = NULL) {
+  # Local binding
+  variable <- y <- NULL
+
   df <- data.frame(x = x,
                    y = data,
                    variable = rep(vars, each = count))
