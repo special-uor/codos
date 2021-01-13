@@ -13,6 +13,7 @@ P_model_inverter$new(T_diff = 1.334567,
                      c_ratio = 0.7361765,
                      lat = -30)$calculate_m_true()
 }
+\keyword{internal}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
