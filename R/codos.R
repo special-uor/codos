@@ -94,6 +94,23 @@ alpha_from_mi_om3 <- function(mi) {
   1 + mi - (1 + mi ^ 3) ^ (1/3)
 }
 
+#' Ratio of leaf-internal to ambient CO2 partial pressures (–)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param MI Numeric value of moisture index (-).
+#' @param co2 Numeric value of CO2 partial pressure (umol/mol).
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
+#'
+#' @return Numeric value of ratio of leaf-internal to ambient CO2 partial
+#' pressures.
+#' @keywords internal
+chi <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
+  co2 <-  scale_factor * co2
+  E(Tc) / (E(Tc) + sqrt(vpd(Tc, MI))) * (1 - compensation_point(Tc) / co2) +
+    compensation_point(Tc) / co2
+}
+
 #' Photorespiratory compensation point (Pa)
 #'
 #' @param Tc Numeric value of temperature (°C).
