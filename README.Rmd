@@ -1,7 +1,6 @@
 ---
 output: github_document
 ---
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 ```{r, include = FALSE}
@@ -13,12 +12,13 @@ knitr::opts_chunk$set(
 )
 ```
 
-# CO<sub>dos</sub>: CO<sub>2</sub> Correction Utils <img src="inst/images/logo.png" alt="logo" align="right" height=200px/>
+# CO<sub>dos</sub>: CO<sub>2</sub> Correction Tools <img src="inst/images/logo.png" alt="logo" align="right" height=200px/>
 
 <!-- badges: start -->
+`r badger::badge_devel("special-uor/codos", "yellow")`
+`r badger::badge_github_actions("special-uor/codos")`
+`r badger::badge_cran_release("codos", "black")`
 <!-- badges: end -->
-
-The goal of codos is to ...
 
 ## Installation
 
@@ -34,6 +34,6 @@ And the development version from [GitHub](https://github.com/) with:
 # install.packages("devtools")
 devtools::install_github("special-uor/codos", "dev")
 ```
-## Example
+<!-- ## Example -->
 
-- CRU TS 4.04: [inst/extdocs/cru-ts-4.04.md](inst/extdocs/cru-ts-4.04.md)
+<!-- - CRU TS 4.04: [inst/extdocs/cru-ts-4.04.md](inst/extdocs/cru-ts-4.04.md) -->
