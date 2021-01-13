@@ -1,13 +1,18 @@
-#' Budyko relationship
+#' Effective Michaelis constant of Rubisco (Pa)
 #'
-#' Budyko relationship, obtain alpha from moisture index (MI).
+#' @param Tc Numeric value of temperature (°C).
+#' @param dHc Carbon activation energy (J mol^-1), default = 79430.
+#' @param dHo Oxygen activation energy (J mol^-1), default = 36380.
+#' @param O Atmospheric concentration of oxygen (Pa), default = 21278.
+#' @param R Universal gas constant (J mol^-1 K^-1), default = 8.314.
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
 #'
-#' @param mi Numeric value with moisture index.
-#'
-#' @return Numeric value with alpha.
-#' @export
-alpha_from_mi_om3 <- function(mi) {
-  1 + mi - (1 + mi ^ 3) ^ (1/3)
+#' @return Numeric value of effective Michaelis constant of Rubisco.
+#' @keywords internal
+K <- function(Tc, dHc = 79430, dHo = 36380, O = 21278, R = 8.314) {
+  pre_calc <- 1 / R * (1 / 298 - 1 / (Tc + 273.15))
+  39.97 * exp(dHc * pre_calc) * ( 1 + O / (27480 * exp(dHo * pre_calc)))
 }
 
 #' Fraction of sunshine hours
@@ -65,6 +70,47 @@ T_g <- function(lat, delta, tmx, tmn) {
   }
   tmx * (0.5 + sqrt(1 - x^2) / (2 * acos(x))) +
     tmn * (0.5 - sqrt(1 - x^2) / (2 * acos(x)))
+}
+
+#' Budyko relationship
+#'
+#' Budyko relationship, obtain alpha from moisture index (MI).
+#'
+#' @param mi Numeric value with moisture index.
+#'
+#' @return Numeric value with alpha.
+#' @export
+alpha_from_mi_om3 <- function(mi) {
+  1 + mi - (1 + mi ^ 3) ^ (1/3)
+}
+
+#' Photorespiratory compensation point (Pa)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param delta_H Compensation point activation energy (J mol^-1), default =
+#'     37830.
+#' @param R Universal gas constant (J mol^-1 K^-1), default = 8.314.
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
+#'
+#' @return Numeric value of photorespiratory compensation point.
+#' @keywords internal
+compensation_point = function(Tc,
+                              delta_H = 37830,
+                              R = 8.314,
+                              scale_factor = 101.325 * 10^-3) {
+  aux <- delta_H / R
+  42.75 * exp(aux * (1 / 298 - 1 / (Tc + 273.15))) * scale_factor
+}
+
+#' Viscosity of water
+#'
+#' @param Tc Numeric value of temperature (°C).
+#'
+#' @return Numeric value of viscosity of water.
+#' @keywords internal
+eta = function(Tc) {
+  0.024258 * exp(580 / (Tc + 273.15 + 138))
 }
 
 #' Calculate corrected moisture index (MI)
