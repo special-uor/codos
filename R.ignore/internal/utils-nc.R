@@ -1338,7 +1338,12 @@ plot_map <- function(data, lat, lon) {
 retime <- function(time_var,
                    ref_date = lubridate::date("1870-01-01"),
                    duration = "months") {
+  # Change duration to lower case
   duration <- tolower(duration)
+  # Check ref_data is of Date class
+  if (!inherits(ref_date, "Date"))
+    ref_date <- lubridate::as_datetime(ref_date)
+
   # Select the appropriate duration units
   if (duration == "years") {
     aux <- ref_date + lubridate::dyears(time_var)
@@ -1346,9 +1351,16 @@ retime <- function(time_var,
     aux <- ref_date + lubridate::dmonths(time_var)
   } else if (duration == "days") {
     aux <- ref_date + lubridate::ddays(time_var)
+  } else if (duration == "hours") {
+    aux <- ref_date + lubridate::dhours(time_var)
+  } else if (duration == "minutes") {
+    aux <- ref_date + lubridate::dminutes(time_var)
+  } else if (duration == "seconds") {
+    aux <- ref_date + lubridate::dseconds(time_var)
   } else {
     stop("Invalid duration interval, select one of the following: \n",
-         "- years \n- months \n- days", call. = FALSE)
+         "- years \n- months \n- days \n",
+         "- hours \n- minutes \n- seconds", call. = FALSE)
   }
   # Create output tibble
   tibble::tibble(date = aux,
