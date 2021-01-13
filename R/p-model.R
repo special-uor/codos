@@ -2,7 +2,7 @@
 #' @description
 #' This class allows to create objects of the \code{P-model}.
 #'
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' P_model_inverter$new(T_diff = 1.334567,
