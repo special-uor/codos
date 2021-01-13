@@ -1,3 +1,13 @@
+#' Stomatal sensitivity factor, E (\code{sqrt(Pa)})
+#' @param Tc Numeric value of temperature (°C).
+#' @param beta Numeric constant, default = 146.
+#'
+#' @return Numeric value of stomatal sensitivity factor.
+#' @export
+E <- function(Tc, beta = 146) {
+  sqrt(beta * (K(Tc) + compensation_point(Tc)) / (1.6 * eta(Tc) / eta(25)))
+}
+
 #' Effective Michaelis constant of Rubisco (Pa)
 #'
 #' @param Tc Numeric value of temperature (°C).
