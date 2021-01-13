@@ -7,11 +7,11 @@
 This class allows to create objects of the \code{P-model}.
 }
 \examples{
-P_model_inverter$new(T_diff = 1.334567,
-                     T_ref = 11.57957,
-                     m_rec = 0.3357231,
-                     c_ratio = 0.7361765,
-                     lat = -30)$calculate_m_true()
+codos:::P_model_inverter$new(T_diff = 1.334567,
+                             T_ref = 11.57957,
+                             m_rec = 0.3357231,
+                             c_ratio = 0.7361765,
+                             lat = -30)$calculate_m_true()
 }
 \keyword{internal}
 \section{Methods}{
