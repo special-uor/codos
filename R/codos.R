@@ -147,3 +147,18 @@ mi_correction <- function(T0, T1, MI) {
   with(terms, (log((vpd - b) / a) - kTmp * T1) / (-kMI + kMITmp * T1))
 }
 
+#' Vapour-pressure deficit (Pa)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param MI Numeric value of moisture index.
+#' @param scale_factor Scale factor to transform the output, default =
+#'     100 Pa/hPa.
+#'
+#' @return Numeric value of vapour-pressure deficit.
+#' @export
+vpd <- function(Tc, MI, scale_factor = 100) {
+  terms <- list(a = 4.61232447483209,
+                kTmp = 0.0609249286877394,
+                kMI = 0.872588565709498)
+  with(terms, a * exp(kTmp * Tc - kMI * MI)) * scale_factor
+}
