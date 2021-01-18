@@ -1,3 +1,6 @@
+#' @keywords internal
+"_PACKAGE"
+
 #' Stomatal sensitivity factor, E (\code{sqrt(Pa)})
 #' @param Tc Numeric value of temperature (°C).
 #' @param beta Numeric constant, default = 146.
