@@ -102,6 +102,32 @@ padul2$corrected_mi <- codos::corrected_mi(padul2$present_t,
                                            padul2$modern_co2,
                                            padul2$past_co2)
 
+past_co2v2 <- function(age, ref = codos::ice_core, digits = 2) {
+  # Check the reference tibble, must have at least two columns
+  if (ncol(ref) < 2)
+    stop("The `ref` data frame, must have at least two columns: ",
+         "`age` and `co2`.", call. = FALSE)
+  # Extract the reference age and co2
+  ref_age <- purrr::pluck(ref, 1)
+  ref_co2 <- purrr::pluck(ref, 2)
+  if (age < min(ref_age))
+    return(ref_co2[which.min(ref_age)])
+  
+  if (age > max(ref_age))
+    return(ref_co2[which.max(ref_age)])
+  loessMod10 <- loess(co2 ~ age,
+                      tibble::tibble(age = ref_age,
+                                     co2 = ref_co2), span = 0.1)
+  return(predict(loessMod10, age))
+}
+
+padul2$past_co22 <- purrr::map_dbl(padul$`Age (cal yr BP)`, past_co2v2)
+padul2$corrected_mi2 <- codos::corrected_mi(padul2$present_t,
+                                           padul2$past_temp,
+                                           padul2$recon_mi,
+                                           padul2$modern_co2,
+                                           padul2$past_co22)
+
 knitr::kable(head(padul2, 20), "html")
 ```
 
@@ -153,6 +179,18 @@ corrected\_mi
 
 </th>
 
+<th style="text-align:right;">
+
+past\_co22
+
+</th>
+
+<th style="text-align:right;">
+
+corrected\_mi2
+
+</th>
+
 </tr>
 
 </thead>
@@ -194,6 +232,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.425809
+
+</td>
+
+<td style="text-align:right;">
+
+0.1255855
+
+</td>
+
+<td style="text-align:right;">
+
+368.0200
 
 </td>
 
@@ -249,6 +299,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+368.0200
+
+</td>
+
+<td style="text-align:right;">
+
+0.1346688
+
+</td>
+
 </tr>
 
 <tr>
@@ -292,6 +354,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.0666097
+
+</td>
+
+<td style="text-align:right;">
+
+348.5771
+
+</td>
+
+<td style="text-align:right;">
+
+0.1472325
 
 </td>
 
@@ -341,6 +415,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+343.4588
+
+</td>
+
+<td style="text-align:right;">
+
+0.3792418
+
+</td>
+
 </tr>
 
 <tr>
@@ -384,6 +470,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.2167713
+
+</td>
+
+<td style="text-align:right;">
+
+339.9523
+
+</td>
+
+<td style="text-align:right;">
+
+0.2509510
 
 </td>
 
@@ -433,6 +531,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+335.2524
+
+</td>
+
+<td style="text-align:right;">
+
+0.2314105
+
+</td>
+
 </tr>
 
 <tr>
@@ -476,6 +586,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.2413042
+
+</td>
+
+<td style="text-align:right;">
+
+331.4182
+
+</td>
+
+<td style="text-align:right;">
+
+0.2442182
 
 </td>
 
@@ -525,6 +647,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+327.7633
+
+</td>
+
+<td style="text-align:right;">
+
+0.2677993
+
+</td>
+
 </tr>
 
 <tr>
@@ -568,6 +702,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.3924903
+
+</td>
+
+<td style="text-align:right;">
+
+324.2577
+
+</td>
+
+<td style="text-align:right;">
+
+0.3618028
 
 </td>
 
@@ -617,6 +763,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+320.3318
+
+</td>
+
+<td style="text-align:right;">
+
+0.4292865
+
+</td>
+
 </tr>
 
 <tr>
@@ -660,6 +818,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4331878
+
+</td>
+
+<td style="text-align:right;">
+
+317.6395
+
+</td>
+
+<td style="text-align:right;">
+
+0.4004524
 
 </td>
 
@@ -709,6 +879,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+314.0350
+
+</td>
+
+<td style="text-align:right;">
+
+0.4212803
+
+</td>
+
 </tr>
 
 <tr>
@@ -752,6 +934,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.3560325
+
+</td>
+
+<td style="text-align:right;">
+
+311.0862
+
+</td>
+
+<td style="text-align:right;">
+
+0.3597760
 
 </td>
 
@@ -801,6 +995,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+308.2584
+
+</td>
+
+<td style="text-align:right;">
+
+0.3895416
+
+</td>
+
 </tr>
 
 <tr>
@@ -844,6 +1050,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5175019
+
+</td>
+
+<td style="text-align:right;">
+
+305.5784
+
+</td>
+
+<td style="text-align:right;">
+
+0.5138041
 
 </td>
 
@@ -893,6 +1111,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+303.0378
+
+</td>
+
+<td style="text-align:right;">
+
+0.4057329
+
+</td>
+
 </tr>
 
 <tr>
@@ -936,6 +1166,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5842940
+
+</td>
+
+<td style="text-align:right;">
+
+300.6213
+
+</td>
+
+<td style="text-align:right;">
+
+0.5866349
 
 </td>
 
@@ -985,6 +1227,18 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+297.9388
+
+</td>
+
+<td style="text-align:right;">
+
+0.5131710
+
+</td>
+
 </tr>
 
 <tr>
@@ -1028,6 +1282,18 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4849940
+
+</td>
+
+<td style="text-align:right;">
+
+296.1169
+
+</td>
+
+<td style="text-align:right;">
+
+0.4818391
 
 </td>
 
@@ -1077,25 +1343,51 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+292.2332
+
+</td>
+
+<td style="text-align:right;">
+
+0.5208604
+
+</td>
+
 </tr>
 
 </tbody>
 
 </table>
 
-<img src="man/figures/padul-unnamed-chunk-9-1.png" width="100%" />
-
-  - `age < 5k`
+``` r
+padul2 %>% write.csv(file = "padul-with-corrected.mi")
+```
 
 <img src="man/figures/padul-unnamed-chunk-10-1.png" width="100%" />
 
-### Plots
+  - `age < 5k`
 
 <img src="man/figures/padul-unnamed-chunk-11-1.png" width="100%" />
 
-  - `age < 5k`
+### Plots
+
+#### Past CO2 calculated using `mean`
 
 <img src="man/figures/padul-unnamed-chunk-12-1.png" width="100%" />
+
+  - `age < 5k`
+
+<img src="man/figures/padul-unnamed-chunk-13-1.png" width="100%" />
+
+#### Past CO2 calculated using `loess`
+
+<img src="man/figures/padul-unnamed-chunk-14-1.png" width="100%" />
+
+  - `age < 5k`
+
+<img src="man/figures/padul-unnamed-chunk-15-1.png" width="100%" />
 
 # References
 
