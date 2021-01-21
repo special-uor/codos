@@ -170,11 +170,14 @@ f <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
 #' @return Numeric vector with corrected moisture index values.
 #' @export
 corrected_mi <- function(Tc0, Tc1, MI, co20, co21, ...) {
-  terms <- list(a = 4.61232447483209,
-                kTmp = 0.0609249286877394,
-                kMI = 0.872588565709498)
+  # terms <- list(a = 4.61232447483209,
+  #               kTmp = 0.0609249286877394,
+  #               kMI = 0.872588565709498)
+  terms <- list(a = 4.58914835462018,
+                kTmp = 0.0611076815696193,
+                kMI = 0.870229500285838)
   vpd <- vpd(Tc0, Tc1, MI, co20, co21, ...) / 100
-  with(terms, (log(vpd / a) - kTmp * Tc1) / (-kMI + kMITmp * Tc1))
+  with(terms, (log(vpd / a) - kTmp * Tc1) / (-kMI))
 }
 
 #' Vapour-pressure deficit (Pa)
@@ -187,9 +190,12 @@ corrected_mi <- function(Tc0, Tc1, MI, co20, co21, ...) {
 #' @return Numeric value of vapour-pressure deficit.
 #' @keywords internal
 vpd_internal <- function(Tc, MI, scale_factor = 100) {
-  terms <- list(a = 4.61232447483209,
-                kTmp = 0.0609249286877394,
-                kMI = 0.872588565709498)
+  # terms <- list(a = 4.61232447483209,
+  #               kTmp = 0.0609249286877394,
+  #               kMI = 0.872588565709498)
+  terms <- list(a = 4.58914835462018,
+                kTmp = 0.0611076815696193,
+                kMI = 0.870229500285838)
   with(terms, a * exp(kTmp * Tc - kMI * MI)) * scale_factor
 }
 
