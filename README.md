@@ -43,10 +43,10 @@ and moisture index, `mi` \[-\]. Using the CRU TS 4.04 dataset
 the following relation:
 
   
-![&#10;vpd = 4.612 \\times \\exp(0.0609 \\times tmp - 0.873 \\times
-mi)&#10;](https://latex.codecogs.com/png.latex?%0Avpd%20%3D%204.612%20%5Ctimes%20%5Cexp%280.0609%20%5Ctimes%20tmp%20-%200.873%20%5Ctimes%20mi%29%0A
+![&#10;vpd = 4.589 \\times \\exp(0.0611 \\times tmp - 0.87 \\times
+mi)&#10;](https://latex.codecogs.com/png.latex?%0Avpd%20%3D%204.589%20%5Ctimes%20%5Cexp%280.0611%20%5Ctimes%20tmp%20-%200.87%20%5Ctimes%20mi%29%0A
 "
-vpd = 4.612 \\times \\exp(0.0609 \\times tmp - 0.873 \\times mi)
+vpd = 4.589 \\times \\exp(0.0611 \\times tmp - 0.87 \\times mi)
 ")  
 
 The steps performed were:

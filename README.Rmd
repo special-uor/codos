@@ -51,7 +51,7 @@ devtools::install_github("special-uor/codos", "dev")
 `vpd` is given by mean daily growing season temperature, `tmp` [°C] and moisture index, `mi` [-]. Using the CRU TS 4.04 dataset [@cru404] we found the following relation:
 
 $$
-vpd = 4.612 \times \exp(0.0609 \times tmp - 0.873 \times mi)
+vpd = 4.589 \times \exp(0.0611 \times tmp - 0.87 \times mi)
 $$
 
 The steps performed were:
