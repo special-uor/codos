@@ -108,13 +108,15 @@ knitr::kable(head(padul2, 10), "html")
 
 Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
 
-## Plots
-
 ```{r, echo = FALSE}
 padul2 %>% 
   # dplyr::select(-c(past_co2_loess, corrected_mi_loess)) %>%
   write.csv(file = "padul-with-corrected-mi.csv")
 ```
+
+## Plots
+
+#### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
 
 ```{r, echo = FALSE}
 df <- tibble::tibble(age = rep(padul2$age, 2),
@@ -144,17 +146,17 @@ ggplot2::ggplot(df[df$age <= 5000, ], ggplot2::aes(age, mi, colour = var)) +
   ggplot2::theme_bw()
 ```
 
-#### Past CO2 calculated using `mean`
+#### Include past CO2 and Temperature
 
 ```{r, echo = FALSE, eval = TRUE}
 m0 <- padul2
 tibble::tibble(x = rep(m0$age, 2),
                y = c(m0$recon_mi,
                      m0$corrected_mi),
-               co2 = rep(m0$past_co2/ 100, 2),
+               co2 = rep(m0$past_co2 / 100, 2),
                past_temp = rep(m0$past_temp / 5, 2),
                mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(T0 - Mi))"),
+                          "Corrected (vpd ~ exp(Tmp - MI))"),
                         each = nrow(m0))) %>%
   # .[.$x < 20000, ] %>%
   ggplot2::ggplot() +
@@ -183,10 +185,10 @@ m0 <- padul2
 tibble::tibble(x = rep(m0$age, 2),
                y = c(m0$recon_mi,
                      m0$corrected_mi),
-               co2 = rep(m0$past_co2/ 100, 2),
+               co2 = rep(m0$past_co2 / 100, 2),
                past_temp = rep(m0$past_temp / 5, 2),
                mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(T0 - Mi))"),
+                          "Corrected (vpd ~ exp(Tmp - MI))"),
                         each = nrow(m0))) %>%
   .[.$x < 5000, ] %>%
   ggplot2::ggplot() +
@@ -242,12 +244,12 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
                                                  padul2$past_co2_loess)
 ```
 
-## A2. Plot reconstructed vs corrected `MI`
+## A2. Plot reconstructed vs corrected `MI` both approaches
 
 ```{r, echo = FALSE}
 df <- tibble::tibble(age = rep(padul2$age, 3),
                      mi = c(padul2$recon_mi, padul2$corrected_mi, padul2$corrected_mi_loess),
-                     var = rep(c("Reconstructed", "Corrected", "Corrected (Loess)"), each = nrow(padul2)))
+                     var = rep(c("Reconstructed", "Corrected (mean)", "Corrected (loess)"), each = nrow(padul2)))
 ggplot2::ggplot(df, ggplot2::aes(age, mi, colour = var)) +
   ggplot2::geom_line() +
   ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
@@ -269,17 +271,18 @@ ggplot2::ggplot(df[df$age <= 5000, ], ggplot2::aes(age, mi, colour = var)) +
   ggplot2::theme_bw()
 ```
 
-## A3. Past CO2 calculated using `loess`
+## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess`
+#### Include past CO2 and Temperature
 
 ```{r, echo = FALSE, eval = TRUE}
 m0 <- padul2
 tibble::tibble(x = rep(m0$age, 2),
                y = c(m0$recon_mi,
                      m0$corrected_mi_loess),
-               co2 = rep(m0$past_co2_loess/ 100, 2),
+               co2 = rep(m0$past_co2_loess / 100, 2),
                past_temp = rep(m0$past_temp / 5, 2),
                mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(T0 - Mi))"),
+                          "Corrected (vpd ~ exp(Tmp - MI))"),
                         each = nrow(m0))) %>%
   # .[.$x < 20000, ] %>%
   ggplot2::ggplot() +
@@ -308,10 +311,10 @@ m0 <- padul2
 tibble::tibble(x = rep(m0$age, 2),
                y = c(m0$recon_mi,
                      m0$corrected_mi_loess),
-               co2 = rep(m0$past_co2_loess/ 100, 2),
+               co2 = rep(m0$past_co2_loess / 100, 2),
                past_temp = rep(m0$past_temp / 5, 2),
                mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(T0 - Mi))"),
+                          "Corrected (vpd ~ exp(Tmp - MI))"),
                         each = nrow(m0))) %>%
   .[.$x < 5000, ] %>%
   ggplot2::ggplot() +
@@ -331,14 +334,14 @@ tibble::tibble(x = rep(m0$age, 2),
   ggplot2::theme_bw()
 ```
 
-## A4. Compare  `codos::ice_core` vs reconstructed CO2 using `mean` and `loess`
+## A4. Compare  `codos::ice_core` vs past CO2 calculate using `mean` and `loess`
 
 ```{r, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age, 2),
                      y = c(padul2$past_co2,
                            padul2$past_co2_loess),
-                     var = rep(c("recon: Mean", 
-                                 "recon: LOESS (span = 0.1)"), 
+                     var = rep(c("Mean", 
+                                 "LOESS (span = 0.1)"), 
                                each = nrow(padul2))) %>%
   ggplot2::ggplot() +
     ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= max(padul2$age), ],
@@ -359,8 +362,8 @@ tibble::tibble(x = rep(padul2$age, 2),
 tibble::tibble(x = rep(padul2$age, 2),
                      y = c(padul2$past_co2,
                            padul2$past_co2_loess),
-                     var = rep(c("recon: Mean", 
-                                 "recon: LOESS (span = 0.1)"), 
+                     var = rep(c("Mean", 
+                                 "LOESS (span = 0.1)"), 
                                each = nrow(padul2))) %>%
   
   .[.$x < 5000, ] %>%
@@ -383,8 +386,8 @@ tibble::tibble(x = rep(padul2$age, 2),
 tibble::tibble(x = rep(padul2$age, 2),
                      y = c(padul2$past_co2,
                            padul2$past_co2_loess),
-                     var = rep(c("recon: Mean", 
-                                 "recon: LOESS (span = 0.1)"), 
+                     var = rep(c("Mean", 
+                                 "LOESS (span = 0.1)"), 
                                each = nrow(padul2))) %>%
   
   .[.$x < 500, ] %>%
@@ -402,7 +405,7 @@ tibble::tibble(x = rep(padul2$age, 2),
 ```
 
 ## A5. Padul Data
-Download the CSV: [padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv)
+Download the CSV file: [padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv)
 
 ```{r, echo = FALSE}
 padul2 %>%

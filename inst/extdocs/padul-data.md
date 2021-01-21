@@ -189,7 +189,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.1255855
+0.1244634
 
 </td>
 
@@ -235,7 +235,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.1346688
+0.1333827
 
 </td>
 
@@ -281,7 +281,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.0666097
+0.0648281
 
 </td>
 
@@ -327,7 +327,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3253820
+0.3244211
 
 </td>
 
@@ -373,7 +373,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2167713
+0.2154220
 
 </td>
 
@@ -419,7 +419,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2213131
+0.2199217
 
 </td>
 
@@ -465,7 +465,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2413042
+0.2397781
 
 </td>
 
@@ -511,7 +511,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2826083
+0.2817604
 
 </td>
 
@@ -557,7 +557,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3924903
+0.3919461
 
 </td>
 
@@ -603,7 +603,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4581020
+0.4577505
 
 </td>
 
@@ -618,13 +618,15 @@ A5](#a5-padul-data).
 
 ## Plots
 
+#### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
+
 <img src="man/figures/padul-unnamed-chunk-10-1.png" width="100%" />
 
   - `age < 5k`
 
 <img src="man/figures/padul-unnamed-chunk-11-1.png" width="100%" />
 
-#### Past CO2 calculated using `mean`
+#### Include past CO2 and Temperature
 
 <img src="man/figures/padul-unnamed-chunk-12-1.png" width="100%" />
 
@@ -668,7 +670,7 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
                                                  padul2$past_co2_loess)
 ```
 
-## A2. Plot reconstructed vs corrected `MI`
+## A2. Plot reconstructed vs corrected `MI` both approaches
 
 <img src="man/figures/padul-unnamed-chunk-15-1.png" width="100%" />
 
@@ -676,7 +678,9 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
 
 <img src="man/figures/padul-unnamed-chunk-16-1.png" width="100%" />
 
-## A3. Past CO2 calculated using `loess`
+## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess`
+
+#### Include past CO2 and Temperature
 
 <img src="man/figures/padul-unnamed-chunk-17-1.png" width="100%" />
 
@@ -684,7 +688,7 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
 
 <img src="man/figures/padul-unnamed-chunk-18-1.png" width="100%" />
 
-## A4. Compare `codos::ice_core` vs reconstructed CO2 using `mean` and `loess`
+## A4. Compare `codos::ice_core` vs past CO2 calculate using `mean` and `loess`
 
 <img src="man/figures/padul-unnamed-chunk-19-1.png" width="100%" />
 
@@ -698,7 +702,7 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
 
 ## A5. Padul Data
 
-Download the CSV:
+Download the CSV file:
 [padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv)
 
 <table>
@@ -795,7 +799,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.1255855
+0.1244634
 
 </td>
 
@@ -841,7 +845,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.1346688
+0.1333827
 
 </td>
 
@@ -887,7 +891,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.0666097
+0.0648281
 
 </td>
 
@@ -933,7 +937,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3253820
+0.3244211
 
 </td>
 
@@ -979,7 +983,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2167713
+0.2154220
 
 </td>
 
@@ -1025,7 +1029,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2213131
+0.2199217
 
 </td>
 
@@ -1071,7 +1075,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2413042
+0.2397781
 
 </td>
 
@@ -1117,7 +1121,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.2826083
+0.2817604
 
 </td>
 
@@ -1163,7 +1167,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3924903
+0.3919461
 
 </td>
 
@@ -1209,7 +1213,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4581020
+0.4577505
 
 </td>
 
@@ -1255,7 +1259,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4331878
+0.4326490
 
 </td>
 
@@ -1301,7 +1305,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4373496
+0.4368359
 
 </td>
 
@@ -1347,7 +1351,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3560325
+0.3550007
 
 </td>
 
@@ -1393,7 +1397,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3895324
+0.3885984
 
 </td>
 
@@ -1439,7 +1443,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5175019
+0.5175579
 
 </td>
 
@@ -1485,7 +1489,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4127332
+0.4122079
 
 </td>
 
@@ -1531,7 +1535,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5842940
+0.5840660
 
 </td>
 
@@ -1577,7 +1581,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5027184
+0.5023616
 
 </td>
 
@@ -1623,7 +1627,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4849940
+0.4845519
 
 </td>
 
@@ -1669,7 +1673,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5291952
+0.5288997
 
 </td>
 
@@ -1715,7 +1719,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6937752
+0.6944068
 
 </td>
 
@@ -1761,7 +1765,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7723675
+0.7734029
 
 </td>
 
@@ -1807,7 +1811,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4944974
+0.4939256
 
 </td>
 
@@ -1853,7 +1857,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7076849
+0.7086556
 
 </td>
 
@@ -1899,7 +1903,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6239168
+0.6241322
 
 </td>
 
@@ -1945,7 +1949,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7891175
+0.7903749
 
 </td>
 
@@ -1991,7 +1995,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4839866
+0.4835148
 
 </td>
 
@@ -2037,7 +2041,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8243975
+0.8254257
 
 </td>
 
@@ -2083,7 +2087,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8474354
+0.8492377
 
 </td>
 
@@ -2129,7 +2133,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3753437
+0.3746569
 
 </td>
 
@@ -2175,7 +2179,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8251829
+0.8265192
 
 </td>
 
@@ -2221,7 +2225,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7268057
+0.7277152
 
 </td>
 
@@ -2267,7 +2271,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6630925
+0.6636209
 
 </td>
 
@@ -2313,7 +2317,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5970397
+0.5977625
 
 </td>
 
@@ -2359,7 +2363,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5813283
+0.5816580
 
 </td>
 
@@ -2405,7 +2409,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6537441
+0.6542092
 
 </td>
 
@@ -2451,7 +2455,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6890119
+0.6894065
 
 </td>
 
@@ -2497,7 +2501,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6441722
+0.6442149
 
 </td>
 
@@ -2543,7 +2547,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7197364
+0.7202114
 
 </td>
 
@@ -2589,7 +2593,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5895759
+0.5898649
 
 </td>
 
@@ -2635,7 +2639,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6021001
+0.6022332
 
 </td>
 
@@ -2681,7 +2685,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4562023
+0.4556202
 
 </td>
 
@@ -2727,7 +2731,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6586304
+0.6590583
 
 </td>
 
@@ -2773,7 +2777,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7329022
+0.7339070
 
 </td>
 
@@ -2819,7 +2823,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7443961
+0.7447476
 
 </td>
 
@@ -2865,7 +2869,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5886267
+0.5887351
 
 </td>
 
@@ -2911,7 +2915,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4699421
+0.4695062
 
 </td>
 
@@ -2957,7 +2961,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6097075
+0.6100237
 
 </td>
 
@@ -3003,7 +3007,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5375440
+0.5372427
 
 </td>
 
@@ -3049,7 +3053,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6473769
+0.6477162
 
 </td>
 
@@ -3095,7 +3099,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6325238
+0.6326667
 
 </td>
 
@@ -3141,7 +3145,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5834718
+0.5836535
 
 </td>
 
@@ -3187,7 +3191,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.3679908
+0.3669812
 
 </td>
 
@@ -3233,7 +3237,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6320358
+0.6324706
 
 </td>
 
@@ -3279,7 +3283,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6495391
+0.6498272
 
 </td>
 
@@ -3325,7 +3329,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6999856
+0.7005937
 
 </td>
 
@@ -3371,7 +3375,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5956850
+0.5956837
 
 </td>
 
@@ -3417,7 +3421,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6138847
+0.6140574
 
 </td>
 
@@ -3463,7 +3467,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7307062
+0.7314145
 
 </td>
 
@@ -3509,7 +3513,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6108275
+0.6109269
 
 </td>
 
@@ -3555,7 +3559,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7447811
+0.7456695
 
 </td>
 
@@ -3601,7 +3605,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7109920
+0.7115749
 
 </td>
 
@@ -3647,7 +3651,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6435284
+0.6437703
 
 </td>
 
@@ -3693,7 +3697,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6358784
+0.6362472
 
 </td>
 
@@ -3739,7 +3743,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7120540
+0.7126369
 
 </td>
 
@@ -3785,7 +3789,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6855244
+0.6859167
 
 </td>
 
@@ -3831,7 +3835,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7588973
+0.7594392
 
 </td>
 
@@ -3877,7 +3881,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7296531
+0.7302996
 
 </td>
 
@@ -3923,7 +3927,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7055218
+0.7060858
 
 </td>
 
@@ -3969,7 +3973,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5648094
+0.5644705
 
 </td>
 
@@ -4015,7 +4019,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6186660
+0.6188914
 
 </td>
 
@@ -4061,7 +4065,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6820041
+0.6824046
 
 </td>
 
@@ -4107,7 +4111,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7370349
+0.7377937
 
 </td>
 
@@ -4153,7 +4157,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8399927
+0.8412284
 
 </td>
 
@@ -4199,7 +4203,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7935260
+0.7944727
 
 </td>
 
@@ -4245,7 +4249,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8646247
+0.8658994
 
 </td>
 
@@ -4291,7 +4295,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7315196
+0.7322279
 
 </td>
 
@@ -4337,7 +4341,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7186822
+0.7190535
 
 </td>
 
@@ -4383,7 +4387,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9287589
+0.9304329
 
 </td>
 
@@ -4429,7 +4433,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7894691
+0.7901063
 
 </td>
 
@@ -4475,7 +4479,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7988103
+0.8000912
 
 </td>
 
@@ -4521,7 +4525,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8397094
+0.8408143
 
 </td>
 
@@ -4567,7 +4571,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9298346
+0.9312388
 
 </td>
 
@@ -4613,7 +4617,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7967424
+0.7973917
 
 </td>
 
@@ -4659,7 +4663,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7663526
+0.7672609
 
 </td>
 
@@ -4705,7 +4709,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8478538
+0.8491241
 
 </td>
 
@@ -4751,7 +4755,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8226864
+0.8239639
 
 </td>
 
@@ -4797,7 +4801,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8942308
+0.8957954
 
 </td>
 
@@ -4843,7 +4847,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0464315
+1.0483645
 
 </td>
 
@@ -4889,7 +4893,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9850553
+0.9866089
 
 </td>
 
@@ -4935,7 +4939,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9670095
+0.9686186
 
 </td>
 
@@ -4981,7 +4985,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9361573
+0.9375628
 
 </td>
 
@@ -5027,7 +5031,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0192496
+1.0210282
 
 </td>
 
@@ -5073,7 +5077,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9700291
+0.9714567
 
 </td>
 
@@ -5119,7 +5123,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0219753
+1.0238657
 
 </td>
 
@@ -5165,7 +5169,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9708557
+0.9725987
 
 </td>
 
@@ -5211,7 +5215,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9340307
+0.9357423
 
 </td>
 
@@ -5257,7 +5261,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8897359
+0.8908392
 
 </td>
 
@@ -5303,7 +5307,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8710239
+0.8719585
 
 </td>
 
@@ -5349,7 +5353,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9172627
+0.9185062
 
 </td>
 
@@ -5395,7 +5399,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1054784
+1.1075377
 
 </td>
 
@@ -5441,7 +5445,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8364233
+0.8374506
 
 </td>
 
@@ -5487,7 +5491,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8898428
+0.8910427
 
 </td>
 
@@ -5533,7 +5537,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0168223
+1.0182480
 
 </td>
 
@@ -5579,7 +5583,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1405323
+1.1419800
 
 </td>
 
@@ -5625,7 +5629,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2210899
+1.2237428
 
 </td>
 
@@ -5671,7 +5675,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9875169
+0.9889183
 
 </td>
 
@@ -5717,7 +5721,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1211858
+1.1233898
 
 </td>
 
@@ -5763,7 +5767,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8727963
+0.8733490
 
 </td>
 
@@ -5809,7 +5813,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0320665
+1.0337093
 
 </td>
 
@@ -5855,7 +5859,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1601040
+1.1616237
 
 </td>
 
@@ -5901,7 +5905,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2681678
+1.2708240
 
 </td>
 
@@ -5947,7 +5951,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0363319
+1.0378402
 
 </td>
 
@@ -5993,7 +5997,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0509967
+1.0528545
 
 </td>
 
@@ -6039,7 +6043,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0824025
+1.0843688
 
 </td>
 
@@ -6085,7 +6089,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1944395
+1.1972338
 
 </td>
 
@@ -6131,7 +6135,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1479045
+1.1499268
 
 </td>
 
@@ -6177,7 +6181,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0567582
+1.0586200
 
 </td>
 
@@ -6223,7 +6227,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1230512
+1.1246572
 
 </td>
 
@@ -6269,7 +6273,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2819772
+1.2845689
 
 </td>
 
@@ -6315,7 +6319,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1233968
+1.1251386
 
 </td>
 
@@ -6361,7 +6365,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1607645
+1.1626206
 
 </td>
 
@@ -6407,7 +6411,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8830255
+0.8840089
 
 </td>
 
@@ -6453,7 +6457,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1592221
+1.1613261
 
 </td>
 
@@ -6499,7 +6503,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3725902
+1.3752667
 
 </td>
 
@@ -6545,7 +6549,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1876597
+1.1895168
 
 </td>
 
@@ -6591,7 +6595,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2815005
+1.2841437
 
 </td>
 
@@ -6637,7 +6641,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1468177
+1.1488114
 
 </td>
 
@@ -6683,7 +6687,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1702147
+1.1718501
 
 </td>
 
@@ -6729,7 +6733,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1041799
+1.1056564
 
 </td>
 
@@ -6775,7 +6779,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1233567
+1.1249307
 
 </td>
 
@@ -6821,7 +6825,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2315736
+1.2339293
 
 </td>
 
@@ -6867,7 +6871,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2061019
+1.2080714
 
 </td>
 
@@ -6913,7 +6917,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1252560
+1.1269806
 
 </td>
 
@@ -6959,7 +6963,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0345842
+1.0363949
 
 </td>
 
@@ -7005,7 +7009,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1089985
+1.1106978
 
 </td>
 
@@ -7051,7 +7055,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1572127
+1.1590199
 
 </td>
 
@@ -7097,7 +7101,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0779966
+1.0801589
 
 </td>
 
@@ -7143,7 +7147,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0252171
+1.0268246
 
 </td>
 
@@ -7189,7 +7193,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1865718
+1.1889174
 
 </td>
 
@@ -7235,7 +7239,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0035680
+1.0049116
 
 </td>
 
@@ -7281,7 +7285,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0476883
+1.0489168
 
 </td>
 
@@ -7327,7 +7331,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1558936
+1.1580449
 
 </td>
 
@@ -7373,7 +7377,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1780767
+1.1806275
 
 </td>
 
@@ -7419,7 +7423,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1238856
+1.1259913
 
 </td>
 
@@ -7465,7 +7469,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0237539
+1.0255102
 
 </td>
 
@@ -7511,7 +7515,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1332886
+1.1351612
 
 </td>
 
@@ -7557,7 +7561,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0990242
+1.1006302
 
 </td>
 
@@ -7603,7 +7607,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3118618
+1.3150574
 
 </td>
 
@@ -7649,7 +7653,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2382146
+1.2402576
 
 </td>
 
@@ -7695,7 +7699,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0425383
+1.0448496
 
 </td>
 
@@ -7741,7 +7745,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1690525
+1.1713459
 
 </td>
 
@@ -7787,7 +7791,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0594164
+1.0611930
 
 </td>
 
@@ -7833,7 +7837,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1424715
+1.1450345
 
 </td>
 
@@ -7879,7 +7883,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2210937
+1.2239935
 
 </td>
 
@@ -7925,7 +7929,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0547957
+1.0568240
 
 </td>
 
@@ -7971,7 +7975,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0555238
+1.0575570
 
 </td>
 
@@ -8017,7 +8021,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1046380
+1.1066371
 
 </td>
 
@@ -8063,7 +8067,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1370672
+1.1395218
 
 </td>
 
@@ -8109,7 +8113,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1983259
+1.2007272
 
 </td>
 
@@ -8155,7 +8159,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1592328
+1.1616778
 
 </td>
 
@@ -8201,7 +8205,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1703127
+1.1726936
 
 </td>
 
@@ -8247,7 +8251,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1793577
+1.1816001
 
 </td>
 
@@ -8293,7 +8297,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1868408
+1.1893624
 
 </td>
 
@@ -8339,7 +8343,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2451264
+1.2479542
 
 </td>
 
@@ -8385,7 +8389,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3865802
+1.3898399
 
 </td>
 
@@ -8431,7 +8435,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1299309
+1.1318503
 
 </td>
 
@@ -8477,7 +8481,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2174321
+1.2195355
 
 </td>
 
@@ -8523,7 +8527,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2413004
+1.2441767
 
 </td>
 
@@ -8569,7 +8573,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9690179
+0.9701376
 
 </td>
 
@@ -8615,7 +8619,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1842930
+1.1865949
 
 </td>
 
@@ -8661,7 +8665,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4003656
+1.4034897
 
 </td>
 
@@ -8707,7 +8711,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1665398
+1.1685138
 
 </td>
 
@@ -8753,7 +8757,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0044514
+1.0059930
 
 </td>
 
@@ -8799,7 +8803,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0950507
+1.0968806
 
 </td>
 
@@ -8845,7 +8849,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9916265
+0.9931629
 
 </td>
 
@@ -8891,7 +8895,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0802562
+1.0821720
 
 </td>
 
@@ -8937,7 +8941,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8515883
+0.8527229
 
 </td>
 
@@ -8983,7 +8987,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0728859
+1.0746082
 
 </td>
 
@@ -9029,7 +9033,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9343451
+0.9357393
 
 </td>
 
@@ -9075,7 +9079,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8266790
+0.8272564
 
 </td>
 
@@ -9121,7 +9125,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8310265
+0.8315672
 
 </td>
 
@@ -9167,7 +9171,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8127368
+0.8132702
 
 </td>
 
@@ -9213,7 +9217,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8655161
+0.8664245
 
 </td>
 
@@ -9259,7 +9263,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9284967
+0.9296653
 
 </td>
 
@@ -9305,7 +9309,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0759326
+1.0774400
 
 </td>
 
@@ -9351,7 +9355,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9646021
+0.9654153
 
 </td>
 
@@ -9397,7 +9401,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0528177
+1.0544383
 
 </td>
 
@@ -9443,7 +9447,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1662469
+1.1683042
 
 </td>
 
@@ -9489,7 +9493,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0148201
+1.0161941
 
 </td>
 
@@ -9535,7 +9539,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2738604
+1.2763143
 
 </td>
 
@@ -9581,7 +9585,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0489256
+1.0504799
 
 </td>
 
@@ -9627,7 +9631,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0757961
+1.0779464
 
 </td>
 
@@ -9673,7 +9677,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0070018
+1.0082009
 
 </td>
 
@@ -9719,7 +9723,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1530584
+1.1551562
 
 </td>
 
@@ -9765,7 +9769,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1237699
+1.1256267
 
 </td>
 
@@ -9811,7 +9815,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3231263
+1.3257691
 
 </td>
 
@@ -9857,7 +9861,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0866285
+1.0880562
 
 </td>
 
@@ -9903,7 +9907,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1693374
+1.1710054
 
 </td>
 
@@ -9949,7 +9953,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0210983
+1.0221039
 
 </td>
 
@@ -9995,7 +9999,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1554057
+1.1570599
 
 </td>
 
@@ -10041,7 +10045,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2760132
+1.2783238
 
 </td>
 
@@ -10087,7 +10091,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.5557021
+1.5590693
 
 </td>
 
@@ -10133,7 +10137,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9777650
+0.9789055
 
 </td>
 
@@ -10179,7 +10183,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9608695
+0.9619328
 
 </td>
 
@@ -10225,7 +10229,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7743931
+0.7745133
 
 </td>
 
@@ -10271,7 +10275,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8855601
+0.8865914
 
 </td>
 
@@ -10317,7 +10321,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9493429
+0.9506051
 
 </td>
 
@@ -10363,7 +10367,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0379009
+1.0396127
 
 </td>
 
@@ -10409,7 +10413,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7155395
+0.7154609
 
 </td>
 
@@ -10455,7 +10459,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9737629
+0.9753391
 
 </td>
 
@@ -10501,7 +10505,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9490207
+0.9499673
 
 </td>
 
@@ -10547,7 +10551,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8043766
+0.8044036
 
 </td>
 
@@ -10593,7 +10597,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9086696
+0.9092557
 
 </td>
 
@@ -10639,7 +10643,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8688665
+0.8695904
 
 </td>
 
@@ -10685,7 +10689,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8622355
+0.8633396
 
 </td>
 
@@ -10731,7 +10735,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9490875
+0.9497979
 
 </td>
 
@@ -10777,7 +10781,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0807175
+1.0823799
 
 </td>
 
@@ -10823,7 +10827,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0591914
+1.0609277
 
 </td>
 
@@ -10869,7 +10873,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9914264
+0.9927049
 
 </td>
 
@@ -10915,7 +10919,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3128146
+1.3154213
 
 </td>
 
@@ -10961,7 +10965,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9460272
+0.9466467
 
 </td>
 
@@ -11007,7 +11011,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0569410
+1.0583186
 
 </td>
 
@@ -11053,7 +11057,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9863220
+0.9869808
 
 </td>
 
@@ -11099,7 +11103,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8684621
+0.8686592
 
 </td>
 
@@ -11145,7 +11149,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8735052
+0.8736996
 
 </td>
 
@@ -11191,7 +11195,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9790488
+0.9796065
 
 </td>
 
@@ -11237,7 +11241,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2111956
+1.2132160
 
 </td>
 
@@ -11283,7 +11287,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0927003
+1.0938512
 
 </td>
 
@@ -11329,7 +11333,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2183252
+1.2201404
 
 </td>
 
@@ -11375,7 +11379,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1075662
+1.1089446
 
 </td>
 
@@ -11421,7 +11425,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9854002
+0.9861307
 
 </td>
 
@@ -11467,7 +11471,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1618021
+1.1634905
 
 </td>
 
@@ -11513,7 +11517,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1217802
+1.1231126
 
 </td>
 
@@ -11559,7 +11563,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1062099
+1.1078283
 
 </td>
 
@@ -11605,7 +11609,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2063654
+1.2080521
 
 </td>
 
@@ -11651,7 +11655,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0731024
+1.0740927
 
 </td>
 
@@ -11697,7 +11701,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1673646
+1.1689401
 
 </td>
 
@@ -11743,7 +11747,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2077136
+1.2096703
 
 </td>
 
@@ -11789,7 +11793,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1140205
+1.1154760
 
 </td>
 
@@ -11835,7 +11839,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2777327
+1.2800188
 
 </td>
 
@@ -11881,7 +11885,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3484797
+1.3508884
 
 </td>
 
@@ -11927,7 +11931,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2671106
+1.2694306
 
 </td>
 
@@ -11973,7 +11977,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2620953
+1.2641512
 
 </td>
 
@@ -12019,7 +12023,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0781556
+1.0792051
 
 </td>
 
@@ -12065,7 +12069,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2453290
+1.2474079
 
 </td>
 
@@ -12111,7 +12115,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1916247
+1.1928373
 
 </td>
 
@@ -12157,7 +12161,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2336812
+1.2356154
 
 </td>
 
@@ -12203,7 +12207,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0569967
+1.0579165
 
 </td>
 
@@ -12249,7 +12253,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0633778
+1.0651507
 
 </td>
 
@@ -12295,7 +12299,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0471439
+1.0482738
 
 </td>
 
@@ -12341,7 +12345,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0996313
+1.1006655
 
 </td>
 
@@ -12387,7 +12391,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0147900
+1.0157091
 
 </td>
 
@@ -12433,7 +12437,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9315507
+0.9322504
 
 </td>
 
@@ -12479,7 +12483,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1131796
+1.1142403
 
 </td>
 
@@ -12525,7 +12529,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9825093
+0.9828962
 
 </td>
 
@@ -12571,7 +12575,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9891903
+0.9897259
 
 </td>
 
@@ -12617,7 +12621,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0554687
+1.0563100
 
 </td>
 
@@ -12663,7 +12667,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2293246
+1.2309956
 
 </td>
 
@@ -12709,7 +12713,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0720534
+1.0730378
 
 </td>
 
@@ -12755,7 +12759,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0085704
+1.0093855
 
 </td>
 
@@ -12801,7 +12805,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1929032
+1.1945111
 
 </td>
 
@@ -12847,7 +12851,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9422497
+0.9423602
 
 </td>
 
@@ -12893,7 +12897,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0918257
+1.0930079
 
 </td>
 
@@ -12939,7 +12943,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9767734
+0.9773053
 
 </td>
 
@@ -12985,7 +12989,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0551928
+1.0562290
 
 </td>
 
@@ -13031,7 +13035,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9915908
+0.9920288
 
 </td>
 
@@ -13077,7 +13081,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2741806
+1.2763541
 
 </td>
 
@@ -13123,7 +13127,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9755616
+0.9758270
 
 </td>
 
@@ -13169,7 +13173,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8927990
+0.8928038
 
 </td>
 
@@ -13215,7 +13219,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0400673
+1.0408769
 
 </td>
 
@@ -13261,7 +13265,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9630885
+0.9634177
 
 </td>
 
@@ -13307,7 +13311,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0308439
+1.0314168
 
 </td>
 
@@ -13353,7 +13357,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0299377
+1.0307766
 
 </td>
 
@@ -13399,7 +13403,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8388419
+0.8385203
 
 </td>
 
@@ -13445,7 +13449,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1711084
+1.1725910
 
 </td>
 
@@ -13491,7 +13495,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1127485
+1.1137786
 
 </td>
 
@@ -13537,7 +13541,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8165944
+0.8163867
 
 </td>
 
@@ -13583,7 +13587,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0651055
+1.0661064
 
 </td>
 
@@ -13629,7 +13633,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8236529
+0.8237212
 
 </td>
 
@@ -13675,7 +13679,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0643072
+1.0648246
 
 </td>
 
@@ -13721,7 +13725,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0940735
+1.0951568
 
 </td>
 
@@ -13767,7 +13771,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9503561
+0.9510655
 
 </td>
 
@@ -13813,7 +13817,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2124962
+1.2142155
 
 </td>
 
@@ -13859,7 +13863,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2323243
+1.2340864
 
 </td>
 
@@ -13905,7 +13909,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3314923
+1.3339487
 
 </td>
 
@@ -13951,7 +13955,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3247200
+1.3273544
 
 </td>
 
@@ -13997,7 +14001,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2397791
+1.2417291
 
 </td>
 
@@ -14043,7 +14047,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3017505
+1.3044794
 
 </td>
 
@@ -14089,7 +14093,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3593726
+1.3621385
 
 </td>
 
@@ -14135,7 +14139,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4665426
+1.4697088
 
 </td>
 
@@ -14181,7 +14185,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4373467
+1.4404382
 
 </td>
 
@@ -14227,7 +14231,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2926198
+1.2948711
 
 </td>
 
@@ -14273,7 +14277,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9934807
+0.9938112
 
 </td>
 
@@ -14319,7 +14323,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2400566
+1.2416144
 
 </td>
 
@@ -14365,7 +14369,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1903223
+1.1917260
 
 </td>
 
@@ -14411,7 +14415,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2441054
+1.2455259
 
 </td>
 
@@ -14457,7 +14461,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1528392
+1.1543903
 
 </td>
 
@@ -14503,7 +14507,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2066275
+1.2081896
 
 </td>
 
@@ -14549,7 +14553,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1948701
+1.1963735
 
 </td>
 
@@ -14595,7 +14599,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2080604
+1.2097442
 
 </td>
 
@@ -14641,7 +14645,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3642554
+1.3664134
 
 </td>
 
@@ -14687,7 +14691,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2139694
+1.2156567
 
 </td>
 
@@ -14733,7 +14737,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0543326
+1.0554618
 
 </td>
 
@@ -14779,7 +14783,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2470688
+1.2490597
 
 </td>
 
@@ -14825,7 +14829,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2502830
+1.2522379
 
 </td>
 
@@ -14871,7 +14875,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2549543
+1.2570634
 
 </td>
 
@@ -14917,7 +14921,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0149876
+1.0160613
 
 </td>
 
@@ -14963,7 +14967,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0726226
+1.0740180
 
 </td>
 
@@ -15009,7 +15013,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2092576
+1.2104700
 
 </td>
 
@@ -15055,7 +15059,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0552293
+1.0560246
 
 </td>
 
@@ -15101,7 +15105,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1356437
+1.1371907
 
 </td>
 
@@ -15147,7 +15151,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9801383
+0.9806153
 
 </td>
 
@@ -15193,7 +15197,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9897602
+0.9900191
 
 </td>
 
@@ -15239,7 +15243,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0003692
+1.0012233
 
 </td>
 
@@ -15285,7 +15289,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9422041
+0.9427017
 
 </td>
 
@@ -15331,7 +15335,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0126162
+1.0132943
 
 </td>
 
@@ -15377,7 +15381,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8172540
+0.8170054
 
 </td>
 
@@ -15423,7 +15427,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7425575
+0.7421294
 
 </td>
 
@@ -15469,7 +15473,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7131812
+0.7123635
 
 </td>
 
@@ -15515,7 +15519,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0872437
+1.0884728
 
 </td>
 
@@ -15561,7 +15565,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2290380
+1.2313925
 
 </td>
 
@@ -15607,7 +15611,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0101984
+1.0105404
 
 </td>
 
@@ -15653,7 +15657,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6967609
+0.6959996
 
 </td>
 
@@ -15699,7 +15703,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8688352
+0.8691467
 
 </td>
 
@@ -15745,7 +15749,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7863012
+0.7861804
 
 </td>
 
@@ -15791,7 +15795,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9489133
+0.9495426
 
 </td>
 
@@ -15837,7 +15841,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0490824
+1.0502846
 
 </td>
 
@@ -15883,7 +15887,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7306165
+0.7301482
 
 </td>
 
@@ -15929,7 +15933,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9533274
+0.9537573
 
 </td>
 
@@ -15975,7 +15979,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8393035
+0.8397854
 
 </td>
 
@@ -16021,7 +16025,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0753474
+1.0762569
 
 </td>
 
@@ -16067,7 +16071,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0054261
+1.0065838
 
 </td>
 
@@ -16113,7 +16117,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0240401
+1.0249351
 
 </td>
 
@@ -16159,7 +16163,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8893032
+0.8899612
 
 </td>
 
@@ -16205,7 +16209,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1079347
+1.1099436
 
 </td>
 
@@ -16251,7 +16255,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9997274
+1.0011825
 
 </td>
 
@@ -16297,7 +16301,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8705707
+0.8715410
 
 </td>
 
@@ -16343,7 +16347,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8326161
+0.8329317
 
 </td>
 
@@ -16389,7 +16393,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9632050
+0.9639570
 
 </td>
 
@@ -16435,7 +16439,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0714559
+1.0722365
 
 </td>
 
@@ -16481,7 +16485,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9517949
+0.9529253
 
 </td>
 
@@ -16527,7 +16531,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8822307
+0.8825828
 
 </td>
 
@@ -16573,7 +16577,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8356862
+0.8356859
 
 </td>
 
@@ -16619,7 +16623,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0882619
+1.0891391
 
 </td>
 
@@ -16665,7 +16669,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9394887
+0.9398226
 
 </td>
 
@@ -16711,7 +16715,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0615383
+1.0625309
 
 </td>
 
@@ -16757,7 +16761,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7875946
+0.7873055
 
 </td>
 
@@ -16803,7 +16807,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0579011
+1.0593759
 
 </td>
 
@@ -16849,7 +16853,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9103650
+0.9113933
 
 </td>
 
@@ -16895,7 +16899,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1299581
+1.1309926
 
 </td>
 
@@ -16941,7 +16945,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9564994
+0.9570727
 
 </td>
 
@@ -16987,7 +16991,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0720636
+1.0725250
 
 </td>
 
@@ -17033,7 +17037,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2123932
+1.2138134
 
 </td>
 
@@ -17079,7 +17083,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2020197
+1.2041782
 
 </td>
 
@@ -17125,7 +17129,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9334761
+0.9339681
 
 </td>
 
@@ -17171,7 +17175,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0223518
+1.0233011
 
 </td>
 
@@ -17217,7 +17221,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7043340
+0.7035689
 
 </td>
 
@@ -17263,7 +17267,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9324224
+0.9337339
 
 </td>
 
@@ -17309,7 +17313,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9735090
+0.9745422
 
 </td>
 
@@ -17355,7 +17359,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0054610
+1.0063935
 
 </td>
 
@@ -17401,7 +17405,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9667902
+0.9678704
 
 </td>
 
@@ -17447,7 +17451,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7095425
+0.7097746
 
 </td>
 
@@ -17493,7 +17497,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4518808
+1.4551184
 
 </td>
 
@@ -17539,7 +17543,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3736794
+1.3761464
 
 </td>
 
@@ -17585,7 +17589,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9842218
+0.9857723
 
 </td>
 
@@ -17631,7 +17635,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4564086
+0.4553177
 
 </td>
 
@@ -17677,7 +17681,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6235017
+0.6233156
 
 </td>
 
@@ -17723,7 +17727,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6554037
+0.6553019
 
 </td>
 
@@ -17769,7 +17773,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8676809
+0.8683141
 
 </td>
 
@@ -17815,7 +17819,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7981711
+0.7981009
 
 </td>
 
@@ -17861,7 +17865,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8495011
+0.8505018
 
 </td>
 
@@ -17907,7 +17911,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6978612
+0.6983776
 
 </td>
 
@@ -17953,7 +17957,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4586227
+0.4576982
 
 </td>
 
@@ -17999,7 +18003,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7529645
+0.7526819
 
 </td>
 
@@ -18045,7 +18049,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7121760
+0.7126299
 
 </td>
 
@@ -18091,7 +18095,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2167318
+1.2188987
 
 </td>
 
@@ -18137,7 +18141,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9789643
+0.9796222
 
 </td>
 
@@ -18183,7 +18187,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8627504
+0.8636616
 
 </td>
 
@@ -18229,7 +18233,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6054882
+0.6050567
 
 </td>
 
@@ -18275,7 +18279,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7480421
+0.7478191
 
 </td>
 
@@ -18321,7 +18325,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0321797
+1.0340333
 
 </td>
 
@@ -18367,7 +18371,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7032035
+0.7030177
 
 </td>
 
@@ -18413,7 +18417,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8652848
+0.8658704
 
 </td>
 
@@ -18459,7 +18463,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8191641
+0.8200428
 
 </td>
 
@@ -18505,7 +18509,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6130177
+0.6129286
 
 </td>
 
@@ -18551,7 +18555,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6905034
+0.6904759
 
 </td>
 
@@ -18597,7 +18601,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8652413
+0.8661820
 
 </td>
 
@@ -18643,7 +18647,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8438001
+0.8438747
 
 </td>
 
@@ -18689,7 +18693,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7379335
+0.7375895
 
 </td>
 
@@ -18735,7 +18739,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8879271
+0.8880536
 
 </td>
 
@@ -18781,7 +18785,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1898242
+1.1911694
 
 </td>
 
@@ -18827,7 +18831,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0792382
+1.0806030
 
 </td>
 
@@ -18873,7 +18877,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1188681
+1.1200391
 
 </td>
 
@@ -18919,7 +18923,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0367481
+1.0375670
 
 </td>
 
@@ -18965,7 +18969,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1711374
+1.1723872
 
 </td>
 
@@ -19011,7 +19015,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.3465067
+1.3486605
 
 </td>
 
@@ -19057,7 +19061,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0377100
+1.0382669
 
 </td>
 
@@ -19103,7 +19107,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1491685
+1.1511333
 
 </td>
 
@@ -19149,7 +19153,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1476056
+1.1486726
 
 </td>
 
@@ -19195,7 +19199,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9663142
+0.9668519
 
 </td>
 
@@ -19241,7 +19245,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0398865
+1.0404380
 
 </td>
 
@@ -19287,7 +19291,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2561737
+1.2583671
 
 </td>
 
@@ -19333,7 +19337,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4354589
+1.4378884
 
 </td>
 
@@ -19379,7 +19383,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4795722
+1.4821770
 
 </td>
 
@@ -19425,7 +19429,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9015014
+0.9009443
 
 </td>
 
@@ -19471,7 +19475,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2759773
+1.2778008
 
 </td>
 
@@ -19517,7 +19521,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9913152
+0.9920629
 
 </td>
 
@@ -19563,7 +19567,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0211800
+1.0221089
 
 </td>
 
@@ -19609,7 +19613,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8500043
+0.8499361
 
 </td>
 
@@ -19655,7 +19659,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2575507
+1.2593918
 
 </td>
 
@@ -19701,7 +19705,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0392824
+1.0397114
 
 </td>
 
@@ -19747,7 +19751,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4710184
+1.4734429
 
 </td>
 
@@ -19793,7 +19797,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2136017
+1.2152201
 
 </td>
 
@@ -19839,7 +19843,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0244232
+1.0249130
 
 </td>
 
@@ -19885,7 +19889,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9361162
+0.9363387
 
 </td>
 
@@ -19931,7 +19935,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2928731
+1.2943135
 
 </td>
 
@@ -19977,7 +19981,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9343178
+0.9341293
 
 </td>
 
@@ -20023,7 +20027,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8833075
+0.8834797
 
 </td>
 
@@ -20069,7 +20073,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1080907
+1.1090981
 
 </td>
 
@@ -20115,7 +20119,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2167958
+1.2181040
 
 </td>
 
@@ -20161,7 +20165,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.1207194
+1.1214380
 
 </td>
 
@@ -20207,7 +20211,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.4359720
+1.4382347
 
 </td>
 
@@ -20253,7 +20257,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.2441689
+1.2459739
 
 </td>
 
@@ -20299,7 +20303,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0292344
+1.0307099
 
 </td>
 
@@ -20345,7 +20349,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0652026
+1.0668182
 
 </td>
 
@@ -20391,7 +20395,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-1.0237088
+1.0250871
 
 </td>
 
@@ -20437,7 +20441,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8103998
+0.8109953
 
 </td>
 
@@ -20483,7 +20487,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8357190
+0.8361643
 
 </td>
 
@@ -20529,7 +20533,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.5989598
+0.5977437
 
 </td>
 
@@ -20575,7 +20579,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.9828864
+0.9840941
 
 </td>
 
@@ -20621,7 +20625,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7905900
+0.7907072
 
 </td>
 
@@ -20667,7 +20671,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.4697248
+0.4683552
 
 </td>
 
@@ -20713,7 +20717,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.6776415
+0.6774229
 
 </td>
 
@@ -20759,7 +20763,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7370241
+0.7368090
 
 </td>
 
@@ -20805,7 +20809,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.7134300
+0.7131366
 
 </td>
 
@@ -20851,7 +20855,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8194889
+0.8199139
 
 </td>
 
@@ -20897,7 +20901,7 @@ corrected\_mi
 
 <td style="text-align:right;">
 
-0.8920132
+0.8925498
 
 </td>
 
