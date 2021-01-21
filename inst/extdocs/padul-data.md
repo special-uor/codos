@@ -3,7 +3,7 @@ Padul Data
 
 ## Calculate daily temperature (modern)
 
-CRU TS 4.04 daily interpolation from monthly data:
+CRU TS 4.04 daily interpolations from monthly data:
 
 ``` r
 path <- "/path/to/CRU/4.04/"
@@ -22,8 +22,7 @@ codos::daily_temp(tmin = list(filename = tmin, id = "tmn"),
 ## Calculate mean growing season for daily temperature (`tmp`)
 
 ``` r
-path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp.nc"), "tmp", thr = 0, cpus = 10)
+codos::nc_gs("cru_ts4.04-clim-1961-1990-daily.tmp.nc", "tmp", thr = 0, cpus = 10)
 ```
 
 ##### Output file
@@ -614,7 +613,10 @@ corrected\_mi
 
 </table>
 
-Check out and download the entire dataset in [Appendix A5](#A5).
+Check out and download the entire dataset in [Appendix
+A5](#a5-padul-data).
+
+## Plots
 
 <img src="man/figures/padul-unnamed-chunk-10-1.png" width="100%" />
 
@@ -632,14 +634,14 @@ Check out and download the entire dataset in [Appendix A5](#A5).
 
 # References
 
-Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C., Stocker,
-T. F., Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015), Revision
-of the EPICA Dome C CO2 record from 800 to 600 kyr before present,
-Geophys. Res. Lett., 42, 542– 549, <doi:10.1002/2014GL061957>.
+\[1\] Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C.,
+Stocker, T. F., Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015),
+Revision of the EPICA Dome C CO2 record from 800 to 600 kyr before
+present, Geophys. Res. Lett., 42, 542– 549, <doi:10.1002/2014GL061957>.
 
 # Appendix
 
-## A1. Find reconstructed MI using `loess`
+## A1. Find reconstructed `MI` using `loess`
 
 ``` r
 past_co2_loess <- function(age, ref = codos::ice_core) {
@@ -697,7 +699,7 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
 ## A5. Padul Data
 
 Download the CSV:
-[padul-with-corrected-mi.csv](padul-with-corrected-mi.csv)
+[padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv)
 
 <table>
 
