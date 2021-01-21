@@ -1,13 +1,31 @@
-#' Budyko relationship
+#' @keywords internal
+"_PACKAGE"
+
+#' Stomatal sensitivity factor, E (\code{sqrt(Pa)})
+#' @param Tc Numeric value of temperature (°C).
+#' @param beta Numeric constant, default = 146.
 #'
-#' Budyko relationship, obtain alpha from moisture index (MI).
+#' @return Numeric value of stomatal sensitivity factor.
+#' @keywords internal
+E <- function(Tc, beta = 146) {
+  sqrt(beta * (K(Tc) + compensation_point(Tc)) / (1.6 * eta(Tc) / eta(25)))
+}
+
+#' Effective Michaelis constant of Rubisco (Pa)
 #'
-#' @param mi Numeric value with moisture index.
+#' @param Tc Numeric value of temperature (°C).
+#' @param dHc Carbon activation energy (J mol^-1), default = 79430.
+#' @param dHo Oxygen activation energy (J mol^-1), default = 36380.
+#' @param O Atmospheric concentration of oxygen (Pa), default = 21278.
+#' @param R Universal gas constant (J mol^-1 K^-1), default = 8.314.
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
 #'
-#' @return Numeric value with alpha.
-#' @export
-alpha_from_mi_om3 <- function(mi) {
-  1 + mi - (1 + mi ^ 3) ^ (1/3)
+#' @return Numeric value of effective Michaelis constant of Rubisco.
+#' @keywords internal
+K <- function(Tc, dHc = 79430, dHo = 36380, O = 21278, R = 8.314) {
+  pre_calc <- 1 / R * (1 / 298 - 1 / (Tc + 273.15))
+  39.97 * exp(dHc * pre_calc) * ( 1 + O / (27480 * exp(dHo * pre_calc)))
 }
 
 #' Fraction of sunshine hours
@@ -24,7 +42,7 @@ alpha_from_mi_om3 <- function(mi) {
 #' "Reconstructing ice-age palaeoclimates: Quantifying low-CO2 effects on
 #' plants", Global and Planetary Change, Volume 149, 2017, Pages 166-176,
 #' DOI: \url{https://doi.org/10.1016/j.gloplacha.2016.12.012}.
-#' @export
+#' @keywords internal
 S_f <- function(m) {
   0.6611 * exp(-0.74 * m) + 0.2175
 }
@@ -53,7 +71,7 @@ S_f <- function(m) {
 #' @param tmn Minimum value of temperature (\eqn{T_{min}}).
 #'
 #' @return Mean daytime air temperature.
-#' @export
+#' @keywords internal
 T_g <- function(lat, delta, tmx, tmn) {
   x <- tan(lat) * tan(delta)
   if (x >= 1) { # Polar day, no sunset
@@ -65,4 +83,140 @@ T_g <- function(lat, delta, tmx, tmn) {
   }
   tmx * (0.5 + sqrt(1 - x^2) / (2 * acos(x))) +
     tmn * (0.5 - sqrt(1 - x^2) / (2 * acos(x)))
+}
+
+#' Budyko relationship
+#'
+#' Budyko relationship, obtain alpha from moisture index (MI).
+#'
+#' @param mi Numeric value with moisture index.
+#'
+#' @return Numeric value with alpha.
+#' @keywords internal
+alpha_from_mi_om3 <- function(mi) {
+  1 + mi - (1 + mi ^ 3) ^ (1/3)
+}
+
+#' Ratio of leaf-internal to ambient CO2 partial pressures (–)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param MI Numeric value of moisture index (-).
+#' @param co2 Numeric value of CO2 partial pressure (umol/mol).
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
+#'
+#' @return Numeric value of ratio of leaf-internal to ambient CO2 partial
+#' pressures.
+#' @keywords internal
+chi <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
+  co2 <-  scale_factor * co2
+  E(Tc) / (E(Tc) + sqrt(vpd_internal(Tc, MI))) * (1 - compensation_point(Tc) / co2) +
+    compensation_point(Tc) / co2
+}
+
+#' Photorespiratory compensation point (Pa)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param delta_H Compensation point activation energy (J mol^-1), default =
+#'     37830.
+#' @param R Universal gas constant (J mol^-1 K^-1), default = 8.314.
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
+#'
+#' @return Numeric value of photorespiratory compensation point.
+#' @keywords internal
+compensation_point = function(Tc,
+                              delta_H = 37830,
+                              R = 8.314,
+                              scale_factor = 101.325 * 10^-3) {
+  aux <- delta_H / R
+  42.75 * exp(aux * (1 / 298 - 1 / (Tc + 273.15))) * scale_factor
+}
+
+#' Viscosity of water
+#'
+#' @param Tc Numeric value of temperature (°C).
+#'
+#' @return Numeric value of viscosity of water.
+#' @keywords internal
+eta = function(Tc) {
+  0.024258 * exp(580 / (Tc + 273.15 + 138))
+}
+
+#' f(T, m, ca) (Pa)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param MI Numeric value of moisture index (-).
+#' @param co2 Numeric value of CO2 partial pressure (umol/mol).
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
+#'
+#' @return Numeric value.
+#' @keywords internal
+f <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
+  co2 <- scale_factor * co2
+  vpd_internal(Tc, MI) / (co2 * (1 - chi(Tc, MI, co2 / scale_factor)))
+  # (E(Tc) * sqrt(vpd_internal(Tc, MI)) + vpd_internal(Tc, MI)) / (co2 - compensation_point(Tc))
+}
+
+#' Calculate corrected moisture index (MI)
+#'
+#' Calculate corrected moisture index (MI) based on reconstructed MI, CO2 and
+#' temperature, past and modern.
+#'
+#' @inheritParams vpd
+#' @inheritDotParams vpd
+#'
+#' @return Numeric vector with corrected moisture index values.
+#' @export
+corrected_mi <- function(Tc0, Tc1, MI, co20, co21, ...) {
+  terms <- list(a = 4.61232447483209,
+                kTmp = 0.0609249286877394,
+                kMI = 0.872588565709498)
+  vpd <- vpd(Tc0, Tc1, MI, co20, co21, ...) / 100
+  with(terms, (log(vpd / a) - kTmp * Tc1) / (-kMI + kMITmp * Tc1))
+}
+
+#' Vapour-pressure deficit (Pa)
+#'
+#' @param Tc Numeric value of temperature (°C).
+#' @param MI Numeric value of moisture index.
+#' @param scale_factor Scale factor to transform the output, default =
+#'     100 Pa/hPa.
+#'
+#' @return Numeric value of vapour-pressure deficit.
+#' @keywords internal
+vpd_internal <- function(Tc, MI, scale_factor = 100) {
+  terms <- list(a = 4.61232447483209,
+                kTmp = 0.0609249286877394,
+                kMI = 0.872588565709498)
+  with(terms, a * exp(kTmp * Tc - kMI * MI)) * scale_factor
+}
+
+#' Vapour-pressure deficit (Pa)
+#'
+#' @param Tc0 Numeric vector with modern temperature values (°C).
+#' @param Tc1 Numeric vector with past temperature values (°C).
+#' @param MI Numeric vector with reconstructed moisture index values (-).
+#' @param co20 Numeric vector of modern CO2 partial pressures (umol/mol).
+#' @param co21 Numeric vector of past CO2 partial pressures (umol/mol).
+#' @param scale_factor Scale factor to transform the output, default =
+#'     101.325 Pa/ppm at standard sea level pressure.
+#' @return Numeric vector with vapour-pressure deficit values.
+#' @export
+vpd <- function(Tc0, Tc1, MI, co20, co21, scale_factor = 101.325 * 10^-3) {
+  co20 <- scale_factor * co20
+  co21 <- scale_factor * co21
+  f0 <- vpd_internal(Tc0, MI) / (co20 * (1 - chi(Tc0, MI, co20 / scale_factor)))
+
+  purrr::map_dbl(seq_len(length(Tc1)),
+                 function (i) {
+                   optim(par = 0,
+                         function(x, kE, val) abs(kE * sqrt(x) + x - val),
+                         kE = E(Tc1[i]),
+                         val = f0[i] * (co21[i] - compensation_point(Tc1[i])),
+                         method = "Brent",
+                         lower = 0,
+                         upper = 10^6)$par
+                 })
 }

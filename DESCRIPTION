@@ -1,14 +1,22 @@
 Package: codos
-Title: CO2 Correction Utils
-Version: 0.0.0.9000
+Title: CO2 Correction Tools
+Version: 0.0.1
 Authors@R: c(
+    person(given = "Sandy P.",
+           family = "Harrison",
+           role = "aut",
+           email = "s.p.harrison@reading.ac.uk"),
+    person(given = "Iain Colin",
+           family = "Prentice",
+           role = "aut",
+           email = "c.prentice@imperial.ac.uk"),
     person(given = "Roberto",
            family = "Villegas-Diaz",
            role = c("aut", "cre"),
            email = "r.villegas-diaz@reading.ac.uk",
            comment = c(ORCID = "0000-0001-5036-8661")),
     person("SPECIAL Research Group @ University of Reading", role = c("cph")))
-Description: What the package does (one paragraph).
+Description: CO2 Correction Tools.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -16,15 +24,15 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 Imports:
     doParallel,
-    doSNOW,
     foreach,
     ggplot2,
     lubridate,
-    maptools,
     ncdf4,
     parallel,
     progress,
+    purrr,
     scales,
     tibble
+Remotes: github::villegar/splash
 Depends: 
     R (>= 2.10)

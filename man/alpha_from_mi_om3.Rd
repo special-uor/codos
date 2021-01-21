@@ -15,3 +15,4 @@ Numeric value with alpha.
 \description{
 Budyko relationship, obtain alpha from moisture index (MI).
 }
+\keyword{internal}

@@ -35,3 +35,4 @@ where
 
 \eqn{x = -\tan{\lambda}\tan{\delta}}.
 }
+\keyword{internal}
