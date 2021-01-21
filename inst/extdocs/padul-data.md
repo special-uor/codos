@@ -616,23 +616,641 @@ corrected\_mi
 Check out and download the entire dataset in [Appendix
 A5](#a5-padul-data).
 
+## Find the corrected Annual Precipitation, `P_ann`
+
+Approximated as the ratio
+
+  
+![\\text{MI}\_\\text{ratio}=
+\\frac{\\text{corrected}}{\\text{reconstructed}}](https://latex.codecogs.com/png.latex?%5Ctext%7BMI%7D_%5Ctext%7Bratio%7D%3D%20%5Cfrac%7B%5Ctext%7Bcorrected%7D%7D%7B%5Ctext%7Breconstructed%7D%7D
+"\\text{MI}_\\text{ratio}= \\frac{\\text{corrected}}{\\text{reconstructed}}")  
+multiplied by reconstructed `P_ann`.
+
+``` r
+mi_ratio <- padul2$corrected_mi / padul2$recon_mi
+padul2$corrected_P_ann <- padul$P_ann * mi_ratio
+```
+
+<table>
+
+<thead>
+
+<tr>
+
+<th style="text-align:right;">
+
+age
+
+</th>
+
+<th style="text-align:right;">
+
+past\_temp
+
+</th>
+
+<th style="text-align:right;">
+
+past\_co2
+
+</th>
+
+<th style="text-align:right;">
+
+modern\_co2
+
+</th>
+
+<th style="text-align:right;">
+
+present\_t
+
+</th>
+
+<th style="text-align:right;">
+
+recon\_mi
+
+</th>
+
+<th style="text-align:right;">
+
+corrected\_mi
+
+</th>
+
+<th style="text-align:right;">
+
+corrected\_P\_ann
+
+</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-62
+
+</td>
+
+<td style="text-align:right;">
+
+13.15918
+
+</td>
+
+<td style="text-align:right;">
+
+368.020
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.425809
+
+</td>
+
+<td style="text-align:right;">
+
+0.1244634
+
+</td>
+
+<td style="text-align:right;">
+
+134.10868
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-56
+
+</td>
+
+<td style="text-align:right;">
+
+12.86272
+
+</td>
+
+<td style="text-align:right;">
+
+368.020
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.471798
+
+</td>
+
+<td style="text-align:right;">
+
+0.1333827
+
+</td>
+
+<td style="text-align:right;">
+
+143.22784
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-50
+
+</td>
+
+<td style="text-align:right;">
+
+11.88472
+
+</td>
+
+<td style="text-align:right;">
+
+364.900
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.506921
+
+</td>
+
+<td style="text-align:right;">
+
+0.0648281
+
+</td>
+
+<td style="text-align:right;">
+
+72.96858
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-43
+
+</td>
+
+<td style="text-align:right;">
+
+13.09339
+
+</td>
+
+<td style="text-align:right;">
+
+353.835
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.566461
+
+</td>
+
+<td style="text-align:right;">
+
+0.3244211
+
+</td>
+
+<td style="text-align:right;">
+
+360.93231
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-38
+
+</td>
+
+<td style="text-align:right;">
+
+12.20387
+
+</td>
+
+<td style="text-align:right;">
+
+346.520
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.528049
+
+</td>
+
+<td style="text-align:right;">
+
+0.2154220
+
+</td>
+
+<td style="text-align:right;">
+
+225.75760
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-31
+
+</td>
+
+<td style="text-align:right;">
+
+11.87980
+
+</td>
+
+<td style="text-align:right;">
+
+337.155
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.522880
+
+</td>
+
+<td style="text-align:right;">
+
+0.2199217
+
+</td>
+
+<td style="text-align:right;">
+
+219.29077
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-25
+
+</td>
+
+<td style="text-align:right;">
+
+11.49567
+
+</td>
+
+<td style="text-align:right;">
+
+331.960
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.562884
+
+</td>
+
+<td style="text-align:right;">
+
+0.2397781
+
+</td>
+
+<td style="text-align:right;">
+
+245.70561
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-19
+
+</td>
+
+<td style="text-align:right;">
+
+12.52563
+
+</td>
+
+<td style="text-align:right;">
+
+325.080
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.438233
+
+</td>
+
+<td style="text-align:right;">
+
+0.2817604
+
+</td>
+
+<td style="text-align:right;">
+
+317.69280
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-13
+
+</td>
+
+<td style="text-align:right;">
+
+12.88969
+
+</td>
+
+<td style="text-align:right;">
+
+318.840
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.468382
+
+</td>
+
+<td style="text-align:right;">
+
+0.3919461
+
+</td>
+
+<td style="text-align:right;">
+
+451.31183
+
+</td>
+
+</tr>
+
+<tr>
+
+<td style="text-align:right;">
+
+\-6
+
+</td>
+
+<td style="text-align:right;">
+
+13.13016
+
+</td>
+
+<td style="text-align:right;">
+
+315.340
+
+</td>
+
+<td style="text-align:right;">
+
+340
+
+</td>
+
+<td style="text-align:right;">
+
+14.43901
+
+</td>
+
+<td style="text-align:right;">
+
+0.483879
+
+</td>
+
+<td style="text-align:right;">
+
+0.4577505
+
+</td>
+
+<td style="text-align:right;">
+
+520.45909
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+Check out and download the entire dataset in [Appendix
+A5](#a5-padul-data).
+
 ## Plots
 
 #### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
 
-<img src="man/figures/padul-unnamed-chunk-10-1.png" width="100%" />
-
-  - `age < 5k`
-
 <img src="man/figures/padul-unnamed-chunk-11-1.png" width="100%" />
 
-#### Include past CO2 and Temperature
+  - `age < 5k`
 
 <img src="man/figures/padul-unnamed-chunk-12-1.png" width="100%" />
 
-  - `age < 5k`
+##### Include past CO2 and Temperature
 
 <img src="man/figures/padul-unnamed-chunk-13-1.png" width="100%" />
+
+  - `age < 5k`
+
+<img src="man/figures/padul-unnamed-chunk-14-1.png" width="100%" />
+
+#### Reconstructed vs corrected `P_ann`: Past CO2 calculated using `mean`
+
+<img src="man/figures/padul-unnamed-chunk-15-1.png" width="100%" />
+
+  - `age < 20k`
+
+<img src="man/figures/padul-unnamed-chunk-16-1.png" width="100%" />
+
+##### Include past CO2 and Temperature
+
+<img src="man/figures/padul-unnamed-chunk-17-1.png" width="100%" />
+
+  - `age < 20k`
+
+<img src="man/figures/padul-unnamed-chunk-18-1.png" width="100%" />
 
 # References
 
@@ -672,33 +1290,33 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
 
 ## A2. Plot reconstructed vs corrected `MI` both approaches
 
-<img src="man/figures/padul-unnamed-chunk-15-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-20-1.png" width="100%" />
 
   - `age < 5k`
 
-<img src="man/figures/padul-unnamed-chunk-16-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-21-1.png" width="100%" />
 
 ## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess`
 
 #### Include past CO2 and Temperature
 
-<img src="man/figures/padul-unnamed-chunk-17-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-22-1.png" width="100%" />
 
   - `age < 5k`
 
-<img src="man/figures/padul-unnamed-chunk-18-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-23-1.png" width="100%" />
 
 ## A4. Compare `codos::ice_core` vs past CO2 calculate using `mean` and `loess`
 
-<img src="man/figures/padul-unnamed-chunk-19-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-24-1.png" width="100%" />
 
   - `age < 5k`
 
-<img src="man/figures/padul-unnamed-chunk-20-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-25-1.png" width="100%" />
 
   - `age < 500`
 
-<img src="man/figures/padul-unnamed-chunk-21-1.png" width="100%" />
+<img src="man/figures/padul-unnamed-chunk-26-1.png" width="100%" />
 
 ## A5. Padul Data
 
@@ -753,6 +1371,12 @@ corrected\_mi
 
 </th>
 
+<th style="text-align:right;">
+
+corrected\_P\_ann
+
+</th>
+
 </tr>
 
 </thead>
@@ -803,6 +1427,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+134.10868
+
+</td>
+
 </tr>
 
 <tr>
@@ -846,6 +1476,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.1333827
+
+</td>
+
+<td style="text-align:right;">
+
+143.22784
 
 </td>
 
@@ -895,6 +1531,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+72.96858
+
+</td>
+
 </tr>
 
 <tr>
@@ -938,6 +1580,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.3244211
+
+</td>
+
+<td style="text-align:right;">
+
+360.93231
 
 </td>
 
@@ -987,6 +1635,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+225.75760
+
+</td>
+
 </tr>
 
 <tr>
@@ -1030,6 +1684,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.2199217
+
+</td>
+
+<td style="text-align:right;">
+
+219.29077
 
 </td>
 
@@ -1079,6 +1739,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+245.70561
+
+</td>
+
 </tr>
 
 <tr>
@@ -1122,6 +1788,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.2817604
+
+</td>
+
+<td style="text-align:right;">
+
+317.69280
 
 </td>
 
@@ -1171,6 +1843,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+451.31183
+
+</td>
+
 </tr>
 
 <tr>
@@ -1214,6 +1892,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4577505
+
+</td>
+
+<td style="text-align:right;">
+
+520.45909
 
 </td>
 
@@ -1263,6 +1947,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+482.60767
+
+</td>
+
 </tr>
 
 <tr>
@@ -1306,6 +1996,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4368359
+
+</td>
+
+<td style="text-align:right;">
+
+466.43518
 
 </td>
 
@@ -1355,6 +2051,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+369.95725
+
+</td>
+
 </tr>
 
 <tr>
@@ -1398,6 +2100,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.3885984
+
+</td>
+
+<td style="text-align:right;">
+
+396.96976
 
 </td>
 
@@ -1447,6 +2155,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+553.81655
+
+</td>
+
 </tr>
 
 <tr>
@@ -1490,6 +2204,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4122079
+
+</td>
+
+<td style="text-align:right;">
+
+436.97883
 
 </td>
 
@@ -1539,6 +2259,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+624.85748
+
+</td>
+
 </tr>
 
 <tr>
@@ -1582,6 +2308,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5023616
+
+</td>
+
+<td style="text-align:right;">
+
+544.86541
 
 </td>
 
@@ -1631,6 +2363,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+509.28397
+
+</td>
+
 </tr>
 
 <tr>
@@ -1674,6 +2412,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5288997
+
+</td>
+
+<td style="text-align:right;">
+
+551.05585
 
 </td>
 
@@ -1723,6 +2467,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+795.41939
+
+</td>
+
 </tr>
 
 <tr>
@@ -1766,6 +2516,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7734029
+
+</td>
+
+<td style="text-align:right;">
+
+872.04257
 
 </td>
 
@@ -1815,6 +2571,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+558.99883
+
+</td>
+
 </tr>
 
 <tr>
@@ -1858,6 +2620,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7086556
+
+</td>
+
+<td style="text-align:right;">
+
+847.07837
 
 </td>
 
@@ -1907,6 +2675,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+738.23384
+
+</td>
+
 </tr>
 
 <tr>
@@ -1950,6 +2724,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7903749
+
+</td>
+
+<td style="text-align:right;">
+
+974.91536
 
 </td>
 
@@ -1999,6 +2779,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+565.21330
+
+</td>
+
 </tr>
 
 <tr>
@@ -2042,6 +2828,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8254257
+
+</td>
+
+<td style="text-align:right;">
+
+970.07053
 
 </td>
 
@@ -2091,6 +2883,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1176.62368
+
+</td>
+
 </tr>
 
 <tr>
@@ -2134,6 +2932,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.3746569
+
+</td>
+
+<td style="text-align:right;">
+
+433.66564
 
 </td>
 
@@ -2183,6 +2987,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+983.49099
+
+</td>
+
 </tr>
 
 <tr>
@@ -2226,6 +3036,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7277152
+
+</td>
+
+<td style="text-align:right;">
+
+874.49507
 
 </td>
 
@@ -2275,6 +3091,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+836.07365
+
+</td>
+
 </tr>
 
 <tr>
@@ -2318,6 +3140,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5977625
+
+</td>
+
+<td style="text-align:right;">
+
+777.82228
 
 </td>
 
@@ -2367,6 +3195,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+666.43689
+
+</td>
+
 </tr>
 
 <tr>
@@ -2410,6 +3244,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6542092
+
+</td>
+
+<td style="text-align:right;">
+
+765.49771
 
 </td>
 
@@ -2459,6 +3299,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+759.55345
+
+</td>
+
 </tr>
 
 <tr>
@@ -2502,6 +3348,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6442149
+
+</td>
+
+<td style="text-align:right;">
+
+778.84234
 
 </td>
 
@@ -2551,6 +3403,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+822.06065
+
+</td>
+
 </tr>
 
 <tr>
@@ -2594,6 +3452,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5898649
+
+</td>
+
+<td style="text-align:right;">
+
+704.25609
 
 </td>
 
@@ -2643,6 +3507,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+762.58514
+
+</td>
+
 </tr>
 
 <tr>
@@ -2686,6 +3556,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4556202
+
+</td>
+
+<td style="text-align:right;">
+
+537.83454
 
 </td>
 
@@ -2735,6 +3611,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+783.55553
+
+</td>
+
 </tr>
 
 <tr>
@@ -2778,6 +3660,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7339070
+
+</td>
+
+<td style="text-align:right;">
+
+915.31466
 
 </td>
 
@@ -2827,6 +3715,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+817.19757
+
+</td>
+
 </tr>
 
 <tr>
@@ -2870,6 +3764,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5887351
+
+</td>
+
+<td style="text-align:right;">
+
+700.03712
 
 </td>
 
@@ -2919,6 +3819,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+575.69382
+
+</td>
+
 </tr>
 
 <tr>
@@ -2962,6 +3868,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6100237
+
+</td>
+
+<td style="text-align:right;">
+
+728.18665
 
 </td>
 
@@ -3011,6 +3923,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+588.41917
+
+</td>
+
 </tr>
 
 <tr>
@@ -3054,6 +3972,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6477162
+
+</td>
+
+<td style="text-align:right;">
+
+798.62228
 
 </td>
 
@@ -3103,6 +4027,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+736.86889
+
+</td>
+
 </tr>
 
 <tr>
@@ -3146,6 +4076,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5836535
+
+</td>
+
+<td style="text-align:right;">
+
+727.36701
 
 </td>
 
@@ -3195,6 +4131,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+447.33786
+
+</td>
+
 </tr>
 
 <tr>
@@ -3238,6 +4180,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6324706
+
+</td>
+
+<td style="text-align:right;">
+
+764.58132
 
 </td>
 
@@ -3287,6 +4235,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+743.10089
+
+</td>
+
 </tr>
 
 <tr>
@@ -3330,6 +4284,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7005937
+
+</td>
+
+<td style="text-align:right;">
+
+847.48798
 
 </td>
 
@@ -3379,6 +4339,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+702.28429
+
+</td>
+
 </tr>
 
 <tr>
@@ -3422,6 +4388,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6140574
+
+</td>
+
+<td style="text-align:right;">
+
+733.48111
 
 </td>
 
@@ -3471,6 +4443,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+848.40231
+
+</td>
+
 </tr>
 
 <tr>
@@ -3514,6 +4492,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6109269
+
+</td>
+
+<td style="text-align:right;">
+
+723.03978
 
 </td>
 
@@ -3563,6 +4547,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+898.52761
+
+</td>
+
 </tr>
 
 <tr>
@@ -3606,6 +4596,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7115749
+
+</td>
+
+<td style="text-align:right;">
+
+871.20056
 
 </td>
 
@@ -3655,6 +4651,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+741.04901
+
+</td>
+
 </tr>
 
 <tr>
@@ -3698,6 +4700,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6362472
+
+</td>
+
+<td style="text-align:right;">
+
+720.13937
 
 </td>
 
@@ -3747,6 +4755,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+853.22469
+
+</td>
+
 </tr>
 
 <tr>
@@ -3790,6 +4804,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6859167
+
+</td>
+
+<td style="text-align:right;">
+
+789.11182
 
 </td>
 
@@ -3839,6 +4859,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+841.05584
+
+</td>
+
 </tr>
 
 <tr>
@@ -3882,6 +4908,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7302996
+
+</td>
+
+<td style="text-align:right;">
+
+838.88812
 
 </td>
 
@@ -3931,6 +4963,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+826.23443
+
+</td>
+
 </tr>
 
 <tr>
@@ -3974,6 +5012,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5644705
+
+</td>
+
+<td style="text-align:right;">
+
+641.03270
 
 </td>
 
@@ -4023,6 +5067,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+725.77380
+
+</td>
+
 </tr>
 
 <tr>
@@ -4066,6 +5116,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6824046
+
+</td>
+
+<td style="text-align:right;">
+
+791.64268
 
 </td>
 
@@ -4115,6 +5171,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+873.71942
+
+</td>
+
 </tr>
 
 <tr>
@@ -4158,6 +5220,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8412284
+
+</td>
+
+<td style="text-align:right;">
+
+1004.09003
 
 </td>
 
@@ -4207,6 +5275,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+957.81741
+
+</td>
+
 </tr>
 
 <tr>
@@ -4250,6 +5324,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8658994
+
+</td>
+
+<td style="text-align:right;">
+
+1044.14355
 
 </td>
 
@@ -4299,6 +5379,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+850.75163
+
+</td>
+
 </tr>
 
 <tr>
@@ -4342,6 +5428,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7190535
+
+</td>
+
+<td style="text-align:right;">
+
+837.15958
 
 </td>
 
@@ -4391,6 +5483,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1137.60030
+
+</td>
+
 </tr>
 
 <tr>
@@ -4434,6 +5532,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7901063
+
+</td>
+
+<td style="text-align:right;">
+
+891.36497
 
 </td>
 
@@ -4483,6 +5587,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1055.40493
+
+</td>
+
 </tr>
 
 <tr>
@@ -4526,6 +5636,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8408143
+
+</td>
+
+<td style="text-align:right;">
+
+957.10773
 
 </td>
 
@@ -4575,6 +5691,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1062.19854
+
+</td>
+
 </tr>
 
 <tr>
@@ -4618,6 +5740,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7973917
+
+</td>
+
+<td style="text-align:right;">
+
+891.76168
 
 </td>
 
@@ -4667,6 +5795,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+917.42710
+
+</td>
+
 </tr>
 
 <tr>
@@ -4710,6 +5844,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8491241
+
+</td>
+
+<td style="text-align:right;">
+
+1038.30703
 
 </td>
 
@@ -4759,6 +5899,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1032.89780
+
+</td>
+
 </tr>
 
 <tr>
@@ -4802,6 +5948,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8957954
+
+</td>
+
+<td style="text-align:right;">
+
+1128.54259
 
 </td>
 
@@ -4851,6 +6003,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1268.41813
+
+</td>
+
 </tr>
 
 <tr>
@@ -4894,6 +6052,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9866089
+
+</td>
+
+<td style="text-align:right;">
+
+1148.94344
 
 </td>
 
@@ -4943,6 +6107,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1151.07869
+
+</td>
+
 </tr>
 
 <tr>
@@ -4986,6 +6156,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9375628
+
+</td>
+
+<td style="text-align:right;">
+
+1114.70214
 
 </td>
 
@@ -5035,6 +6211,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1177.97636
+
+</td>
+
 </tr>
 
 <tr>
@@ -5078,6 +6260,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9714567
+
+</td>
+
+<td style="text-align:right;">
+
+1131.50192
 
 </td>
 
@@ -5127,6 +6315,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1264.31104
+
+</td>
+
 </tr>
 
 <tr>
@@ -5170,6 +6364,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9725987
+
+</td>
+
+<td style="text-align:right;">
+
+1146.45872
 
 </td>
 
@@ -5219,6 +6419,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1210.19299
+
+</td>
+
 </tr>
 
 <tr>
@@ -5262,6 +6468,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8908392
+
+</td>
+
+<td style="text-align:right;">
+
+1096.32663
 
 </td>
 
@@ -5311,6 +6523,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+990.10292
+
+</td>
+
 </tr>
 
 <tr>
@@ -5354,6 +6572,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9185062
+
+</td>
+
+<td style="text-align:right;">
+
+1118.49382
 
 </td>
 
@@ -5403,6 +6627,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1268.19705
+
+</td>
+
 </tr>
 
 <tr>
@@ -5446,6 +6676,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8374506
+
+</td>
+
+<td style="text-align:right;">
+
+1013.54965
 
 </td>
 
@@ -5495,6 +6731,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1122.93101
+
+</td>
+
 </tr>
 
 <tr>
@@ -5538,6 +6780,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0182480
+
+</td>
+
+<td style="text-align:right;">
+
+1182.04406
 
 </td>
 
@@ -5587,6 +6835,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1263.93717
+
+</td>
+
 </tr>
 
 <tr>
@@ -5630,6 +6884,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2237428
+
+</td>
+
+<td style="text-align:right;">
+
+1451.77102
 
 </td>
 
@@ -5679,6 +6939,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1107.44159
+
+</td>
+
 </tr>
 
 <tr>
@@ -5722,6 +6988,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1233898
+
+</td>
+
+<td style="text-align:right;">
+
+1309.20488
 
 </td>
 
@@ -5771,6 +7043,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1027.84932
+
+</td>
+
 </tr>
 
 <tr>
@@ -5814,6 +7092,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0337093
+
+</td>
+
+<td style="text-align:right;">
+
+1186.39906
 
 </td>
 
@@ -5863,6 +7147,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1275.71830
+
+</td>
+
 </tr>
 
 <tr>
@@ -5906,6 +7196,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2708240
+
+</td>
+
+<td style="text-align:right;">
+
+1446.23322
 
 </td>
 
@@ -5955,6 +7251,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1200.88753
+
+</td>
+
 </tr>
 
 <tr>
@@ -5998,6 +7300,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0528545
+
+</td>
+
+<td style="text-align:right;">
+
+1232.04055
 
 </td>
 
@@ -6047,6 +7355,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1292.80801
+
+</td>
+
 </tr>
 
 <tr>
@@ -6090,6 +7404,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1972338
+
+</td>
+
+<td style="text-align:right;">
+
+1497.97234
 
 </td>
 
@@ -6139,6 +7459,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1308.29885
+
+</td>
+
 </tr>
 
 <tr>
@@ -6182,6 +7508,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0586200
+
+</td>
+
+<td style="text-align:right;">
+
+1240.03616
 
 </td>
 
@@ -6231,6 +7563,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1256.63204
+
+</td>
+
 </tr>
 
 <tr>
@@ -6274,6 +7612,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2845689
+
+</td>
+
+<td style="text-align:right;">
+
+1488.78549
 
 </td>
 
@@ -6323,6 +7667,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1259.68022
+
+</td>
+
 </tr>
 
 <tr>
@@ -6366,6 +7716,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1626206
+
+</td>
+
+<td style="text-align:right;">
+
+1257.58757
 
 </td>
 
@@ -6415,6 +7771,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+985.89590
+
+</td>
+
 </tr>
 
 <tr>
@@ -6458,6 +7820,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1613261
+
+</td>
+
+<td style="text-align:right;">
+
+1304.74790
 
 </td>
 
@@ -6507,6 +7875,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1536.20966
+
+</td>
+
 </tr>
 
 <tr>
@@ -6550,6 +7924,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1895168
+
+</td>
+
+<td style="text-align:right;">
+
+1327.91919
 
 </td>
 
@@ -6599,6 +7979,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1485.97868
+
+</td>
+
 </tr>
 
 <tr>
@@ -6642,6 +8028,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1488114
+
+</td>
+
+<td style="text-align:right;">
+
+1330.11416
 
 </td>
 
@@ -6691,6 +8083,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1317.10995
+
+</td>
+
 </tr>
 
 <tr>
@@ -6734,6 +8132,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1056564
+
+</td>
+
+<td style="text-align:right;">
+
+1178.58799
 
 </td>
 
@@ -6783,6 +8187,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1264.09044
+
+</td>
+
 </tr>
 
 <tr>
@@ -6826,6 +8236,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2339293
+
+</td>
+
+<td style="text-align:right;">
+
+1355.91274
 
 </td>
 
@@ -6875,6 +8291,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1324.27348
+
+</td>
+
 </tr>
 
 <tr>
@@ -6918,6 +8340,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1269806
+
+</td>
+
+<td style="text-align:right;">
+
+1269.82519
 
 </td>
 
@@ -6967,6 +8395,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1221.18774
+
+</td>
+
 </tr>
 
 <tr>
@@ -7010,6 +8444,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1106978
+
+</td>
+
+<td style="text-align:right;">
+
+1228.00948
 
 </td>
 
@@ -7059,6 +8499,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1260.37236
+
+</td>
+
 </tr>
 
 <tr>
@@ -7102,6 +8548,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0801589
+
+</td>
+
+<td style="text-align:right;">
+
+1297.18919
 
 </td>
 
@@ -7151,6 +8603,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1229.68374
+
+</td>
+
 </tr>
 
 <tr>
@@ -7194,6 +8652,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1889174
+
+</td>
+
+<td style="text-align:right;">
+
+1260.35073
 
 </td>
 
@@ -7243,6 +8707,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1128.09502
+
+</td>
+
 </tr>
 
 <tr>
@@ -7286,6 +8756,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0489168
+
+</td>
+
+<td style="text-align:right;">
+
+1121.99396
 
 </td>
 
@@ -7335,6 +8811,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1329.62830
+
+</td>
+
 </tr>
 
 <tr>
@@ -7378,6 +8860,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1806275
+
+</td>
+
+<td style="text-align:right;">
+
+1381.57520
 
 </td>
 
@@ -7427,6 +8915,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1230.76145
+
+</td>
+
 </tr>
 
 <tr>
@@ -7470,6 +8964,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0255102
+
+</td>
+
+<td style="text-align:right;">
+
+1153.33678
 
 </td>
 
@@ -7519,6 +9019,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1237.36216
+
+</td>
+
 </tr>
 
 <tr>
@@ -7562,6 +9068,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1006302
+
+</td>
+
+<td style="text-align:right;">
+
+1186.59848
 
 </td>
 
@@ -7611,6 +9123,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1450.38671
+
+</td>
+
 </tr>
 
 <tr>
@@ -7654,6 +9172,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2402576
+
+</td>
+
+<td style="text-align:right;">
+
+1344.42271
 
 </td>
 
@@ -7703,6 +9227,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1237.40275
+
+</td>
+
 </tr>
 
 <tr>
@@ -7746,6 +9276,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1713459
+
+</td>
+
+<td style="text-align:right;">
+
+1261.62728
 
 </td>
 
@@ -7795,6 +9331,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1139.00969
+
+</td>
+
 </tr>
 
 <tr>
@@ -7838,6 +9380,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1450345
+
+</td>
+
+<td style="text-align:right;">
+
+1346.99050
 
 </td>
 
@@ -7887,6 +9435,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1455.63719
+
+</td>
+
 </tr>
 
 <tr>
@@ -7930,6 +9484,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0568240
+
+</td>
+
+<td style="text-align:right;">
+
+1268.97624
 
 </td>
 
@@ -7979,6 +9539,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1207.74740
+
+</td>
+
 </tr>
 
 <tr>
@@ -8022,6 +9588,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1066371
+
+</td>
+
+<td style="text-align:right;">
+
+1289.27373
 
 </td>
 
@@ -8071,6 +9643,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1310.00115
+
+</td>
+
 </tr>
 
 <tr>
@@ -8114,6 +9692,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2007272
+
+</td>
+
+<td style="text-align:right;">
+
+1345.04179
 
 </td>
 
@@ -8163,6 +9747,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1296.65998
+
+</td>
+
 </tr>
 
 <tr>
@@ -8206,6 +9796,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1726936
+
+</td>
+
+<td style="text-align:right;">
+
+1352.42345
 
 </td>
 
@@ -8255,6 +9851,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1270.61296
+
+</td>
+
 </tr>
 
 <tr>
@@ -8298,6 +9900,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1893624
+
+</td>
+
+<td style="text-align:right;">
+
+1298.99340
 
 </td>
 
@@ -8347,6 +9955,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1468.16190
+
+</td>
+
 </tr>
 
 <tr>
@@ -8390,6 +10004,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.3898399
+
+</td>
+
+<td style="text-align:right;">
+
+1556.21285
 
 </td>
 
@@ -8439,6 +10059,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1246.62819
+
+</td>
+
 </tr>
 
 <tr>
@@ -8482,6 +10108,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2195355
+
+</td>
+
+<td style="text-align:right;">
+
+1295.06178
 
 </td>
 
@@ -8531,6 +10163,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1383.42515
+
+</td>
+
 </tr>
 
 <tr>
@@ -8574,6 +10212,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9701376
+
+</td>
+
+<td style="text-align:right;">
+
+1061.09987
 
 </td>
 
@@ -8623,6 +10267,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1375.74244
+
+</td>
+
 </tr>
 
 <tr>
@@ -8666,6 +10316,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.4034897
+
+</td>
+
+<td style="text-align:right;">
+
+1392.67245
 
 </td>
 
@@ -8715,6 +10371,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1171.86362
+
+</td>
+
 </tr>
 
 <tr>
@@ -8758,6 +10420,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0059930
+
+</td>
+
+<td style="text-align:right;">
+
+1076.30445
 
 </td>
 
@@ -8807,6 +10475,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1177.03611
+
+</td>
+
 </tr>
 
 <tr>
@@ -8850,6 +10524,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9931629
+
+</td>
+
+<td style="text-align:right;">
+
+939.67186
 
 </td>
 
@@ -8899,6 +10579,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1116.01527
+
+</td>
+
 </tr>
 
 <tr>
@@ -8942,6 +10628,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8527229
+
+</td>
+
+<td style="text-align:right;">
+
+828.79687
 
 </td>
 
@@ -8991,6 +10683,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1106.66568
+
+</td>
+
 </tr>
 
 <tr>
@@ -9034,6 +10732,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9357393
+
+</td>
+
+<td style="text-align:right;">
+
+923.61746
 
 </td>
 
@@ -9083,6 +10787,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+767.88270
+
+</td>
+
 </tr>
 
 <tr>
@@ -9126,6 +10836,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8315672
+
+</td>
+
+<td style="text-align:right;">
+
+796.61830
 
 </td>
 
@@ -9175,6 +10891,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+792.72388
+
+</td>
+
 </tr>
 
 <tr>
@@ -9218,6 +10940,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8664245
+
+</td>
+
+<td style="text-align:right;">
+
+818.92664
 
 </td>
 
@@ -9267,6 +10995,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+901.33136
+
+</td>
+
 </tr>
 
 <tr>
@@ -9310,6 +11044,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0774400
+
+</td>
+
+<td style="text-align:right;">
+
+1028.74644
 
 </td>
 
@@ -9359,6 +11099,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+904.33872
+
+</td>
+
 </tr>
 
 <tr>
@@ -9402,6 +11148,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0544383
+
+</td>
+
+<td style="text-align:right;">
+
+1039.37313
 
 </td>
 
@@ -9451,6 +11203,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1135.33729
+
+</td>
+
 </tr>
 
 <tr>
@@ -9494,6 +11252,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0161941
+
+</td>
+
+<td style="text-align:right;">
+
+1013.84217
 
 </td>
 
@@ -9543,6 +11307,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1298.36699
+
+</td>
+
 </tr>
 
 <tr>
@@ -9586,6 +11356,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0504799
+
+</td>
+
+<td style="text-align:right;">
+
+1101.06360
 
 </td>
 
@@ -9635,6 +11411,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1135.00610
+
+</td>
+
 </tr>
 
 <tr>
@@ -9678,6 +11460,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0082009
+
+</td>
+
+<td style="text-align:right;">
+
+1019.86321
 
 </td>
 
@@ -9727,6 +11515,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1222.63561
+
+</td>
+
 </tr>
 
 <tr>
@@ -9770,6 +11564,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1256267
+
+</td>
+
+<td style="text-align:right;">
+
+1176.59914
 
 </td>
 
@@ -9819,6 +11619,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1437.41378
+
+</td>
+
 </tr>
 
 <tr>
@@ -9862,6 +11668,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0880562
+
+</td>
+
+<td style="text-align:right;">
+
+1138.78129
 
 </td>
 
@@ -9911,6 +11723,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1232.79024
+
+</td>
+
 </tr>
 
 <tr>
@@ -9954,6 +11772,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0221039
+
+</td>
+
+<td style="text-align:right;">
+
+1076.58721
 
 </td>
 
@@ -10003,6 +11827,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1248.36839
+
+</td>
+
 </tr>
 
 <tr>
@@ -10046,6 +11876,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2783238
+
+</td>
+
+<td style="text-align:right;">
+
+1419.50570
 
 </td>
 
@@ -10095,6 +11931,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1843.07826
+
+</td>
+
 </tr>
 
 <tr>
@@ -10138,6 +11980,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9789055
+
+</td>
+
+<td style="text-align:right;">
+
+896.75563
 
 </td>
 
@@ -10187,6 +12035,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+976.67870
+
+</td>
+
 </tr>
 
 <tr>
@@ -10230,6 +12084,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7745133
+
+</td>
+
+<td style="text-align:right;">
+
+668.67957
 
 </td>
 
@@ -10279,6 +12139,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+946.04113
+
+</td>
+
 </tr>
 
 <tr>
@@ -10322,6 +12188,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9506051
+
+</td>
+
+<td style="text-align:right;">
+
+892.35464
 
 </td>
 
@@ -10371,6 +12243,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1213.21849
+
+</td>
+
 </tr>
 
 <tr>
@@ -10414,6 +12292,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7154609
+
+</td>
+
+<td style="text-align:right;">
+
+684.73716
 
 </td>
 
@@ -10463,6 +12347,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+950.94318
+
+</td>
+
 </tr>
 
 <tr>
@@ -10506,6 +12396,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9499673
+
+</td>
+
+<td style="text-align:right;">
+
+741.50127
 
 </td>
 
@@ -10555,6 +12451,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+730.26843
+
+</td>
+
 </tr>
 
 <tr>
@@ -10598,6 +12500,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9092557
+
+</td>
+
+<td style="text-align:right;">
+
+1036.98603
 
 </td>
 
@@ -10647,6 +12555,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+801.27742
+
+</td>
+
 </tr>
 
 <tr>
@@ -10690,6 +12604,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8633396
+
+</td>
+
+<td style="text-align:right;">
+
+855.35632
 
 </td>
 
@@ -10739,6 +12659,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1081.75316
+
+</td>
+
 </tr>
 
 <tr>
@@ -10782,6 +12708,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0823799
+
+</td>
+
+<td style="text-align:right;">
+
+941.00158
 
 </td>
 
@@ -10831,6 +12763,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1239.14834
+
+</td>
+
 </tr>
 
 <tr>
@@ -10874,6 +12812,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9927049
+
+</td>
+
+<td style="text-align:right;">
+
+978.53424
 
 </td>
 
@@ -10923,6 +12867,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1520.85789
+
+</td>
+
 </tr>
 
 <tr>
@@ -10966,6 +12916,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9466467
+
+</td>
+
+<td style="text-align:right;">
+
+894.69419
 
 </td>
 
@@ -11015,6 +12971,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1287.08192
+
+</td>
+
 </tr>
 
 <tr>
@@ -11058,6 +13020,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9869808
+
+</td>
+
+<td style="text-align:right;">
+
+1053.19216
 
 </td>
 
@@ -11107,6 +13075,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+851.26729
+
+</td>
+
 </tr>
 
 <tr>
@@ -11150,6 +13124,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8736996
+
+</td>
+
+<td style="text-align:right;">
+
+861.45256
 
 </td>
 
@@ -11199,6 +13179,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1094.14877
+
+</td>
+
 </tr>
 
 <tr>
@@ -11242,6 +13228,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2132160
+
+</td>
+
+<td style="text-align:right;">
+
+1066.59677
 
 </td>
 
@@ -11291,6 +13283,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1201.89424
+
+</td>
+
 </tr>
 
 <tr>
@@ -11334,6 +13332,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2201404
+
+</td>
+
+<td style="text-align:right;">
+
+1307.16403
 
 </td>
 
@@ -11383,6 +13387,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1010.70088
+
+</td>
+
 </tr>
 
 <tr>
@@ -11426,6 +13436,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9861307
+
+</td>
+
+<td style="text-align:right;">
+
+885.13024
 
 </td>
 
@@ -11475,6 +13491,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1368.54743
+
+</td>
+
 </tr>
 
 <tr>
@@ -11518,6 +13540,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1231126
+
+</td>
+
+<td style="text-align:right;">
+
+1209.86370
 
 </td>
 
@@ -11567,6 +13595,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1092.05766
+
+</td>
+
 </tr>
 
 <tr>
@@ -11610,6 +13644,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2080521
+
+</td>
+
+<td style="text-align:right;">
+
+1107.96972
 
 </td>
 
@@ -11659,6 +13699,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+959.81752
+
+</td>
+
 </tr>
 
 <tr>
@@ -11702,6 +13748,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1689401
+
+</td>
+
+<td style="text-align:right;">
+
+1035.60982
 
 </td>
 
@@ -11751,6 +13803,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1376.63598
+
+</td>
+
 </tr>
 
 <tr>
@@ -11794,6 +13852,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1154760
+
+</td>
+
+<td style="text-align:right;">
+
+988.10960
 
 </td>
 
@@ -11843,6 +13907,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1272.22048
+
+</td>
+
 </tr>
 
 <tr>
@@ -11886,6 +13956,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.3508884
+
+</td>
+
+<td style="text-align:right;">
+
+1184.08465
 
 </td>
 
@@ -11935,6 +14011,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1210.43716
+
+</td>
+
 </tr>
 
 <tr>
@@ -11978,6 +14060,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2641512
+
+</td>
+
+<td style="text-align:right;">
+
+1146.05542
 
 </td>
 
@@ -12027,6 +14115,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+886.15511
+
+</td>
+
 </tr>
 
 <tr>
@@ -12070,6 +14164,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2474079
+
+</td>
+
+<td style="text-align:right;">
+
+1166.76456
 
 </td>
 
@@ -12119,6 +14219,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1160.36063
+
+</td>
+
 </tr>
 
 <tr>
@@ -12162,6 +14268,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2356154
+
+</td>
+
+<td style="text-align:right;">
+
+1207.25591
 
 </td>
 
@@ -12211,6 +14323,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1024.06433
+
+</td>
+
 </tr>
 
 <tr>
@@ -12254,6 +14372,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0651507
+
+</td>
+
+<td style="text-align:right;">
+
+1035.49595
 
 </td>
 
@@ -12303,6 +14427,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1101.21089
+
+</td>
+
 </tr>
 
 <tr>
@@ -12346,6 +14476,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1006655
+
+</td>
+
+<td style="text-align:right;">
+
+1030.92144
 
 </td>
 
@@ -12395,6 +14531,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1045.17918
+
+</td>
+
 </tr>
 
 <tr>
@@ -12438,6 +14580,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9322504
+
+</td>
+
+<td style="text-align:right;">
+
+946.59367
 
 </td>
 
@@ -12487,6 +14635,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1040.81962
+
+</td>
+
 </tr>
 
 <tr>
@@ -12530,6 +14684,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9828962
+
+</td>
+
+<td style="text-align:right;">
+
+939.69024
 
 </td>
 
@@ -12579,6 +14739,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1096.17624
+
+</td>
+
 </tr>
 
 <tr>
@@ -12622,6 +14788,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0563100
+
+</td>
+
+<td style="text-align:right;">
+
+1124.43072
 
 </td>
 
@@ -12671,6 +14843,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1360.72369
+
+</td>
+
 </tr>
 
 <tr>
@@ -12714,6 +14892,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0730378
+
+</td>
+
+<td style="text-align:right;">
+
+1270.85047
 
 </td>
 
@@ -12763,6 +14947,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1049.84051
+
+</td>
+
 </tr>
 
 <tr>
@@ -12806,6 +14996,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1945111
+
+</td>
+
+<td style="text-align:right;">
+
+1233.80210
 
 </td>
 
@@ -12855,6 +15051,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1044.20862
+
+</td>
+
 </tr>
 
 <tr>
@@ -12898,6 +15100,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0930079
+
+</td>
+
+<td style="text-align:right;">
+
+1054.72573
 
 </td>
 
@@ -12947,6 +15155,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1083.37454
+
+</td>
+
 </tr>
 
 <tr>
@@ -12990,6 +15204,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0562290
+
+</td>
+
+<td style="text-align:right;">
+
+1204.21905
 
 </td>
 
@@ -13039,6 +15259,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1127.32214
+
+</td>
+
 </tr>
 
 <tr>
@@ -13082,6 +15308,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2763541
+
+</td>
+
+<td style="text-align:right;">
+
+1223.66984
 
 </td>
 
@@ -13131,6 +15363,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1049.63052
+
+</td>
+
 </tr>
 
 <tr>
@@ -13174,6 +15412,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8928038
+
+</td>
+
+<td style="text-align:right;">
+
+906.30351
 
 </td>
 
@@ -13223,6 +15467,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1064.79063
+
+</td>
+
 </tr>
 
 <tr>
@@ -13266,6 +15516,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9634177
+
+</td>
+
+<td style="text-align:right;">
+
+1068.17471
 
 </td>
 
@@ -13315,6 +15571,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1205.82662
+
+</td>
+
 </tr>
 
 <tr>
@@ -13358,6 +15620,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0307766
+
+</td>
+
+<td style="text-align:right;">
+
+1199.71560
 
 </td>
 
@@ -13407,6 +15675,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1006.71119
+
+</td>
+
 </tr>
 
 <tr>
@@ -13450,6 +15724,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1725910
+
+</td>
+
+<td style="text-align:right;">
+
+1096.81462
 
 </td>
 
@@ -13499,6 +15779,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1277.76542
+
+</td>
+
 </tr>
 
 <tr>
@@ -13542,6 +15828,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8163867
+
+</td>
+
+<td style="text-align:right;">
+
+806.47489
 
 </td>
 
@@ -13591,6 +15883,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1265.90429
+
+</td>
+
 </tr>
 
 <tr>
@@ -13634,6 +15932,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8237212
+
+</td>
+
+<td style="text-align:right;">
+
+842.89000
 
 </td>
 
@@ -13683,6 +15987,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1212.66358
+
+</td>
+
 </tr>
 
 <tr>
@@ -13726,6 +16036,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0951568
+
+</td>
+
+<td style="text-align:right;">
+
+1191.94757
 
 </td>
 
@@ -13775,6 +16091,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+859.45814
+
+</td>
+
 </tr>
 
 <tr>
@@ -13818,6 +16140,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2142155
+
+</td>
+
+<td style="text-align:right;">
+
+1323.61952
 
 </td>
 
@@ -13867,6 +16195,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1433.69534
+
+</td>
+
 </tr>
 
 <tr>
@@ -13910,6 +16244,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.3339487
+
+</td>
+
+<td style="text-align:right;">
+
+1494.61511
 
 </td>
 
@@ -13959,6 +16299,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1582.32857
+
+</td>
+
 </tr>
 
 <tr>
@@ -14002,6 +16348,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2417291
+
+</td>
+
+<td style="text-align:right;">
+
+1316.84266
 
 </td>
 
@@ -14051,6 +16403,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1489.70854
+
+</td>
+
 </tr>
 
 <tr>
@@ -14094,6 +16452,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.3621385
+
+</td>
+
+<td style="text-align:right;">
+
+1432.18448
 
 </td>
 
@@ -14143,6 +16507,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1381.33879
+
+</td>
+
 </tr>
 
 <tr>
@@ -14186,6 +16556,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.4404382
+
+</td>
+
+<td style="text-align:right;">
+
+1563.24760
 
 </td>
 
@@ -14235,6 +16611,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1771.33673
+
+</td>
+
 </tr>
 
 <tr>
@@ -14278,6 +16660,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9938112
+
+</td>
+
+<td style="text-align:right;">
+
+945.48502
 
 </td>
 
@@ -14327,6 +16715,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1349.81465
+
+</td>
+
 </tr>
 
 <tr>
@@ -14370,6 +16764,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1917260
+
+</td>
+
+<td style="text-align:right;">
+
+1283.99819
 
 </td>
 
@@ -14419,6 +16819,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1510.57075
+
+</td>
+
 </tr>
 
 <tr>
@@ -14462,6 +16868,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1543903
+
+</td>
+
+<td style="text-align:right;">
+
+1406.30932
 
 </td>
 
@@ -14511,6 +16923,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1479.25577
+
+</td>
+
 </tr>
 
 <tr>
@@ -14554,6 +16972,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1963735
+
+</td>
+
+<td style="text-align:right;">
+
+1368.56295
 
 </td>
 
@@ -14603,6 +17027,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1310.05617
+
+</td>
+
 </tr>
 
 <tr>
@@ -14646,6 +17076,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.3664134
+
+</td>
+
+<td style="text-align:right;">
+
+1548.10725
 
 </td>
 
@@ -14695,6 +17131,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1417.38302
+
+</td>
+
 </tr>
 
 <tr>
@@ -14738,6 +17180,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0554618
+
+</td>
+
+<td style="text-align:right;">
+
+1026.94002
 
 </td>
 
@@ -14787,6 +17235,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1228.35234
+
+</td>
+
 </tr>
 
 <tr>
@@ -14830,6 +17284,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2522379
+
+</td>
+
+<td style="text-align:right;">
+
+1077.09644
 
 </td>
 
@@ -14879,6 +17339,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1106.18288
+
+</td>
+
 </tr>
 
 <tr>
@@ -14922,6 +17388,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0160613
+
+</td>
+
+<td style="text-align:right;">
+
+941.36591
 
 </td>
 
@@ -14971,6 +17443,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+988.60199
+
+</td>
+
 </tr>
 
 <tr>
@@ -15014,6 +17492,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2104700
+
+</td>
+
+<td style="text-align:right;">
+
+1223.92300
 
 </td>
 
@@ -15063,6 +17547,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1187.88458
+
+</td>
+
 </tr>
 
 <tr>
@@ -15106,6 +17596,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1371907
+
+</td>
+
+<td style="text-align:right;">
+
+1117.48374
 
 </td>
 
@@ -15155,6 +17651,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+969.10998
+
+</td>
+
 </tr>
 
 <tr>
@@ -15198,6 +17700,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9900191
+
+</td>
+
+<td style="text-align:right;">
+
+953.44212
 
 </td>
 
@@ -15247,6 +17755,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1080.39776
+
+</td>
+
 </tr>
 
 <tr>
@@ -15290,6 +17804,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9427017
+
+</td>
+
+<td style="text-align:right;">
+
+1126.77896
 
 </td>
 
@@ -15339,6 +17859,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1158.31456
+
+</td>
+
 </tr>
 
 <tr>
@@ -15382,6 +17908,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8170054
+
+</td>
+
+<td style="text-align:right;">
+
+792.57082
 
 </td>
 
@@ -15431,6 +17963,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+783.89565
+
+</td>
+
 </tr>
 
 <tr>
@@ -15474,6 +18012,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7123635
+
+</td>
+
+<td style="text-align:right;">
+
+728.08216
 
 </td>
 
@@ -15523,6 +18067,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1033.51631
+
+</td>
+
 </tr>
 
 <tr>
@@ -15566,6 +18116,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2313925
+
+</td>
+
+<td style="text-align:right;">
+
+1320.01226
 
 </td>
 
@@ -15615,6 +18171,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1176.79306
+
+</td>
+
 </tr>
 
 <tr>
@@ -15658,6 +18220,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6959996
+
+</td>
+
+<td style="text-align:right;">
+
+718.32385
 
 </td>
 
@@ -15707,6 +18275,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+918.12367
+
+</td>
+
 </tr>
 
 <tr>
@@ -15750,6 +18324,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7861804
+
+</td>
+
+<td style="text-align:right;">
+
+753.07178
 
 </td>
 
@@ -15799,6 +18379,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+919.03538
+
+</td>
+
 </tr>
 
 <tr>
@@ -15842,6 +18428,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0502846
+
+</td>
+
+<td style="text-align:right;">
+
+978.12449
 
 </td>
 
@@ -15891,6 +18483,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+767.79969
+
+</td>
+
 </tr>
 
 <tr>
@@ -15934,6 +18532,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9537573
+
+</td>
+
+<td style="text-align:right;">
+
+987.81510
 
 </td>
 
@@ -15983,6 +18587,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+861.62451
+
+</td>
+
 </tr>
 
 <tr>
@@ -16026,6 +18636,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0762569
+
+</td>
+
+<td style="text-align:right;">
+
+1207.96035
 
 </td>
 
@@ -16075,6 +18691,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+920.96400
+
+</td>
+
 </tr>
 
 <tr>
@@ -16118,6 +18740,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0249351
+
+</td>
+
+<td style="text-align:right;">
+
+1113.44649
 
 </td>
 
@@ -16167,6 +18795,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+860.59442
+
+</td>
+
 </tr>
 
 <tr>
@@ -16210,6 +18844,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1099436
+
+</td>
+
+<td style="text-align:right;">
+
+1006.74034
 
 </td>
 
@@ -16259,6 +18899,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+904.06367
+
+</td>
+
 </tr>
 
 <tr>
@@ -16302,6 +18948,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8715410
+
+</td>
+
+<td style="text-align:right;">
+
+795.04202
 
 </td>
 
@@ -16351,6 +19003,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+804.92158
+
+</td>
+
 </tr>
 
 <tr>
@@ -16394,6 +19052,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9639570
+
+</td>
+
+<td style="text-align:right;">
+
+979.64380
 
 </td>
 
@@ -16443,6 +19107,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1096.84310
+
+</td>
+
 </tr>
 
 <tr>
@@ -16486,6 +19156,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9529253
+
+</td>
+
+<td style="text-align:right;">
+
+944.59994
 
 </td>
 
@@ -16535,6 +19211,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+857.75639
+
+</td>
+
 </tr>
 
 <tr>
@@ -16578,6 +19260,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8356859
+
+</td>
+
+<td style="text-align:right;">
+
+882.50442
 
 </td>
 
@@ -16627,6 +19315,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1170.42085
+
+</td>
+
 </tr>
 
 <tr>
@@ -16670,6 +19364,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9398226
+
+</td>
+
+<td style="text-align:right;">
+
+1044.63806
 
 </td>
 
@@ -16719,6 +19419,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1030.85779
+
+</td>
+
 </tr>
 
 <tr>
@@ -16762,6 +19468,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7873055
+
+</td>
+
+<td style="text-align:right;">
+
+748.89352
 
 </td>
 
@@ -16811,6 +19523,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1007.83672
+
+</td>
+
 </tr>
 
 <tr>
@@ -16854,6 +19572,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9113933
+
+</td>
+
+<td style="text-align:right;">
+
+933.70939
 
 </td>
 
@@ -16903,6 +19627,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1265.79748
+
+</td>
+
 </tr>
 
 <tr>
@@ -16946,6 +19676,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9570727
+
+</td>
+
+<td style="text-align:right;">
+
+1069.92410
 
 </td>
 
@@ -16995,6 +19731,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1269.02368
+
+</td>
+
 </tr>
 
 <tr>
@@ -17038,6 +19780,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2138134
+
+</td>
+
+<td style="text-align:right;">
+
+1314.88335
 
 </td>
 
@@ -17087,6 +19835,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1350.08470
+
+</td>
+
 </tr>
 
 <tr>
@@ -17130,6 +19884,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9339681
+
+</td>
+
+<td style="text-align:right;">
+
+983.60538
 
 </td>
 
@@ -17179,6 +19939,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1158.22822
+
+</td>
+
 </tr>
 
 <tr>
@@ -17222,6 +19988,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7035689
+
+</td>
+
+<td style="text-align:right;">
+
+729.54777
 
 </td>
 
@@ -17271,6 +20043,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1153.91399
+
+</td>
+
 </tr>
 
 <tr>
@@ -17314,6 +20092,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9745422
+
+</td>
+
+<td style="text-align:right;">
+
+1088.10784
 
 </td>
 
@@ -17363,6 +20147,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1210.51693
+
+</td>
+
 </tr>
 
 <tr>
@@ -17406,6 +20196,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9678704
+
+</td>
+
+<td style="text-align:right;">
+
+1145.70240
 
 </td>
 
@@ -17455,6 +20251,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+835.20979
+
+</td>
+
 </tr>
 
 <tr>
@@ -17498,6 +20300,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.4551184
+
+</td>
+
+<td style="text-align:right;">
+
+1744.63588
 
 </td>
 
@@ -17547,6 +20355,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1512.62562
+
+</td>
+
 </tr>
 
 <tr>
@@ -17590,6 +20404,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9857723
+
+</td>
+
+<td style="text-align:right;">
+
+1050.40065
 
 </td>
 
@@ -17639,6 +20459,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+401.52679
+
+</td>
+
 </tr>
 
 <tr>
@@ -17682,6 +20508,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6233156
+
+</td>
+
+<td style="text-align:right;">
+
+602.04585
 
 </td>
 
@@ -17731,6 +20563,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+573.54605
+
+</td>
+
 </tr>
 
 <tr>
@@ -17774,6 +20612,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8683141
+
+</td>
+
+<td style="text-align:right;">
+
+728.99027
 
 </td>
 
@@ -17823,6 +20667,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+800.56150
+
+</td>
+
 </tr>
 
 <tr>
@@ -17866,6 +20716,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8505018
+
+</td>
+
+<td style="text-align:right;">
+
+751.76561
 
 </td>
 
@@ -17915,6 +20771,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+608.65514
+
+</td>
+
 </tr>
 
 <tr>
@@ -17958,6 +20820,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.4576982
+
+</td>
+
+<td style="text-align:right;">
+
+487.85882
 
 </td>
 
@@ -18007,6 +20875,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+778.04504
+
+</td>
+
 </tr>
 
 <tr>
@@ -18050,6 +20924,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7126299
+
+</td>
+
+<td style="text-align:right;">
+
+710.99492
 
 </td>
 
@@ -18099,6 +20979,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1316.62988
+
+</td>
+
 </tr>
 
 <tr>
@@ -18142,6 +21028,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9796222
+
+</td>
+
+<td style="text-align:right;">
+
+1061.71379
 
 </td>
 
@@ -18191,6 +21083,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+946.70862
+
+</td>
+
 </tr>
 
 <tr>
@@ -18234,6 +21132,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6050567
+
+</td>
+
+<td style="text-align:right;">
+
+632.92855
 
 </td>
 
@@ -18283,6 +21187,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+847.36505
+
+</td>
+
 </tr>
 
 <tr>
@@ -18326,6 +21236,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0340333
+
+</td>
+
+<td style="text-align:right;">
+
+1234.04370
 
 </td>
 
@@ -18375,6 +21291,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+783.52527
+
+</td>
+
 </tr>
 
 <tr>
@@ -18418,6 +21340,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8658704
+
+</td>
+
+<td style="text-align:right;">
+
+977.17015
 
 </td>
 
@@ -18467,6 +21395,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+932.24372
+
+</td>
+
 </tr>
 
 <tr>
@@ -18510,6 +21444,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6129286
+
+</td>
+
+<td style="text-align:right;">
+
+688.90432
 
 </td>
 
@@ -18559,6 +21499,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+774.21003
+
+</td>
+
 </tr>
 
 <tr>
@@ -18602,6 +21548,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8661820
+
+</td>
+
+<td style="text-align:right;">
+
+975.98644
 
 </td>
 
@@ -18651,6 +21603,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+919.93876
+
+</td>
+
 </tr>
 
 <tr>
@@ -18694,6 +21652,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7375895
+
+</td>
+
+<td style="text-align:right;">
+
+766.92622
 
 </td>
 
@@ -18743,6 +21707,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+899.47557
+
+</td>
+
 </tr>
 
 <tr>
@@ -18786,6 +21756,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1911694
+
+</td>
+
+<td style="text-align:right;">
+
+1215.37504
 
 </td>
 
@@ -18835,6 +21811,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1066.06423
+
+</td>
+
 </tr>
 
 <tr>
@@ -18878,6 +21860,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1200391
+
+</td>
+
+<td style="text-align:right;">
+
+1108.24716
 
 </td>
 
@@ -18927,6 +21915,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+975.77660
+
+</td>
+
 </tr>
 
 <tr>
@@ -18970,6 +21964,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1723872
+
+</td>
+
+<td style="text-align:right;">
+
+1158.80147
 
 </td>
 
@@ -19019,6 +22019,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1371.00321
+
+</td>
+
 </tr>
 
 <tr>
@@ -19062,6 +22068,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0382669
+
+</td>
+
+<td style="text-align:right;">
+
+1000.13605
 
 </td>
 
@@ -19111,6 +22123,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1056.15519
+
+</td>
+
 </tr>
 
 <tr>
@@ -19154,6 +22172,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1486726
+
+</td>
+
+<td style="text-align:right;">
+
+1135.04950
 
 </td>
 
@@ -19203,6 +22227,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+980.45923
+
+</td>
+
 </tr>
 
 <tr>
@@ -19246,6 +22276,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0404380
+
+</td>
+
+<td style="text-align:right;">
+
+1119.28858
 
 </td>
 
@@ -19295,6 +22331,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1374.36892
+
+</td>
+
 </tr>
 
 <tr>
@@ -19338,6 +22380,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.4378884
+
+</td>
+
+<td style="text-align:right;">
+
+1598.26341
 
 </td>
 
@@ -19387,6 +22435,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1584.10237
+
+</td>
+
 </tr>
 
 <tr>
@@ -19430,6 +22484,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9009443
+
+</td>
+
+<td style="text-align:right;">
+
+829.63032
 
 </td>
 
@@ -19479,6 +22539,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1335.21101
+
+</td>
+
 </tr>
 
 <tr>
@@ -19522,6 +22588,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9920629
+
+</td>
+
+<td style="text-align:right;">
+
+1182.41541
 
 </td>
 
@@ -19571,6 +22643,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1029.90645
+
+</td>
+
 </tr>
 
 <tr>
@@ -19614,6 +22692,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8499361
+
+</td>
+
+<td style="text-align:right;">
+
+845.11607
 
 </td>
 
@@ -19663,6 +22747,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1296.02057
+
+</td>
+
 </tr>
 
 <tr>
@@ -19706,6 +22796,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0397114
+
+</td>
+
+<td style="text-align:right;">
+
+1082.63860
 
 </td>
 
@@ -19755,6 +22851,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1571.31594
+
+</td>
+
 </tr>
 
 <tr>
@@ -19798,6 +22900,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2152201
+
+</td>
+
+<td style="text-align:right;">
+
+1285.63006
 
 </td>
 
@@ -19847,6 +22955,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1043.44177
+
+</td>
+
 </tr>
 
 <tr>
@@ -19890,6 +23004,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9363387
+
+</td>
+
+<td style="text-align:right;">
+
+943.84188
 
 </td>
 
@@ -19939,6 +23059,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1469.95459
+
+</td>
+
 </tr>
 
 <tr>
@@ -19982,6 +23108,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.9341293
+
+</td>
+
+<td style="text-align:right;">
+
+975.04816
 
 </td>
 
@@ -20031,6 +23163,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+969.89296
+
+</td>
+
 </tr>
 
 <tr>
@@ -20074,6 +23212,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1090981
+
+</td>
+
+<td style="text-align:right;">
+
+1208.00304
 
 </td>
 
@@ -20123,6 +23267,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1296.91905
+
+</td>
+
 </tr>
 
 <tr>
@@ -20166,6 +23316,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.1214380
+
+</td>
+
+<td style="text-align:right;">
+
+1236.35002
 
 </td>
 
@@ -20215,6 +23371,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1599.11884
+
+</td>
+
 </tr>
 
 <tr>
@@ -20258,6 +23420,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.2459739
+
+</td>
+
+<td style="text-align:right;">
+
+1229.13020
 
 </td>
 
@@ -20307,6 +23475,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+985.35111
+
+</td>
+
 </tr>
 
 <tr>
@@ -20350,6 +23524,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 1.0668182
+
+</td>
+
+<td style="text-align:right;">
+
+1098.24922
 
 </td>
 
@@ -20399,6 +23579,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+1161.49578
+
+</td>
+
 </tr>
 
 <tr>
@@ -20442,6 +23628,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8109953
+
+</td>
+
+<td style="text-align:right;">
+
+699.17664
 
 </td>
 
@@ -20491,6 +23683,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+894.32833
+
+</td>
+
 </tr>
 
 <tr>
@@ -20534,6 +23732,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.5977437
+
+</td>
+
+<td style="text-align:right;">
+
+572.86809
 
 </td>
 
@@ -20583,6 +23787,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+997.36971
+
+</td>
+
 </tr>
 
 <tr>
@@ -20626,6 +23836,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7907072
+
+</td>
+
+<td style="text-align:right;">
+
+752.74055
 
 </td>
 
@@ -20675,6 +23891,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+565.99772
+
+</td>
+
 </tr>
 
 <tr>
@@ -20718,6 +23940,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.6774229
+
+</td>
+
+<td style="text-align:right;">
+
+769.56328
 
 </td>
 
@@ -20767,6 +23995,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+728.67281
+
+</td>
+
 </tr>
 
 <tr>
@@ -20810,6 +24044,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.7131366
+
+</td>
+
+<td style="text-align:right;">
+
+711.51686
 
 </td>
 
@@ -20859,6 +24099,12 @@ corrected\_mi
 
 </td>
 
+<td style="text-align:right;">
+
+840.81258
+
+</td>
+
 </tr>
 
 <tr>
@@ -20902,6 +24148,12 @@ corrected\_mi
 <td style="text-align:right;">
 
 0.8925498
+
+</td>
+
+<td style="text-align:right;">
+
+916.69802
 
 </td>
 

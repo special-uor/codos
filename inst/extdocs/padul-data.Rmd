@@ -1,16 +1,18 @@
 ---
 title: "Padul Data"
-output: github_document
+output: 
+  github_document:
+    pandoc_args: --webtex
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
-  dpi = 300, 
+  dpi = 600, 
   out.width = "100%",
   comment = "#>",
   fig.path = "man/figures/padul-",
-  fig.width = 10,
+  fig.width = 12,
   fig.height = 5
 )
 
@@ -108,24 +110,43 @@ knitr::kable(head(padul2, 10), "html")
 
 Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
 
+## Find the corrected Annual Precipitation, `P_ann`
+
+Approximated as the ratio
+
+$$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$
+multiplied by reconstructed `P_ann`.
+
+```{r}
+mi_ratio <- padul2$corrected_mi / padul2$recon_mi
+padul2$corrected_P_ann <- padul$P_ann * mi_ratio
+```
+
 ```{r, echo = FALSE}
 padul2 %>% 
   # dplyr::select(-c(past_co2_loess, corrected_mi_loess)) %>%
-  write.csv(file = "padul-with-corrected-mi.csv")
+  # dplyr::select(age, dplyr::starts_with("corrected")) %>%
+  write.csv(file = "padul-with-corrected-mi.csv",
+            row.names = FALSE)
+
+# Small subset
+knitr::kable(head(padul2, 10), "html")
 ```
+
+Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
 
 ## Plots
 
 #### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
 
 ```{r, echo = FALSE}
-df <- tibble::tibble(age = rep(padul2$age, 2),
-                     mi = c(padul2$recon_mi, 
-                            padul2$corrected_mi),
-                     var = rep(c("Reconstructed", 
-                                 "Corrected"), 
-                               each = nrow(padul2)))
-ggplot2::ggplot(df, ggplot2::aes(age, mi, colour = var)) +
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul2$recon_mi, 
+                     padul2$corrected_mi),
+               var = rep(c("Reconstructed", 
+                           "Corrected"), 
+                         each = nrow(padul2))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_line() +
   ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
@@ -137,35 +158,43 @@ ggplot2::ggplot(df, ggplot2::aes(age, mi, colour = var)) +
 - `age < 5k`
 
 ```{r, echo = FALSE}
-ggplot2::ggplot(df[df$age <= 5000, ], ggplot2::aes(age, mi, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
-  ggplot2::theme_bw()
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul2$recon_mi, 
+                     padul2$corrected_mi),
+               var = rep(c("Reconstructed", 
+                           "Corrected"), 
+                         each = nrow(padul2))) %>%
+  .[.$x < 5000, ] %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
+    ggplot2::theme_bw()
 ```
 
-#### Include past CO2 and Temperature
+##### Include past CO2 and Temperature
 
 ```{r, echo = FALSE, eval = TRUE}
-m0 <- padul2
-tibble::tibble(x = rep(m0$age, 2),
-               y = c(m0$recon_mi,
-                     m0$corrected_mi),
-               co2 = rep(m0$past_co2 / 100, 2),
-               past_temp = rep(m0$past_temp / 5, 2),
-               mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(Tmp - MI))"),
-                        each = nrow(m0))) %>%
-  # .[.$x < 20000, ] %>%
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul2$recon_mi,
+                     padul2$corrected_mi),
+               co2 = rep(padul2$past_co2 / 100, 2),
+               past_temp = rep(padul2$past_temp / 5, 2),
+               var = rep(c("MI: reconstructed",
+                           "MI: corrected"),
+                        each = nrow(padul2))) %>%
   ggplot2::ggplot() +
-  ggplot2::geom_line(ggplot2::aes(x, y, colour = mi)) +
-  ggplot2::geom_point(ggplot2::aes(x, co2), colour = "gold") +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp), colour = "black") +
-  # ggplot2::scale_fill_manual(name = "Other", values = c("CO2" = "gold",
-  #                                                         "Tmp" = "black")) +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                             values = c("past CO2 [1/100]" = "gold",
+                                        "Temp" = "black",
+                                        "MI: reconstructed" = "#E41A1C",
+                                        "MI: corrected" = "#377EB8")) +
+  # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
                               sec.axis = ggplot2::sec_axis(~.*5,
@@ -173,7 +202,7 @@ tibble::tibble(x = rep(m0$age, 2),
                                                            breaks = scales::pretty_breaks(15))
   ) +
   ggplot2::labs(x = "Age",
-  title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
 ```
@@ -181,21 +210,25 @@ tibble::tibble(x = rep(m0$age, 2),
 - `age < 5k`
 
 ```{r, echo = FALSE, eval = TRUE}
-m0 <- padul2
-tibble::tibble(x = rep(m0$age, 2),
-               y = c(m0$recon_mi,
-                     m0$corrected_mi),
-               co2 = rep(m0$past_co2 / 100, 2),
-               past_temp = rep(m0$past_temp / 5, 2),
-               mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(Tmp - MI))"),
-                        each = nrow(m0))) %>%
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul2$recon_mi,
+                     padul2$corrected_mi),
+               co2 = rep(padul2$past_co2 / 100, 2),
+               past_temp = rep(padul2$past_temp / 5, 2),
+               var = rep(c("MI: reconstructed",
+                           "MI: corrected"),
+                        each = nrow(padul2))) %>%
   .[.$x < 5000, ] %>%
   ggplot2::ggplot() +
-  ggplot2::geom_line(ggplot2::aes(x, y, colour = mi)) +
-  ggplot2::geom_point(ggplot2::aes(x, co2), colour = "gold") +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp), colour = "black") +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                             values = c("past CO2 [1/100]" = "gold",
+                                        "Temp" = "black",
+                                        "MI: reconstructed" = "#E41A1C",
+                                        "MI: corrected" = "#377EB8")) +
+  # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
                               sec.axis = ggplot2::sec_axis(~.*5,
@@ -203,8 +236,112 @@ tibble::tibble(x = rep(m0$age, 2),
                                                            breaks = scales::pretty_breaks(15))
   ) +
   ggplot2::labs(x = "Age",
-  title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
+  ggplot2::theme_bw()
+```
+
+#### Reconstructed vs corrected `P_ann`: Past CO2 calculated using `mean`
+
+```{r, echo = FALSE}
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul$P_ann, 
+                     padul2$corrected_P_ann),
+               var = rep(c("reconstructed", 
+                           "corrected"), 
+                         each = nrow(padul2))) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Set2") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", 
+                  y = "Annual precipitation [mm/year]") +
+    ggplot2::theme_bw()
+```
+
+- `age < 20k`
+
+```{r, echo = FALSE}
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul$P_ann, 
+                     padul2$corrected_P_ann),
+               var = rep(c("reconstructed", 
+                           "corrected"), 
+                         each = nrow(padul2))) %>%
+  .[.$x < 20000, ] %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Set2") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", 
+                  y = "Annual precipitation [mm/year]") +
+    ggplot2::theme_bw()
+```
+
+##### Include past CO2 and Temperature
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul$P_ann,
+                     padul2$corrected_P_ann),
+               co2 = rep(padul2$past_co2, 2),
+               past_temp = rep(padul2$past_temp * 100, 2),
+               var = rep(c("P_ann: reconstructed",
+                           "P_ann: corrected"),
+                        each = nrow(padul2))) %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2")) +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                             values = c("past CO2" = "gold",
+                                        "Temp" = "black",
+                                        "P_ann: reconstructed" = "#66C2A5",
+                                        "P_ann: corrected" = "#FC8D62")) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+                              sec.axis = ggplot2::sec_axis(~. / 100,
+                                                           name = "Temp [°C]",
+                                                           breaks = scales::pretty_breaks(15))
+  ) +
+  ggplot2::labs(x = "Age",
+  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+  y = "Annual precipitation [mm/year] and CO2 [ppm]") +
+  ggplot2::theme_bw()
+```
+
+- `age < 20k`
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul$P_ann,
+                     padul2$corrected_P_ann),
+               co2 = rep(padul2$past_co2, 2),
+               past_temp = rep(padul2$past_temp * 100, 2),
+               var = rep(c("P_ann: reconstructed",
+                           "P_ann: corrected"),
+                        each = nrow(padul2))) %>%
+  .[.$x < 20000, ] %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2")) +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                             values = c("past CO2" = "gold",
+                                        "Temp" = "black",
+                                        "P_ann: reconstructed" = "#66C2A5",
+                                        "P_ann: corrected" = "#FC8D62")) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+                              sec.axis = ggplot2::sec_axis(~. / 100,
+                                                           name = "Temp [°C]",
+                                                           breaks = scales::pretty_breaks(15))
+  ) +
+  ggplot2::labs(x = "Age",
+  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+  y = "Annual precipitation [mm/year] and CO2 [ppm]") +
   ggplot2::theme_bw()
 ```
 
@@ -247,51 +384,66 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
 ## A2. Plot reconstructed vs corrected `MI` both approaches
 
 ```{r, echo = FALSE}
-df <- tibble::tibble(age = rep(padul2$age, 3),
-                     mi = c(padul2$recon_mi, padul2$corrected_mi, padul2$corrected_mi_loess),
-                     var = rep(c("Reconstructed", "Corrected (mean)", "Corrected (loess)"), each = nrow(padul2)))
-ggplot2::ggplot(df, ggplot2::aes(age, mi, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
-  ggplot2::theme_bw()
+tibble::tibble(x = rep(padul2$age, 3),
+               y = c(padul2$recon_mi, 
+                     padul2$corrected_mi, 
+                     padul2$corrected_mi_loess),
+               var = rep(c("reconstructed", 
+                           "corrected (mean)", 
+                           "corrected (loess)"), 
+                         each = nrow(padul2))) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
+    ggplot2::theme_bw()
 ```
 
 - `age < 5k`
 
 ```{r, echo = FALSE}
-ggplot2::ggplot(df[df$age <= 5000, ], ggplot2::aes(age, mi, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
-  ggplot2::theme_bw()
+tibble::tibble(x = rep(padul2$age, 3),
+               y = c(padul2$recon_mi, 
+                     padul2$corrected_mi, 
+                     padul2$corrected_mi_loess),
+               var = rep(c("reconstructed", 
+                           "corrected (mean)", 
+                           "corrected (loess)"), 
+                         each = nrow(padul2))) %>%
+  .[.$x < 5000, ] %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
+    ggplot2::theme_bw()
 ```
 
 ## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess`
 #### Include past CO2 and Temperature
 
 ```{r, echo = FALSE, eval = TRUE}
-m0 <- padul2
-tibble::tibble(x = rep(m0$age, 2),
-               y = c(m0$recon_mi,
-                     m0$corrected_mi_loess),
-               co2 = rep(m0$past_co2_loess / 100, 2),
-               past_temp = rep(m0$past_temp / 5, 2),
-               mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(Tmp - MI))"),
-                        each = nrow(m0))) %>%
-  # .[.$x < 20000, ] %>%
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul2$recon_mi,
+                     padul2$corrected_mi_loess),
+               co2 = rep(padul2$past_co2_loess / 100, 2),
+               past_temp = rep(padul2$past_temp / 5, 2),
+               var = rep(c("MI: reconstructed",
+                           "MI: corrected"),
+                        each = nrow(padul2))) %>%
   ggplot2::ggplot() +
-  ggplot2::geom_line(ggplot2::aes(x, y, colour = mi)) +
-  ggplot2::geom_point(ggplot2::aes(x, co2), colour = "gold") +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp), colour = "black") +
-  # ggplot2::scale_fill_manual(name = "Other", values = c("CO2" = "gold",
-  #                                                         "Tmp" = "black")) +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                             values = c("past CO2 [1/100]" = "gold",
+                                        "Temp" = "black",
+                                        "MI: reconstructed" = "#E41A1C",
+                                        "MI: corrected" = "#377EB8")) +
+  # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
                               sec.axis = ggplot2::sec_axis(~.*5,
@@ -299,7 +451,7 @@ tibble::tibble(x = rep(m0$age, 2),
                                                            breaks = scales::pretty_breaks(15))
   ) +
   ggplot2::labs(x = "Age",
-  title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
 ```
@@ -307,21 +459,25 @@ tibble::tibble(x = rep(m0$age, 2),
 - `age < 5k`
 
 ```{r, echo = FALSE, eval = TRUE}
-m0 <- padul2
-tibble::tibble(x = rep(m0$age, 2),
-               y = c(m0$recon_mi,
-                     m0$corrected_mi_loess),
-               co2 = rep(m0$past_co2_loess / 100, 2),
-               past_temp = rep(m0$past_temp / 5, 2),
-               mi = rep(c("Reconstructed",
-                          "Corrected (vpd ~ exp(Tmp - MI))"),
-                        each = nrow(m0))) %>%
+tibble::tibble(x = rep(padul2$age, 2),
+               y = c(padul2$recon_mi,
+                     padul2$corrected_mi_loess),
+               co2 = rep(padul2$past_co2_loess / 100, 2),
+               past_temp = rep(padul2$past_temp / 5, 2),
+               var = rep(c("MI: reconstructed",
+                           "MI: corrected"),
+                        each = nrow(padul2))) %>%
   .[.$x < 5000, ] %>%
   ggplot2::ggplot() +
-  ggplot2::geom_line(ggplot2::aes(x, y, colour = mi)) +
-  ggplot2::geom_point(ggplot2::aes(x, co2), colour = "gold") +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp), colour = "black") +
-  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                             values = c("past CO2 [1/100]" = "gold",
+                                        "Temp" = "black",
+                                        "MI: reconstructed" = "#E41A1C",
+                                        "MI: corrected" = "#377EB8")) +
+  # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
                               sec.axis = ggplot2::sec_axis(~.*5,
@@ -329,7 +485,7 @@ tibble::tibble(x = rep(m0$age, 2),
                                                            breaks = scales::pretty_breaks(15))
   ) +
   ggplot2::labs(x = "Age",
-  title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
 ```
@@ -338,17 +494,20 @@ tibble::tibble(x = rep(m0$age, 2),
 
 ```{r, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age, 2),
-                     y = c(padul2$past_co2,
-                           padul2$past_co2_loess),
-                     var = rep(c("Mean", 
-                                 "LOESS (span = 0.1)"), 
-                               each = nrow(padul2))) %>%
+               y = c(padul2$past_co2,
+                     padul2$past_co2_loess),
+               var = rep(c("Mean", 
+                           "LOESS (span = 0.1)"), 
+                         each = nrow(padul2))) %>%
   ggplot2::ggplot() +
     ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= max(padul2$age), ],
-                       ggplot2::aes(age_gas_calBP, co2_ppm, colour = "ice-core")) +
+                       ggplot2::aes(age_gas_calBP, 
+                                    co2_ppm, 
+                                    colour = "ice-core")) +
     ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
     # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
-    ggplot2::scale_colour_manual(name = "past CO2", values = c("Gold", "#E41A1C", "#377EB8")) +
+    ggplot2::scale_colour_manual(name = "past CO2", 
+                                 values = c("Gold", "#E41A1C", "#377EB8")) +
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(10)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(10)) +
     ggplot2::labs(x = "Age [cal yr BP]",
