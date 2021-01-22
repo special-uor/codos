@@ -166,7 +166,7 @@ f <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
 #'
 #' @param age Numeric value with the \code{age}.
 #' @param ref Reference data frame containing ice core composite
-#'     information, defaults to \code{\link{codos::ice_core}}:
+#'     information, defaults to \code{codos::ice_core}:
 #'
 #' Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C., Stocker, T. F.,
 #' Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015), Revision of the EPICA
@@ -228,14 +228,8 @@ past_co2 <- function(age,
 #'
 #' Find past CO2 linked to a given \code{age} using \code{loess}.
 #'
-#' @param age Numeric value with the \code{age}.
-#' @param ref Reference data frame containing ice core composite
-#'     information, defaults to \code{\link{codos::ice_core}}:
-#'
-#' Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C., Stocker, T. F.,
-#' Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015), Revision of the EPICA
-#' Dome C CO2 record from 800 to 600 kyr before present, Geophys. Res. Lett.,
-#' 42, 542– 549, <doi:10.1002/2014GL061957>.
+#' @importFrom stats loess predict
+#' @inheritParams past_co2
 #' @param span Numeric value, \eqn{\alpha}, which controls the degree of
 #' smoothing.
 #' @param ... Extra arguments passed to \code{\link[stats:loess]{stats::loess}}.
