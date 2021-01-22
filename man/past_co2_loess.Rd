@@ -10,7 +10,7 @@ past_co2_loess(age, ref = codos::ice_core, span = 0.1, ...)
 \item{age}{Numeric value with the \code{age}.}
 
 \item{ref}{Reference data frame containing ice core composite
-information, defaults to \code{\link{codos::ice_core}}:
+information, defaults to \code{codos::ice_core}:
 
 Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C., Stocker, T. F.,
 Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015), Revision of the EPICA
