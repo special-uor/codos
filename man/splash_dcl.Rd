@@ -20,7 +20,3 @@ Calculate solar declination
 Calculate solar declination angle in degrees using SPLASH V1.0:
 \url{https://doi.org/10.5281/zenodo.376293}.
 }
-\examples{
-splash_dcl(1960)
-splash_dcl(1961)
-}

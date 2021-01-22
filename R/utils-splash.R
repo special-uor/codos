@@ -114,9 +114,6 @@ splash_evap <- function(filename,
 #' given year.
 #'
 #' @export
-#' @examples
-#' splash_dcl(1960)
-#' splash_dcl(1961)
 splash_dcl <- function(year) {
   # Adjust the number of days based on the given year
   days <- 365
