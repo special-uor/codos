@@ -148,6 +148,7 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
 #' @return @return Numeric vector with the interpolated values, this one has the same
 #'     length as the total sum of month_len.
 #' @keywords internal
+#' @noRd
 int_acm2 <- function(y_points, month_len) {
   MN <- rep(y_points, times = month_len)
   new_MN <- MN
@@ -162,7 +163,6 @@ int_acm2 <- function(y_points, month_len) {
   new_MN
 }
 
-
 #' Monthly to daily interpolation
 #'
 #' @importFrom foreach "%dopar%"
@@ -172,9 +172,7 @@ int_acm2 <- function(y_points, month_len) {
 #' @param thr Numeric value with the temporal length of the output, in months.
 #'
 #' @return Numeric value for the daily values interpolated.
-#' @export
-#'
-# @examples
+#' @keywords internal
 m2d <- function(data, time, cpus = 2, thr = 12) {
   # Local binding
   i <- NULL
@@ -212,7 +210,8 @@ m2d <- function(data, time, cpus = 2, thr = 12) {
 #' @param invert Boolean flag to indicate if the vector should be inverted.
 #'
 #' @return Shifted numeric vector.
-#' @export
+#' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' shift(c(1:10), 2)

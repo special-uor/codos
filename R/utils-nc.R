@@ -83,7 +83,7 @@ convert_units <- function(filename,
 #'
 #' @inheritParams convert_units
 #'
-#' @export
+#' @keywords internal
 convert_units.m2d <- function(filename,
                               varid,
                               timeid = "time",
@@ -204,7 +204,7 @@ daily_temp <- function(tmin,
 #' @param dates Vector of strings with dates.
 #'
 #' @return Numeric vector with the dates in each month linked to each date.
-#' @export
+#' @keywords internal
 days_in_month <- function(dates) {
   unname(lubridate::days_in_month(dates))
 }
@@ -216,7 +216,7 @@ days_in_month <- function(dates) {
 #' @return List with dimensions (latitude, longitude, and time) and selected
 #' variable (varid).
 #'
-#' @export
+#' @keywords internal
 extract_data <- function(filename,
                          varid,
                          s_year = NULL,
@@ -270,7 +270,7 @@ extract_data <- function(filename,
 
 #' Find growing degree days above \code{thr}
 #'
-#' ind growing degree days above \code{thr} and save output to a netCDF file.
+#' Find growing degree days above \code{thr} and save output to a netCDF file.
 #' @inheritParams nc_gs
 #' @export
 gdd0 <- function(filename,
@@ -306,7 +306,7 @@ gdd0 <- function(filename,
 #' @param scale_factor Numeric value with scale factor (units conversion).
 #' @inheritParams convert_units
 #'
-#' @export
+#' @keywords internal
 #'
 #' @details
 #' A GRIM file is a structured ASCII file, that was used for early versions of
@@ -397,15 +397,16 @@ grim2nc <- function(filename,
 #' @param day Numeric value with the day (1-31).
 #'
 #' @return Numeric value with the Julian day.
-#' @export
+#' @keywords internal
 #'
 #' @examples
 #' # 13 Aug 2014 (expected 2456882)
-#' julian_day(2014, 8, 13)
+#' codos:::julian_day(2014, 8, 13)
 #'
 #' @references
 #' Meeus, J. (1991). Astronomical algorithms. 1st ed.
 #' Virginia: Willmann-Bell, Inc. (cit. on pp. 13, 43).
+#' @noRd
 julian_day <- function(year, month, day) {
   if (month <= 2) {
     year <- year - 1
@@ -587,7 +588,6 @@ nc_gs <- function(filename,
   # Load land-sea mask
   land_mask <- codos::land_mask
 
-
   # Check filter variable
   if (is.null(filter))
     filter <- var$data
@@ -605,10 +605,9 @@ nc_gs <- function(filename,
   idx <- data.frame(i = seq_len(length(lon$data)),
                     j = rep(seq_along(lat$data), each = length(lon$data)))
   message("Calculating growing season...")
-  pb <- progress::progress_bar$new(
-    format = "(:current/:total) [:bar] :percent",
-    total = nrow(idx), clear = TRUE, width = 80)
-  progress <- function(n) pb$tick()
+  # Set up progressr API
+  p <- progressr::progressor(along = seq_len(nrow(idx)))
+  progress <- function(n) p()
   opts <- list(progress = progress)
   output <- foreach::foreach(k = seq_len(nrow(idx)),
                              .combine = cbind,
@@ -623,14 +622,11 @@ nc_gs <- function(filename,
                                  rep(FALSE, length(time$data))
                                }
                              }
+
   message("Done calculating growing season.")
   message("Reshaping output...")
   gs <- array(NA, dim = dim(var$data)[1:2])
-  pb <- progress::progress_bar$new(
-    format = "(:current/:total) [:bar] :percent",
-    total = nrow(idx), clear = TRUE, width = 60)
   for (k in seq_len(nrow(idx))) {
-    pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
     if (any(!is.na(var$data[i, j, output[, k]])))
@@ -668,7 +664,7 @@ nc_gs <- function(filename,
 #'
 #' @inheritParams monthly_clim
 #'
-#' @export
+#' @keywords internal
 nc_int <- function(filename,
                    varid,
                    timeid = "time",
@@ -991,7 +987,7 @@ nc_regrid <- function(filename,
 #' @param cpus Number of CPUs to use for the computation.
 #' @param overwrite Boolean flag to indicate if the output file should be
 #'     overwritten (if it exists).
-#' @export
+#' @keywords internal
 nc_Tg <- function(filename,
                   dcl,
                   tmn,
@@ -1135,12 +1131,11 @@ nc_var_get <- function(filename, varid, is.dim = FALSE) {
 #' Calculate vapour pressure deficit and save output to a netCDF file.
 #' @importFrom foreach "%dopar%"
 #'
-#' @param Tg 3D structure with potential evapotranspiration data. These values
-#'     can be calculated with the function \code{\link{splash_evap}}.
+#' @param Tg 3D structure with mean daytime temperature values.
 #' @param vap 3D structure with vapour data.
 #' @param output_filename Output filename.
 #' @inheritParams nc_Tg
-#' @export
+#' @keywords internal
 nc_vpd <- function(filename,
                    Tg,
                    vap,
@@ -1249,7 +1244,7 @@ nc_vpd <- function(filename,
 #'     should be generated.
 #'
 #' @return Tibble with the time and mean values.
-#' @export
+#' @keywords internal
 nc2ts <- function(filename,
                   varid,
                   timeid = "time",

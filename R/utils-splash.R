@@ -114,23 +114,7 @@ splash_evap <- function(filename,
 #' given year.
 #'
 #' @export
-#' @examples
-#' splash_dcl(1960)
-#' splash_dcl(1961)
 splash_dcl <- function(year) {
-# splash_dcl <- function(filename,
-#                        year,
-#                        lat = NULL,
-#                        lon = NULL,
-#                        overwrite = TRUE) {
-  # # Check if the spatial dimensions were passed
-  # if (is.null(lat))
-  #   data("lat", envir = environment())
-  # if (is.null(lon))
-  #   data("lon", envir = environment())
-  # # Load land-sea mask
-  # data("land_mask", envir = environment())
-
   # Adjust the number of days based on the given year
   days <- 365
   if (lubridate::leap_year(as.Date(paste0(year, "-01-01"))))

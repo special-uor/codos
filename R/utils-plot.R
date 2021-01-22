@@ -4,6 +4,7 @@
 #'
 #' @return String with latitude and corresponding direction suffix.
 #' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' codos:::lat_lab(-30)
@@ -22,6 +23,7 @@ lat_lab <- function(x) {
 #'
 #' @return String with longitude and corresponding direction suffix.
 #' @keywords internal
+#' @noRd
 #'
 #' @examples
 #' codos:::lon_lab(-30)

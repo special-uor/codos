@@ -32,6 +32,7 @@ f <- function(u, t0) {
 #' @examples
 #' codos:::find_u(-4525.758, -1, 0.9999999)
 #' codos:::find_u(-9613.333, -1, 0.9999999)
+#' @noRd
 find_u <- function(t0, min_u = -1, max_u = 0.9999999999999, method = "Brent") {
   optim(par = 0, fn = f, t0 = t0, method = method, lower = min_u, upper = max_u)
 }
