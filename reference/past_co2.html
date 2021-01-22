@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • codos</title>
+<title>Find past CO2 — past_co2 • codos</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Find past CO2 — past_co2" />
+<meta property="og:description" content="Find past CO2 linked to a given age." />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -100,124 +101,62 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Find past CO2</h1>
+    
+    <div class="hidden name"><code>past_co2.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Find past CO2 linked to a given <code>age</code>.</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>past_co2</span><span class='op'>(</span><span class='va'>age</span>, ref <span class='op'>=</span> <span class='fu'>codos</span><span class='fu'>::</span><span class='va'><a href='ice_core.html'>ice_core</a></span>, digits <span class='op'>=</span> <span class='fl'>2</span>, use_loess <span class='op'>=</span> <span class='cn'>FALSE</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="P_model_inverter.html">P_model_inverter</a></code> </p>
-        </td>
-        <td><p>P-model inverter class</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="corrected_mi.html">corrected_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate corrected moisture index (MI)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="daily_temp.html">daily_temp()</a></code> </p>
-        </td>
-        <td><p>Calculate daily temperature from \(T_{min}\) and \(T_{max}\)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="gdd0.html">gdd0()</a></code> </p>
-        </td>
-        <td><p>Find growing degree days above <code>thr</code></p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="int_acm.html">int_acm()</a></code> </p>
-        </td>
-        <td><p>Mean-preserving autoregressive interpolation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="monthly_clim.html">monthly_clim()</a></code> </p>
-        </td>
-        <td><p>Create monthly climatology</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_gs.html">nc_gs()</a></code> </p>
-        </td>
-        <td><p>Find growing season</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_mi.html">nc_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate moisture index</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="past_co2.html">past_co2()</a></code> </p>
-        </td>
-        <td><p>Find past CO2</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pb.html">pb()</a></code> </p>
-        </td>
-        <td><p>Show progress bar</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="retime.html">retime()</a></code> </p>
-        </td>
-        <td><p>Change time axis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_dcl.html">splash_dcl()</a></code> </p>
-        </td>
-        <td><p>Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_evap.html">splash_evap()</a></code> </p>
-        </td>
-        <td><p>Calculate potential evapotranspiration
-Calculate potential evapotranspiration in mm using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="vpd.html">vpd()</a></code> </p>
-        </td>
-        <td><p>Vapour-pressure deficit (Pa)</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>age</th>
+      <td><p>Numeric value with the <code>age</code>.</p></td>
+    </tr>
+    <tr>
+      <th>ref</th>
+      <td><p>Reference data frame containing ice core composite
+information, defaults to <code><a href='ice_core.html'>codos::ice_core</a></code>:</p>
+<p>Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C., Stocker, T. F.,
+Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015), Revision of the EPICA
+Dome C CO2 record from 800 to 600 kyr before present, Geophys. Res. Lett.,
+42, 542– 549, <a href='doi:10.1002/2014GL061957'>doi:10.1002/2014GL061957</a>.</p></td>
+    </tr>
+    <tr>
+      <th>digits</th>
+      <td><p>Number of significant digits used to match <code>age</code> to
+the age values in <code>ref</code>.</p></td>
+    </tr>
+    <tr>
+      <th>use_loess</th>
+      <td><p>Boolean flag to indicate whether to use a LOESS smoothing
+(<code>TRUE</code>) or use adjacent records to find the corresponding value of
+CO2 (<code>FALSE</code>).</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Extra arguments passed to <code><a href='https://rdrr.io/r/stats/loess.html'>stats::loess</a></code>.</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>Numeric value of CO2 linked to the given <code>age</code>.</p>
+
+    <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
+    <pre class="examples"><div class='input'><span class='fu'>codos</span><span class='fu'>::</span><span class='fu'>past_co2</span><span class='op'>(</span><span class='op'>-</span><span class='fl'>47</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 360.715</div><div class='input'><span class='fu'>codos</span><span class='fu'>::</span><span class='fu'>past_co2</span><span class='op'>(</span><span class='op'>-</span><span class='fl'>47</span>, use_loess <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 346.3537</div><div class='input'><span class='fu'>codos</span><span class='fu'>::</span><span class='fu'>past_co2</span><span class='op'>(</span><span class='op'>-</span><span class='fl'>47</span>, use_loess <span class='op'>=</span> <span class='cn'>TRUE</span>, span <span class='op'>=</span> <span class='fl'>0.05</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; [1] 361.2376</div></pre>
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>

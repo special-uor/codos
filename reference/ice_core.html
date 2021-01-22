@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • codos</title>
+<title>Antarctic Ice Cores Revised 800KYr CO2 dataset — ice_core • codos</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Antarctic Ice Cores Revised 800KYr CO2 dataset — ice_core" />
+<meta property="og:description" content="A dataset containing information of Antarctic ice cores revised 800KYr CO2." />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -100,124 +101,87 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Antarctic Ice Cores Revised 800KYr CO2 dataset</h1>
+    
+    <div class="hidden name"><code>ice_core.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>A dataset containing information of Antarctic ice cores revised 800KYr CO2.</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>ice_core</span><span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="P_model_inverter.html">P_model_inverter</a></code> </p>
-        </td>
-        <td><p>P-model inverter class</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="corrected_mi.html">corrected_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate corrected moisture index (MI)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="daily_temp.html">daily_temp()</a></code> </p>
-        </td>
-        <td><p>Calculate daily temperature from \(T_{min}\) and \(T_{max}\)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="gdd0.html">gdd0()</a></code> </p>
-        </td>
-        <td><p>Find growing degree days above <code>thr</code></p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="int_acm.html">int_acm()</a></code> </p>
-        </td>
-        <td><p>Mean-preserving autoregressive interpolation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="monthly_clim.html">monthly_clim()</a></code> </p>
-        </td>
-        <td><p>Create monthly climatology</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_gs.html">nc_gs()</a></code> </p>
-        </td>
-        <td><p>Find growing season</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_mi.html">nc_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate moisture index</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="past_co2.html">past_co2()</a></code> </p>
-        </td>
-        <td><p>Find past CO2</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pb.html">pb()</a></code> </p>
-        </td>
-        <td><p>Show progress bar</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="retime.html">retime()</a></code> </p>
-        </td>
-        <td><p>Change time axis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_dcl.html">splash_dcl()</a></code> </p>
-        </td>
-        <td><p>Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_evap.html">splash_evap()</a></code> </p>
-        </td>
-        <td><p>Calculate potential evapotranspiration
-Calculate potential evapotranspiration in mm using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="vpd.html">vpd()</a></code> </p>
-        </td>
-        <td><p>Vapour-pressure deficit (Pa)</p></td>
-      </tr>
-    </tbody>
-    </table>
+
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+
+    <p>A data frame with 1901 rows and 3 variables, each description has
+9 components: what, material, error, units, seasonality, archive, detail,
+method, C or N for Character or Numeric data.</p><dl>
+<dt>age_gas_calBP</dt><dd><p>age, gas, , calendar years before present, , , ,
+AICC2012 except for Law Dome WAIS and Siple Dome, N.</p></dd>
+<dt>co2_ppm</dt><dd><p>CO2 concentration, , , ppmv, , , corrected, , N</p></dd>
+<dt>co2_1s_ppm</dt><dd><p>CO2 concentration sigma mean, , , ppmv, , , Where no
+individual sigma is given we use average for system/record, , N</p></dd>
+
+</dl>
+
+    <h2 class="hasAnchor" id="source"><a class="anchor" href="#source"></a>Source</h2>
+
+    <p><a href='ftp://ftp.ncdc.noaa.gov/pub/data/paleo/icecore/antarctica/antarctica2015co2composite.txt'>ftp://ftp.ncdc.noaa.gov/pub/data/paleo/icecore/antarctica/antarctica2015co2composite.txt</a></p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>Revised EPICA Dome C and Antarctic composite ice core atmospheric
+CO2 data. This new version of CO2 composite replaces the old version of
+Luthi et al. (2008), which contains the analytical bias described in
+Bereiter et al. 2015 and lower quality data in other sections. For details
+about the improvements relative to the previous version see supplementary
+information of Bereiter et al. 2015. For detailed references of all records
+refer to the supplemetary information of Bereiter et al. 2015. For latest
+anthropogenic data refer to NOAA/Mauna Loa record. Age unit is in years
+before present (yr BP) where present refers to 1950 AD. Note, not all
+records shown in Excel worksheet "all records" are part of the composite.</p>
+    <h2 class="hasAnchor" id="notes"><a class="anchor" href="#notes"></a>Notes</h2>
+
+    
+
+<p>Composite built from the following:</p><ul>
+<li><p>-51-1800 yr BP: Law Dome (Rubino et al., 2013)</p></li>
+<li><p>1.8-2 kyr BP:	Law Dome (MacFarling Meure et al., 2006)</p></li>
+<li><p>2-11 kyr BP:	Dome C (Monnin et al., 2001 + 2004)</p></li>
+<li><p>11-22 kyr BP:	WAIS (Marcott et al., 2014) minus 4 ppmv (see text)</p></li>
+<li><p>22-40 kyr BP:	Siple Dome (Ahn et al., 2014)</p></li>
+<li><p>40-60 kyr BP:	TALDICE (Bereiter et al., 2012)</p></li>
+<li><p>60-115 kyr BP:	EDML (Bereiter et al., 2012)</p></li>
+<li><p>105-155 kyr BP:	Dome C Sublimation (Schneider et al., 2013)</p></li>
+<li><p>155-393 kyr BP:	Vostok (Petit et al., 1999)</p></li>
+<li><p>393-611 kyr BP:	Dome C (Siegenthaler et al., 2005)</p></li>
+<li><p>612-800 kyr BP:	Dome C (Bereiter et al., 2014)</p></li>
+</ul>
+
+<p>If millennial scale or smaller details of the composite are studied, we
+recommend to look into all records available	for that period and not only in
+the composite.</p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>Bereiter, B., Eggleston, S., Schmitt, J., Nehrbass‐Ahles, C., Stocker, T. F.,
+Fischer, H., Kipfstuhl, S., and Chappellaz, J. (2015), Revision of the EPICA
+Dome C CO2 record from 800 to 600 kyr before present, Geophys. Res. Lett.,
+42, 542– 549, <a href='doi:10.1002/2014GL061957'>doi:10.1002/2014GL061957</a>.</p>
+    <h2 class="hasAnchor" id="author"><a class="anchor" href="#author"></a>Author</h2>
+
+    <p>Bernhard Bereiter <a href='mailto:bbereiter@ucsd.edu'>bbereiter@ucsd.edu</a></p>
+<p>Sarah Eggleston</p>
+<p>Jochen Schmitt</p>
+<p>Christoph Nehrbass-Ahles</p>
+<p>Thomas F. Stocker</p>
+<p>Hubertus Fischer</p>
+<p>Sepp Kipfstuhl</p>
+<p>Jerome Chappellaz</p>
+
   </div>
-
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>

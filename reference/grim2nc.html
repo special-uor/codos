@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • codos</title>
+<title>Convert GRIM file to netCDF — grim2nc • codos</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,8 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Convert GRIM file to netCDF — grim2nc" />
+<meta property="og:description" content="Convert GRIM file to netCDF" />
 
 
 
@@ -58,7 +59,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -100,124 +101,84 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Convert GRIM file to netCDF</h1>
+    
+    <div class="hidden name"><code>grim2nc.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>Convert GRIM file to netCDF</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'>grim2nc</span><span class='op'>(</span>
+  <span class='va'>filename</span>,
+  <span class='va'>varid</span>,
+  longname <span class='op'>=</span> <span class='cn'>NULL</span>,
+  scale_factor <span class='op'>=</span> <span class='fl'>10</span><span class='op'>^</span><span class='fl'>3</span>,
+  units <span class='op'>=</span> <span class='st'>"m"</span>,
+  lat <span class='op'>=</span> <span class='cn'>NULL</span>,
+  lon <span class='op'>=</span> <span class='cn'>NULL</span>,
+  FUN <span class='op'>=</span> <span class='va'>`*`</span>,
+  overwrite <span class='op'>=</span> <span class='cn'>TRUE</span>,
+  output_filename <span class='op'>=</span> <span class='cn'>NULL</span>
+<span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="P_model_inverter.html">P_model_inverter</a></code> </p>
-        </td>
-        <td><p>P-model inverter class</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="corrected_mi.html">corrected_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate corrected moisture index (MI)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="daily_temp.html">daily_temp()</a></code> </p>
-        </td>
-        <td><p>Calculate daily temperature from \(T_{min}\) and \(T_{max}\)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="gdd0.html">gdd0()</a></code> </p>
-        </td>
-        <td><p>Find growing degree days above <code>thr</code></p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="int_acm.html">int_acm()</a></code> </p>
-        </td>
-        <td><p>Mean-preserving autoregressive interpolation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="monthly_clim.html">monthly_clim()</a></code> </p>
-        </td>
-        <td><p>Create monthly climatology</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_gs.html">nc_gs()</a></code> </p>
-        </td>
-        <td><p>Find growing season</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_mi.html">nc_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate moisture index</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="past_co2.html">past_co2()</a></code> </p>
-        </td>
-        <td><p>Find past CO2</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pb.html">pb()</a></code> </p>
-        </td>
-        <td><p>Show progress bar</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="retime.html">retime()</a></code> </p>
-        </td>
-        <td><p>Change time axis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_dcl.html">splash_dcl()</a></code> </p>
-        </td>
-        <td><p>Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_evap.html">splash_evap()</a></code> </p>
-        </td>
-        <td><p>Calculate potential evapotranspiration
-Calculate potential evapotranspiration in mm using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="vpd.html">vpd()</a></code> </p>
-        </td>
-        <td><p>Vapour-pressure deficit (Pa)</p></td>
-      </tr>
-    </tbody>
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>filename</th>
+      <td><p>Filename for the netCDF input (relative or absolute path).</p></td>
+    </tr>
+    <tr>
+      <th>varid</th>
+      <td><p>String with the main variable identifier.</p></td>
+    </tr>
+    <tr>
+      <th>longname</th>
+      <td><p>String with the output variable's long name.</p></td>
+    </tr>
+    <tr>
+      <th>scale_factor</th>
+      <td><p>Numeric value with scale factor (units conversion).</p></td>
+    </tr>
+    <tr>
+      <th>units</th>
+      <td><p>String with the output units.</p></td>
+    </tr>
+    <tr>
+      <th>lat</th>
+      <td><p>Numeric vector with the latitude values.</p></td>
+    </tr>
+    <tr>
+      <th>lon</th>
+      <td><p>Numeric vector with the longitude values.</p></td>
+    </tr>
+    <tr>
+      <th>FUN</th>
+      <td><p>Infix function to perform the conversion.</p></td>
+    </tr>
+    <tr>
+      <th>overwrite</th>
+      <td><p>Boolean flag to indicate if the output file should be
+overwritten (if it exists).</p></td>
+    </tr>
+    <tr>
+      <th>output_filename</th>
+      <td><p>Output filename.</p></td>
+    </tr>
     </table>
-  </div>
 
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>A GRIM file is a structured ASCII file, that was used for early versions of
+the CRU TS data-set. This function is particularly useful to parse the
+elevations file provided here:
+<a href='https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html'>https://crudata.uea.ac.uk/~timm/grid/CRU_TS_2_0.html</a></p>
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>

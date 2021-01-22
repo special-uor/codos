@@ -95,18 +95,18 @@ vpd = 4.589 \times \exp(0.0611 \times tmp - 0.87 \times mi)
 </ol>
 <!-- end list --><div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Monthly climatology for `tmn`</span>
-<span class="fu">codos</span><span class="fu">::</span><span class="fu">monthly_clim</span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.tmn.dat.nc"</span>, <span class="st">"tmn"</span>, <span class="fl">1961</span>, <span class="fl">1990</span><span class="op">)</span></code></pre></div>
+<span class="fu">codos</span><span class="fu">::</span><span class="fu"><a href="reference/monthly_clim.html">monthly_clim</a></span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.tmn.dat.nc"</span>, <span class="st">"tmn"</span>, <span class="fl">1961</span>, <span class="fl">1990</span><span class="op">)</span></code></pre></div>
 <ol>
 <li>Interpolate the monthly data to daily. Variables used: <code>cld</code>, <code>pre</code>, <code>tmn</code>, <code>tmx</code>, <code>vap</code>.</li>
 </ol>
 <!-- end list --><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="co"># Monthly to daily interpolation for `tmn`</span>
-<span class="fu">codos</span><span class="fu">::</span><span class="fu">nc_int</span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990.nc"</span>, <span class="st">"tmn"</span><span class="op">)</span></code></pre></div>
+<span class="fu">codos</span><span class="fu">::</span><span class="fu"><a href="reference/nc_int.html">nc_int</a></span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990.nc"</span>, <span class="st">"tmn"</span><span class="op">)</span></code></pre></div>
 <ol>
 <li>Calculate daily temperature. Variables used: <code>tmn</code> and <code>tmx</code>.</li>
 </ol>
 <!-- end list --><div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">codos</span><span class="fu">::</span><span class="fu">daily_temp</span><span class="op">(</span>tmin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>filename <span class="op">=</span> <span class="st">"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"</span>,
+<code class="sourceCode R"><span class="fu">codos</span><span class="fu">::</span><span class="fu"><a href="reference/daily_temp.html">daily_temp</a></span><span class="op">(</span>tmin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>filename <span class="op">=</span> <span class="st">"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"</span>,
                               id <span class="op">=</span> <span class="st">"tmn"</span><span class="op">)</span>,
                   tmax <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span>filename <span class="op">=</span> <span class="st">"cru_ts4.04.1901.2019.tmx.dat-clim-1961-1990-int.nc"</span>, 
                               id <span class="op">=</span> <span class="st">"tmx"</span><span class="op">)</span>,
@@ -115,30 +115,30 @@ vpd = 4.589 \times \exp(0.0611 \times tmp - 0.87 \times mi)
 <li>Calculate mean growing season for daily temperature</li>
 </ol>
 <!-- end list --><div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu">codos</span><span class="fu">::</span><span class="fu">nc_gs</span><span class="op">(</span><span class="st">"cru_ts4.04-clim-1961-1990-daily.tmp.nc"</span>, <span class="st">"tmp"</span>, thr <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span class="fu">codos</span><span class="fu">::</span><span class="fu"><a href="reference/nc_gs.html">nc_gs</a></span><span class="op">(</span><span class="st">"cru_ts4.04-clim-1961-1990-daily.tmp.nc"</span>, <span class="st">"tmp"</span>, thr <span class="op">=</span> <span class="fl">0</span><span class="op">)</span></code></pre></div>
 <ol>
 <li>Calculate potential evapotranspiration (<code>pet</code>)</li>
 </ol>
 <!-- end list --><div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">elv</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu">nc_var_get</span><span class="op">(</span><span class="st">"halfdeg.elv.nc"</span>, <span class="st">"elv"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
-<span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu">nc_var_get</span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.daily.tmp.nc"</span>, <span class="st">"tmp"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
-<span class="va">cld</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu">nc_var_get</span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"</span>, <span class="st">"cld"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
+<code class="sourceCode R"><span class="va">elv</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu"><a href="reference/nc_var_get.html">nc_var_get</a></span><span class="op">(</span><span class="st">"halfdeg.elv.nc"</span>, <span class="st">"elv"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
+<span class="va">tmp</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu"><a href="reference/nc_var_get.html">nc_var_get</a></span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.daily.tmp.nc"</span>, <span class="st">"tmp"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
+<span class="va">cld</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu"><a href="reference/nc_var_get.html">nc_var_get</a></span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"</span>, <span class="st">"cld"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
 
-<span class="fu">codos</span><span class="fu">::</span><span class="fu">splash_evap</span><span class="op">(</span>output_filename <span class="op">=</span> <span class="st">"cru_ts4.04-clim-1961-1990-pet.nc"</span>, 
+<span class="fu">codos</span><span class="fu">::</span><span class="fu"><a href="reference/splash_evap.html">splash_evap</a></span><span class="op">(</span>output_filename <span class="op">=</span> <span class="st">"cru_ts4.04-clim-1961-1990-pet.nc"</span>, 
                    <span class="va">elv</span>, <span class="co"># Elevation, 720x360 grid </span>
                    sf <span class="op">=</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">cld</span> <span class="op">/</span> <span class="fl">100</span>, 
                    <span class="va">tmp</span>, 
                    year <span class="op">=</span> <span class="fl">1961</span>, <span class="co"># Reference year </span>
-                   lat <span class="op">=</span> <span class="fu">codos</span><span class="fu">::</span><span class="va">lat</span>, 
-                   lon <span class="op">=</span> <span class="fu">codos</span><span class="fu">::</span><span class="va">lon</span><span class="op">)</span></code></pre></div>
+                   lat <span class="op">=</span> <span class="fu">codos</span><span class="fu">::</span><span class="va"><a href="reference/lat.html">lat</a></span>, 
+                   lon <span class="op">=</span> <span class="fu">codos</span><span class="fu">::</span><span class="va"><a href="reference/lon.html">lon</a></span><span class="op">)</span></code></pre></div>
 <ol>
 <li>Calculate moisture index (<code>mi</code>)</li>
 </ol>
 <p><img src="https://latex.codecogs.com/png.latex?MI_%7Bi%2Cj%7D%20%3D%20%5Cfrac%7B%5Ctext%7BTotal%20precipitation%7D%7D%7B%5Ctext%7BTotal%20PET%7D%7D%20%22MI_%7Bi,j%7D%20=%20%5Cfrac%7B%5Ctext%7BTotal%20precipitation%7D%7D%7B%5Ctext%7BTotal%20PET%7D%7D%22" alt="MI_{i,j} = \frac{\text{Total precipitation}}{\text{Total PET}}"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">pet</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu">nc_var_get</span><span class="op">(</span><span class="st">"cru_ts4.04-clim-1961-1990-pet.nc"</span>, <span class="st">"pet"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
-<span class="va">pre</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu">nc_var_get</span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"</span>, <span class="st">"pre"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
-<span class="fu">codos</span><span class="fu">::</span><span class="fu">nc_mi</span><span class="op">(</span>output_filename <span class="op">=</span> <span class="st">"cru_ts4.04-clim-1961-1990-mi.nc"</span>, 
+<code class="sourceCode R"><span class="va">pet</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu"><a href="reference/nc_var_get.html">nc_var_get</a></span><span class="op">(</span><span class="st">"cru_ts4.04-clim-1961-1990-pet.nc"</span>, <span class="st">"pet"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
+<span class="va">pre</span> <span class="op">&lt;-</span> <span class="fu">codos</span><span class="fu">:::</span><span class="fu"><a href="reference/nc_var_get.html">nc_var_get</a></span><span class="op">(</span><span class="st">"cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"</span>, <span class="st">"pre"</span><span class="op">)</span><span class="op">$</span><span class="va">data</span>
+<span class="fu">codos</span><span class="fu">::</span><span class="fu"><a href="reference/nc_mi.html">nc_mi</a></span><span class="op">(</span>output_filename <span class="op">=</span> <span class="st">"cru_ts4.04-clim-1961-1990-mi.nc"</span>, 
              <span class="va">pet</span>, <span class="co"># potential evapotranspiration</span>
              <span class="va">pre</span><span class="op">)</span> <span class="co"># precipitation</span></code></pre></div>
 </div>

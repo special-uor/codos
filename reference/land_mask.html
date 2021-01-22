@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • codos</title>
+<title>CRU TS 4.04 Landmask dataset — land_mask • codos</title>
 
 
 <!-- jquery -->
@@ -39,7 +39,9 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="CRU TS 4.04 Landmask dataset — land_mask" />
+<meta property="og:description" content="A dataset containing information of land mask with a grid of 0.5 by 0.5
+degrees resolution. TRUE values represent a land grid cell." />
 
 
 
@@ -58,7 +60,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -100,124 +102,43 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>CRU TS 4.04 Landmask dataset</h1>
+    
+    <div class="hidden name"><code>land_mask.Rd</code></div>
     </div>
 
-    <table class="ref-index">
+    <div class="ref-description">
+    <p>A dataset containing information of land mask with a grid of 0.5 by 0.5
+degrees resolution. <code>TRUE</code> values represent a land grid cell.</p>
+    </div>
 
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
+    <pre class="usage"><span class='fu'><a href='https://rdrr.io/r/utils/data.html'>data</a></span><span class='op'>(</span><span class='va'>land_mask</span><span class='op'>)</span></pre>
 
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="P_model_inverter.html">P_model_inverter</a></code> </p>
-        </td>
-        <td><p>P-model inverter class</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="corrected_mi.html">corrected_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate corrected moisture index (MI)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="daily_temp.html">daily_temp()</a></code> </p>
-        </td>
-        <td><p>Calculate daily temperature from \(T_{min}\) and \(T_{max}\)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="gdd0.html">gdd0()</a></code> </p>
-        </td>
-        <td><p>Find growing degree days above <code>thr</code></p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="int_acm.html">int_acm()</a></code> </p>
-        </td>
-        <td><p>Mean-preserving autoregressive interpolation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="monthly_clim.html">monthly_clim()</a></code> </p>
-        </td>
-        <td><p>Create monthly climatology</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_gs.html">nc_gs()</a></code> </p>
-        </td>
-        <td><p>Find growing season</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_mi.html">nc_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate moisture index</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="past_co2.html">past_co2()</a></code> </p>
-        </td>
-        <td><p>Find past CO2</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pb.html">pb()</a></code> </p>
-        </td>
-        <td><p>Show progress bar</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="retime.html">retime()</a></code> </p>
-        </td>
-        <td><p>Change time axis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_dcl.html">splash_dcl()</a></code> </p>
-        </td>
-        <td><p>Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_evap.html">splash_evap()</a></code> </p>
-        </td>
-        <td><p>Calculate potential evapotranspiration
-Calculate potential evapotranspiration in mm using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="vpd.html">vpd()</a></code> </p>
-        </td>
-        <td><p>Vapour-pressure deficit (Pa)</p></td>
-      </tr>
-    </tbody>
-    </table>
+
+    <h2 class="hasAnchor" id="format"><a class="anchor" href="#format"></a>Format</h2>
+
+    <p>A 2D matrix of 720 x 360 (lon x lat) with boolean values:</p><dl>
+<dt><code>TRUE</code></dt><dd><p>Land grid cell.</p></dd>
+<dt><code>FALSE</code></dt><dd><p>Non-land grid cell.</p></dd>
+
+</dl>
+
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>The mask was generated by looking at the values of <code>tmn</code> and <code>vap</code>,
+for each grid cell, if at least one timestep had a non-missing value, then
+the entire grid cell was marked as a land grid cell.</p>
+    <h2 class="hasAnchor" id="references"><a class="anchor" href="#references"></a>References</h2>
+
+    <p>University of East Anglia Climatic Research Unit; Harris, I.C.; Jones, P.D.;
+Osborn, T. (2020): CRU TS4.04: Climatic Research Unit (CRU) Time-Series (TS)
+version 4.04 of high-resolution gridded data of month-by-month variation in
+climate (Jan. 1901- Dec. 2019). Centre for Environmental Data Analysis.
+<a href='https://catalogue.ceda.ac.uk/uuid/89e1e34ec3554dc98594a5732622bce9'>https://catalogue.ceda.ac.uk/uuid/89e1e34ec3554dc98594a5732622bce9</a></p>
+
   </div>
-
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>

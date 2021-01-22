@@ -6,7 +6,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Function reference • codos</title>
+<title>Calculate potential evapotranspiration
+Calculate potential evapotranspiration in mm using SPLASH V1.0:
+https://doi.org/10.5281/zenodo.376293. — splash_evap • codos</title>
 
 
 <!-- jquery -->
@@ -39,7 +41,12 @@
 
 
 
-<meta property="og:title" content="Function reference" />
+<meta property="og:title" content="Calculate potential evapotranspiration
+Calculate potential evapotranspiration in mm using SPLASH V1.0:
+https://doi.org/10.5281/zenodo.376293. — splash_evap" />
+<meta property="og:description" content="Calculate potential evapotranspiration
+Calculate potential evapotranspiration in mm using SPLASH V1.0:
+https://doi.org/10.5281/zenodo.376293." />
 
 
 
@@ -58,7 +65,7 @@
   </head>
 
   <body data-spy="scroll" data-target="#toc">
-    <div class="container template-reference-index">
+    <div class="container template-reference-topic">
       <header>
       <div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -100,124 +107,77 @@
       </header>
 
 <div class="row">
-  <div class="contents col-md-9">
+  <div class="col-md-9 contents">
     <div class="page-header">
-      <h1>Reference</h1>
+    <h1>Calculate potential evapotranspiration
+Calculate potential evapotranspiration in mm using SPLASH V1.0:
+<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</h1>
+    
+    <div class="hidden name"><code>splash_evap.Rd</code></div>
     </div>
 
-    <table class="ref-index">
-
-    <colgroup>
-      
-      <col class="alias" />
-      <col class="title" />
-    </colgroup>
-
-    <tbody>
-      <tr>
-        <th colspan="2">
-          <h2 id="section-all-functions" class="hasAnchor"><a href="#section-all-functions" class="anchor"></a>All functions</h2>
-          <p class="section-desc"></p>
-        </th>
-      </tr>
-      
-      
-    </tbody><tbody>
-      
-      
-      <tr>
-        
-        <td>
-          <p><code><a href="P_model_inverter.html">P_model_inverter</a></code> </p>
-        </td>
-        <td><p>P-model inverter class</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="corrected_mi.html">corrected_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate corrected moisture index (MI)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="daily_temp.html">daily_temp()</a></code> </p>
-        </td>
-        <td><p>Calculate daily temperature from \(T_{min}\) and \(T_{max}\)</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="gdd0.html">gdd0()</a></code> </p>
-        </td>
-        <td><p>Find growing degree days above <code>thr</code></p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="int_acm.html">int_acm()</a></code> </p>
-        </td>
-        <td><p>Mean-preserving autoregressive interpolation</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="monthly_clim.html">monthly_clim()</a></code> </p>
-        </td>
-        <td><p>Create monthly climatology</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_gs.html">nc_gs()</a></code> </p>
-        </td>
-        <td><p>Find growing season</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="nc_mi.html">nc_mi()</a></code> </p>
-        </td>
-        <td><p>Calculate moisture index</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="past_co2.html">past_co2()</a></code> </p>
-        </td>
-        <td><p>Find past CO2</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="pb.html">pb()</a></code> </p>
-        </td>
-        <td><p>Show progress bar</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="retime.html">retime()</a></code> </p>
-        </td>
-        <td><p>Change time axis</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_dcl.html">splash_dcl()</a></code> </p>
-        </td>
-        <td><p>Calculate solar declination
-Calculate solar declination angle in degrees using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="splash_evap.html">splash_evap()</a></code> </p>
-        </td>
-        <td><p>Calculate potential evapotranspiration
+    <div class="ref-description">
+    <p>Calculate potential evapotranspiration
 Calculate potential evapotranspiration in mm using SPLASH V1.0:
-<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p></td>
-      </tr><tr>
-        
-        <td>
-          <p><code><a href="vpd.html">vpd()</a></code> </p>
-        </td>
-        <td><p>Vapour-pressure deficit (Pa)</p></td>
-      </tr>
-    </tbody>
-    </table>
-  </div>
+<a href='https://doi.org/10.5281/zenodo.376293'>https://doi.org/10.5281/zenodo.376293</a>.</p>
+    </div>
 
+    <pre class="usage"><span class='fu'>splash_evap</span><span class='op'>(</span>
+  <span class='va'>filename</span>,
+  <span class='va'>elv</span>,
+  <span class='va'>sf</span>,
+  <span class='va'>tmp</span>,
+  <span class='va'>year</span>,
+  lat <span class='op'>=</span> <span class='cn'>NULL</span>,
+  lon <span class='op'>=</span> <span class='cn'>NULL</span>,
+  cpus <span class='op'>=</span> <span class='fl'>2</span>,
+  overwrite <span class='op'>=</span> <span class='cn'>TRUE</span>
+<span class='op'>)</span></pre>
+
+    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
+    <table class="ref-arguments">
+    <colgroup><col class="name" /><col class="desc" /></colgroup>
+    <tr>
+      <th>filename</th>
+      <td><p>String with the output filename (.nc).</p></td>
+    </tr>
+    <tr>
+      <th>elv</th>
+      <td><p>2D structure with elevation data.</p></td>
+    </tr>
+    <tr>
+      <th>sf</th>
+      <td><p>3D structure with sunshine fraction data.</p></td>
+    </tr>
+    <tr>
+      <th>tmp</th>
+      <td><p>3D structure with daily temperature data.</p></td>
+    </tr>
+    <tr>
+      <th>year</th>
+      <td><p>Numeric value with the year.</p></td>
+    </tr>
+    <tr>
+      <th>lat</th>
+      <td><p>List with latitude <code>data</code> and variable <code>id</code>.</p></td>
+    </tr>
+    <tr>
+      <th>lon</th>
+      <td><p>List with longitude <code>data</code> and variable <code>id</code>.</p></td>
+    </tr>
+    <tr>
+      <th>cpus</th>
+      <td><p>Number of CPUs to use for the computation.</p></td>
+    </tr>
+    <tr>
+      <th>overwrite</th>
+      <td><p>Boolean flag to indicate if the output file should be
+overwritten (if it exists).</p></td>
+    </tr>
+    </table>
+
+
+  </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
     <nav id="toc" data-toggle="toc" class="sticky-top">
       <h2 data-toc-skip>Contents</h2>
