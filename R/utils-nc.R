@@ -605,10 +605,9 @@ nc_gs <- function(filename,
   idx <- data.frame(i = seq_len(length(lon$data)),
                     j = rep(seq_along(lat$data), each = length(lon$data)))
   message("Calculating growing season...")
-  pb <- progress::progress_bar$new(
-    format = "(:current/:total) [:bar] :percent",
-    total = nrow(idx), clear = TRUE, width = 80)
-  progress <- function(n) pb$tick()
+  # Set up progressr API
+  p <- progressr::progressor(along = seq_len(nrow(idx)))
+  progress <- function(n) p()
   opts <- list(progress = progress)
   output <- foreach::foreach(k = seq_len(nrow(idx)),
                              .combine = cbind,
@@ -623,14 +622,11 @@ nc_gs <- function(filename,
                                  rep(FALSE, length(time$data))
                                }
                              }
+
   message("Done calculating growing season.")
   message("Reshaping output...")
   gs <- array(NA, dim = dim(var$data)[1:2])
-  pb <- progress::progress_bar$new(
-    format = "(:current/:total) [:bar] :percent",
-    total = nrow(idx), clear = TRUE, width = 60)
   for (k in seq_len(nrow(idx))) {
-    pb$tick()
     i <- idx$i[k]
     j <- idx$j[k]
     if (any(!is.na(var$data[i, j, output[, k]])))
