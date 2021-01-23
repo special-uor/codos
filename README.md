@@ -42,12 +42,14 @@ and moisture index, `mi` \[-\]. Using the CRU TS 4.04 dataset
 (University of East Anglia Climatic Research Unit et al. 2020) we found
 the following relation:
 
-  
-![&#10;vpd = 4.589 \\times \\exp(0.0611 \\times tmp - 0.87 \\times
-mi)&#10;](https://latex.codecogs.com/png.latex?%0Avpd%20%3D%204.589%20%5Ctimes%20%5Cexp%280.0611%20%5Ctimes%20tmp%20-%200.87%20%5Ctimes%20mi%29%0A
-"
-vpd = 4.589 \\times \\exp(0.0611 \\times tmp - 0.87 \\times mi)
-")  
+<center>
+
+![\\text{vpd} = 4.589 \\times \\exp(0.0611 \\times \\text{tmp}-0.87
+\\times
+\\text{mi})](https://latex.codecogs.com/png.latex?%5Ctext%7Bvpd%7D%20%3D%204.589%20%5Ctimes%20%5Cexp%280.0611%20%5Ctimes%20%5Ctext%7Btmp%7D-0.87%20%5Ctimes%20%5Ctext%7Bmi%7D%29
+"\\text{vpd} = 4.589 \\times \\exp(0.0611 \\times \\text{tmp}-0.87 \\times \\text{mi})")
+
+</center>
 
 The steps performed were:
 
@@ -61,6 +63,12 @@ The steps performed were:
 codos::monthly_clim("cru_ts4.04.1901.2019.tmn.dat.nc", "tmn", 1961, 1990)
 ```
 
+Output file:
+
+``` bash
+"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990.nc"
+```
+
 2.  Interpolate the monthly data to daily. Variables used: `cld`, `pre`,
     `tmn`, `tmx`, `vap`.
 
@@ -71,7 +79,13 @@ codos::monthly_clim("cru_ts4.04.1901.2019.tmn.dat.nc", "tmn", 1961, 1990)
 codos::nc_int("cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990.nc", "tmn")
 ```
 
-3.  Calculate daily temperature. Variables used: `tmn` and `tmx`.
+Output file:
+
+``` bash
+"cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int.nc"
+```
+
+3.  Calculate daily temperature, `tmp`. Variables used: `tmn` and `tmx`.
 
 <!-- end list -->
 
@@ -91,14 +105,28 @@ codos::daily_temp(tmin = list(filename = "cru_ts4.04.1901.2019.tmn.dat-clim-1961
 codos::nc_gs("cru_ts4.04-clim-1961-1990-daily.tmp.nc", "tmp", thr = 0)
 ```
 
+Output file:
+
+``` bash
+"cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"
+```
+
 5.  Calculate potential evapotranspiration (`pet`)
 
-<!-- end list -->
+Install `SPLASH` (unofficial R package) as follows:
+
+``` r
+remotes::install_github("villegar/splash", "dev")
+```
+
+Or, download from the official source:
+<https://bitbucket.org/labprentice/splash>.
 
 ``` r
 elv <- codos:::nc_var_get("halfdeg.elv.nc", "elv")$data
 tmp <- codos:::nc_var_get("cru_ts4.04.1901.2019.daily.tmp.nc", "tmp")$data
-cld <- codos:::nc_var_get("cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc", "cld")$data
+cld <- codos:::nc_var_get("cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc", 
+                          "cld")$data
 
 codos::splash_evap(output_filename = "cru_ts4.04-clim-1961-1990-pet.nc", 
                    elv, # Elevation, 720x360 grid 
@@ -109,12 +137,21 @@ codos::splash_evap(output_filename = "cru_ts4.04-clim-1961-1990-pet.nc",
                    lon = codos::lon)
 ```
 
+Output file:
+
+``` bash
+"cru_ts4.04-clim-1961-1990-pet.nc"
+```
+
 6.  Calculate moisture index (`mi`)
 
-  
+<center>
+
 ![MI\_{i,j} = \\frac{\\text{Total precipitation}}{\\text{Total
 PET}}](https://latex.codecogs.com/png.latex?MI_%7Bi%2Cj%7D%20%3D%20%5Cfrac%7B%5Ctext%7BTotal%20precipitation%7D%7D%7B%5Ctext%7BTotal%20PET%7D%7D
-"MI_{i,j} = \\frac{\\text{Total precipitation}}{\\text{Total PET}}")  
+"MI_{i,j} = \\frac{\\text{Total precipitation}}{\\text{Total PET}}")
+
+</center>
 
 ``` r
 pet <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-pet.nc", "pet")$data
@@ -123,6 +160,74 @@ codos::nc_mi(output_filename = "cru_ts4.04-clim-1961-1990-mi.nc",
              pet, # potential evapotranspiration
              pre) # precipitation
 ```
+
+Output file:
+
+``` bash
+"cru_ts4.04-clim-1961-1990-mi.nc"
+```
+
+7.  Approximate `vpd`
+
+<!-- end list -->
+
+``` r
+tmp <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-daily.tmp.nc", "tmp")$data
+vap <- codos:::nc_var_get("cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc", "vap")$data
+output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-vpd-tmp.nc")
+codos::nc_vpd(output_filename, tmp, vap, cpus = 10)
+```
+
+Output file:
+
+``` bash
+"cru_ts4.04-clim-1961-1990-vpd-tmp.nc"
+```
+
+8.  Find the coeffients for the following equation
+
+<center>
+
+![\\text{vpd} = a \\times \\exp(\\text{kTmp} \\times
+\\text{tmp}-\\text{kMI} \\times
+\\text{mi})](https://latex.codecogs.com/png.latex?%5Ctext%7Bvpd%7D%20%3D%20a%20%5Ctimes%20%5Cexp%28%5Ctext%7BkTmp%7D%20%5Ctimes%20%5Ctext%7Btmp%7D-%5Ctext%7BkMI%7D%20%5Ctimes%20%5Ctext%7Bmi%7D%29
+"\\text{vpd} = a \\times \\exp(\\text{kTmp} \\times \\text{tmp}-\\text{kMI} \\times \\text{mi})")
+
+</center>
+
+``` r
+mi <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-mi.nc", "mi")$data
+Tmp <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc", "tmp")$data
+vpd <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-vpd-tmp-gs.nc", "vpd")$data
+
+# Apply ice mask
+mi[codos:::ice_mask] <- NA
+Tmp[codos:::ice_mask] <- NA
+vpd[codos:::ice_mask] <- NA
+
+# Filter low temperatures, Tmp < 5
+mi[Tmp < 5] <- NA
+Tmp[Tmp < 5] <- NA
+
+# Create data frame
+df <- tibble::tibble(Tmp = c(Tmp), 
+                     vpd = c(vpd),
+                     MI = c(mi))
+# Filter grid cells with missing Tmp, vpd, or MI
+df <- df[!is.na(df$Tmp) & !is.na(df$vpd) & !is.na(df$MI), ]
+
+# Linear approximation
+lmod <- lm(log(vpd) ~ Tmp + MI, data = df)
+# Non-linear model
+exp_mod <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI),
+               df,
+               start = list(a = exp(coef(lmod)[1]),
+                            kTmp = coef(lmod)[2],
+                            kMI = coef(lmod)[3]),
+               control = list(maxiter = 200))
+```
+
+### Corrected `mi` from reconstructed `mi`
 
 # References
 
