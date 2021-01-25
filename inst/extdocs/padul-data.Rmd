@@ -1,6 +1,8 @@
 ---
 title: "Padul Data"
 output: 
+  pdf_document:
+    extra_dependencies: ["float", "longtable"]
   github_document:
     pandoc_args: --webtex
 ---
@@ -8,13 +10,19 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
-  dpi = 600, 
+  dpi = 500, 
   out.width = "100%",
   comment = "#>",
   fig.path = "man/figures/padul-",
   fig.width = 12,
-  fig.height = 5
+  fig.height = 6,
+  fig.pos = "!H", 
+  out.extra = ""
 )
+
+options(knitr.table.format = function() {
+  if (knitr::is_latex_output()) 'latex' else 'pandoc'
+})
 
 # Set path to working directory
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
@@ -23,6 +31,10 @@ path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
 padul <- readr::read_csv("~/Desktop/iCloud/UoR/Data/padul.csv")
 
 `%>%` <- magrittr::`%>%`
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\renewcommand{\\arraystretch}{1.5}')
 ```
 
 ## Calculate daily temperature (modern)
@@ -57,9 +69,12 @@ codos::nc_gs("cru_ts4.04-clim-1961-1990-daily.tmp.nc", "tmp", thr = 0, cpus = 10
 Padul location: 37.0108, -3.6039
 
 ```{r}
-Tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"), "tmp")
-lat <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"), "lat")
-lon <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"), "lon")
+Tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"),
+                          "tmp")
+lat <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"),
+                          "lat")
+lon <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"),
+                          "lon")
 idx_y <- which.min(abs(lat$data - 37.0108))
 idx_x <- which.min(abs(lon$data + 3.6039))
 
@@ -105,7 +120,7 @@ padul2$corrected_mi <- codos::corrected_mi(padul2$present_t,
                                            padul2$modern_co2,
                                            padul2$past_co2)
 # Small subset
-knitr::kable(head(padul2, 10), "html")
+knitr::kable(head(padul2, 10))
 ```
 
 Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
@@ -130,14 +145,23 @@ padul2 %>%
             row.names = FALSE)
 
 # Small subset
-knitr::kable(head(padul2, 10), "html")
+knitr::kable(head(padul2, 10)) %>%
+  kableExtra::kable_styling()
 ```
 
 Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ## Plots
 
 #### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
 
 ```{r, echo = FALSE}
 tibble::tibble(x = rep(padul2$age, 2),
@@ -157,6 +181,7 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
 
 - `age < 5k`
 
+
 ```{r, echo = FALSE}
 tibble::tibble(x = rep(padul2$age, 2),
                y = c(padul2$recon_mi, 
@@ -174,7 +199,15 @@ tibble::tibble(x = rep(padul2$age, 2),
     ggplot2::theme_bw()
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Include past CO2 and Temperature
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
 
 ```{r, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age, 2),
@@ -241,7 +274,15 @@ tibble::tibble(x = rep(padul2$age, 2),
   ggplot2::theme_bw()
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 #### Reconstructed vs corrected `P_ann`: Past CO2 calculated using `mean`
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
 
 ```{r, echo = FALSE}
 tibble::tibble(x = rep(padul2$age, 2),
@@ -280,7 +321,15 @@ tibble::tibble(x = rep(padul2$age, 2),
     ggplot2::theme_bw()
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Include past CO2 and Temperature
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
 
 ```{r, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age, 2),
@@ -379,6 +428,15 @@ padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
                                                  padul2$recon_mi,
                                                  padul2$modern_co2,
                                                  padul2$past_co2_loess)
+
+head(padul2, 10) %>%
+  dplyr::select(-c(past_co2, corrected_mi, corrected_P_ann)) %>%
+  knitr::kable() %>%
+  kableExtra::kable_styling()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
 ```
 
 ## A2. Plot reconstructed vs corrected `MI` both approaches
@@ -422,8 +480,16 @@ tibble::tibble(x = rep(padul2$age, 3),
     ggplot2::theme_bw()
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess`
 #### Include past CO2 and Temperature
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
 
 ```{r, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age, 2),
@@ -539,6 +605,10 @@ tibble::tibble(x = rep(padul2$age, 2),
     ggplot2::theme_bw()
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 - `age < 500`
 
 ```{r, echo = FALSE, eval = TRUE}
@@ -563,11 +633,15 @@ tibble::tibble(x = rep(padul2$age, 2),
     ggplot2::theme_bw()
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ## A5. Padul Data
 Download the CSV file: [padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv)
 
 ```{r, echo = FALSE}
 padul2 %>%
   dplyr::select(-dplyr::ends_with(("loess"))) %>%
-  knitr::kable(format = "html")
+  knitr::kable(longtable = TRUE)
 ```
