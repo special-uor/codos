@@ -13,8 +13,8 @@ CO2 Correction Tools.
 
 Authors:
 \itemize{
-  \item Sandy P. Harrison \email{s.p.harrison@reading.ac.uk}
-  \item Iain Colin Prentice \email{c.prentice@imperial.ac.uk}
+  \item Sandy P. Harrison \email{s.p.harrison@reading.ac.uk} (\href{https://orcid.org/0000-0001-5687-1903}{ORCID})
+  \item Iain Colin Prentice \email{c.prentice@imperial.ac.uk} (\href{https://orcid.org/0000-0002-1296-6764}{ORCID})
 }
 
 Other contributors:
