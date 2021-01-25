@@ -260,14 +260,14 @@ past_co2_loess <- function(age, ref = codos::ice_core, span = 0.1, ...) {
 #'
 #' @return Numeric vector with corrected moisture index values.
 #' @export
-corrected_mi <- function(Tc0, Tc1, MI, ca0, co21, ...) {
+corrected_mi <- function(Tc0, Tc1, MI, ca0, ca1, ...) {
   # terms <- list(a = 4.61232447483209,
   #               kTmp = 0.0609249286877394,
   #               kMI = 0.872588565709498)
   terms <- list(a = 4.58914835462018,
                 kTmp = 0.0611076815696193,
                 kMI = 0.870229500285838)
-  vpd <- vpd(Tc0, Tc1, MI, ca0, co21, ...) / 100
+  vpd <- vpd(Tc0, Tc1, MI, ca0, ca1, ...) / 100
   with(terms, (log(vpd / a) - kTmp * Tc1) / (-kMI))
 }
 
@@ -296,14 +296,14 @@ vpd_internal <- function(Tc, MI, scale_factor = 100) {
 #' @param Tc1 Numeric vector with past temperature values (°C).
 #' @param MI Numeric vector with reconstructed moisture index values (-).
 #' @param ca0 Numeric vector of modern CO2 partial pressures (umol/mol).
-#' @param co21 Numeric vector of past CO2 partial pressures (umol/mol).
+#' @param ca1 Numeric vector of past CO2 partial pressures (umol/mol).
 #' @param scale_factor Scale factor to transform the output, default =
 #'     101.325 Pa/ppm at standard sea level pressure.
 #' @return Numeric vector with vapour-pressure deficit values.
 #' @export
-vpd <- function(Tc0, Tc1, MI, ca0, co21, scale_factor = 101.325 * 10^-3) {
+vpd <- function(Tc0, Tc1, MI, ca0, ca1, scale_factor = 101.325 * 10^-3) {
   ca0 <- scale_factor * ca0
-  co21 <- scale_factor * co21
+  ca1 <- scale_factor * ca1
   f0 <- vpd_internal(Tc0, MI) / (ca0 * (1 - chi(Tc0, MI, ca0 / scale_factor)))
 
   purrr::map_dbl(seq_len(length(Tc1)),
@@ -311,7 +311,7 @@ vpd <- function(Tc0, Tc1, MI, ca0, co21, scale_factor = 101.325 * 10^-3) {
                    optim(par = 0,
                          function(x, kE, val) abs(kE * sqrt(x) + x - val),
                          kE = E(Tc1[i]),
-                         val = f0[i] * (co21[i] - compensation_point(Tc1[i])),
+                         val = f0[i] * (ca1[i] - compensation_point(Tc1[i])),
                          method = "Brent",
                          lower = 0,
                          upper = 10^6)$par
