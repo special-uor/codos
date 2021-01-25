@@ -2,7 +2,12 @@
 output: 
   github_document:
     pandoc_args: --webtex
-# ='https://latex.codecogs.com/png.latex?%5Cdpi{300}'
+    # --webtex=https://latex.codecogs.com/png.latex?%5Cdpi{150}
+  pdf_document:
+    extra_dependencies: ["float"]
+header-includes:
+   - \usepackage[default]{sourcesanspro}
+   - \usepackage[T1]{fontenc}
 bibliography: inst/references/references.bib
 cls: inst/references/proceedings-of-the-royal-society-a.csl
 ---
@@ -14,7 +19,8 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%",
-  dpi = 700
+  dpi = 500,
+  dev = "cairo_pdf"
 )
 ```
 
@@ -22,9 +28,9 @@ knitr::opts_chunk$set(
 <!-- <img src="inst/images/logo.png" alt="logo" align="right" height=200px/> -->
 
 <!-- badges: start -->
-`r badger::badge_devel("special-uor/codos", "yellow")`
-`r badger::badge_cran_release("codos", "black")`
-`r badger::badge_github_actions("special-uor/codos")`
+`r if(!knitr::is_latex_output()) badger::badge_devel("special-uor/codos", "yellow")`
+`r if(!knitr::is_latex_output()) badger::badge_cran_release("codos", "black")`
+`r if(!knitr::is_latex_output()) badger::badge_github_actions("special-uor/codos")`
 <!-- badges: end -->
 
 ## Installation
@@ -51,7 +57,7 @@ devtools::install_github("special-uor/codos", "dev")
 `vpd` is given by mean daily growing season temperature, `tmp` [°C] and moisture index, `mi` [-]. Using the CRU TS 4.04 dataset [@cru404] we found the following relation:
 
 <center>
-$\text{vpd} = 4.589 \times \exp(0.0611 \times \text{tmp}-0.87 \times \text{mi})$
+$$\text{vpd} = 4.589 \times \exp(0.0611 \times \text{tmp}-0.87 \times \text{mi})$$
 </center>
 
 The steps performed were:
@@ -138,12 +144,14 @@ Output file:
 6. Calculate moisture index (`mi`)
 
 <center>
-$MI_{i,j} = \frac{\text{Total precipitation}}{\text{Total PET}}$
+$$MI_{i,j} = \frac{\text{Total precipitation}}{\text{Total PET}}$$
 </center>
 
   ```{r, eval = FALSE, echo = TRUE}
-  pet <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-pet.nc", "pet")$data
-  pre <- codos:::nc_var_get("cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc", "pre")$data
+  pet <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-pet.nc", 
+                            "pet")$data
+  pre <- codos:::nc_var_get("cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc", 
+                            "pre")$data
   codos::nc_mi(output_filename = "cru_ts4.04-clim-1961-1990-mi.nc", 
                pet, # potential evapotranspiration
                pre) # precipitation
@@ -158,10 +166,12 @@ Output file:
 7. Approximate `vpd`
 
   ```{r, eval = FALSE, echo = TRUE}
-  tmp <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-daily.tmp.nc", "tmp")$data
-  vap <- codos:::nc_var_get("cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc", "vap")$data
+  tmp <- codos:::nc_var_get("cru_ts4.04-clim-1961-1990-daily.tmp.nc", 
+                            "tmp")$data
+  vap <- codos:::nc_var_get("cru_ts4.04.1901.2019.vap.dat-clim-1961-1990-int.nc", 
+                            "vap")$data
   output_filename <- file.path(path, "cru_ts4.04-clim-1961-1990-vpd-tmp.nc")
-  codos::nc_vpd(output_filename, tmp, vap, cpus = 10)
+  codos::nc_vpd(output_filename, tmp, vap)
   ```
 
 Output file:
@@ -173,7 +183,7 @@ Output file:
 8. Find the coeffients for the following equation
 
 <center>
-$\text{vpd} = a \times \exp(\text{kTmp} \times \text{tmp}-\text{kMI} \times \text{mi})$
+$$\text{vpd} = a \times \exp(\text{kTmp} \times \text{tmp}-\text{kMI} \times \text{mi})$$
 </center>
 
 ```{r, eval = FALSE, echo = TRUE}
@@ -194,6 +204,7 @@ Tmp[Tmp < 5] <- NA
 df <- tibble::tibble(Tmp = c(Tmp), 
                      vpd = c(vpd),
                      MI = c(mi))
+
 # Filter grid cells with missing Tmp, vpd, or MI
 df <- df[!is.na(df$Tmp) & !is.na(df$vpd) & !is.na(df$MI), ]
 
@@ -208,7 +219,93 @@ exp_mod <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI),
                control = list(maxiter = 200))
 ```
 
+Summary statistics:
+```{r, echo = FALSE}
+df <- read.csv("inst/extdata/df.csv")
+# Linear approximation
+lmod <- lm(log(vpd) ~ Tmp + MI, data = df)
+# Non-linear model
+exp_mod <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI),
+               df,
+               start = list(a = exp(coef(lmod)[1]),
+                            kTmp = coef(lmod)[2],
+                            kMI = coef(lmod)[3]),
+               control = list(maxiter = 200))
+```
+
+```{r}
+summary(exp_mod)
+coefficients(exp_mod)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ### Corrected `mi` from reconstructed `mi`
+
+The following equations were used:
+
+<center>$$f = e/1.6 = D/[\text{c}_\text{a}(1-\chi)]$$</center>
+<center>$$\chi  =  [\xi/(\xi + \text{vpd}^ {1/2})] [1 - \Gamma^*/\text{c}_\text{a}] + \Gamma^*/\text{c}_\text{a}$$</center>
+<center>$$\xi =  [\beta (K + \Gamma^*) / (1.6 \eta^*)] ^ {1/2}$$</center>
+
+where:
+
+- $e$	ratio of water lost to carbon fixed [–]
+- $\text{vpd}$	vapour pressure deficit [Pa]
+- $\text{c}_\text{a}$	ambient CO2 partial pressure [Pa]
+- $\chi$	ratio of leaf-internal to ambient CO2 partial pressures [–]
+- $\xi$	stomatal sensitivity factor [Pa1/2]
+- $\Gamma^*$	photorespiratory compensation point [Pa]: a function of temperature and elevation
+- $\beta$	ratio of cost factors for carboxylation and transpiration = 146 [–]
+- $K$	effective Michaelis constant of Rubisco [Pa]: a function of temperature and elevation
+- $\eta^*$ viscosity of water relative to its value at 25°C [–]
+
+And the equilibrium relation:
+
+<center>$$f(\text{T}_\text{c1}, \text{MI}_\text{1}, \text{c}_\text{a,1}) =   f(\text{T}_\text{c0}, \text{MI}_\text{0}, \text{c}_\text{a,0})$$</center>
+where:
+
+- $\text{T}_\text{c1}$	past temperature (assume equal to reconstructed value) [K]
+- $\text{MI}_\text{1}$	past MI (unknown) [–]
+- $\text{c}_\text{a,1}$ past ambient CO2 partial pressure [Pa], adjusted for elevation
+- $\text{T}_\text{c0}$	present temperature [K]
+- $\text{MI}_\text{0}$	reconstructed MI [–]
+- $\text{c}_\text{a,1}$	'recent' ambient CO2 partial pressure [Pa], adjusted for elevation
+
+Steps in the solution:
+
+1. Evaluate $f(\text{T}_\text{c0}, \text{MI}_\text{0}, \text{c}_\text{a,0})$
+2. Equate this to:
+$$[\xi(\text{T}_\text{c1}, z) \text{vpd}_1^{1/2} + \text{vpd}_1] / [\text{c}_\text{a,1}(z) - \Gamma^*(\text{T}_\text{c1}, z)] $$
+where:
+
+- $z$ is elevation 
+- $\text{vpd}_1$ is past vapour pressure deficit
+
+And solve for $\text{vpd}_1$.
+
+3. Convert $\text{vpd}_1$ back to MI (at temperature $\text{T}_\text{c1}$), to yield an estimate of $\text{MI}_\text{1}$.
+
+Using `codos`, all the steps translate to a simple function call
+
+```{r, eval = FALSE}
+corrected_mi <- codos::corrected_mi(present_t,
+                                    past_temp,
+                                    recon_mi,
+                                    modern_co2,
+                                    past_co2)
+```
+
+Note that this function takes temperatures in [°C] and ambient CO$_2$ partial pressures in 
+[$\mu\text{mol}/\text{mol}$] (unless, `scale_factor` is overwritten, e.g. `scale_factor = 1` to use ambient CO$_2$ partial pressures in [Pa]).
+
+More details:
+
+```{r, eval = FALSE}
+?codos::corrected_mi
+```
 
 # References
 
