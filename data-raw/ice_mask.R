@@ -17,7 +17,7 @@ usethis::use_data(ice_mask, overwrite = TRUE, internal = TRUE)
 # Delete temporal files
 unlink(ncfile)
 unlink(ncfile2)
-image(nlon$data, nlat$data, ice_mask)
+image(codos::lon$data, codos::lat$data, ice_mask)
 
 codos:::nc_save_timeless(filename = "ice-mask.nc",
                          var = list(id = "ice mask",

@@ -3,17 +3,23 @@ title: "El Cañizar de Villarquemado"
 output: 
   github_document:
     pandoc_args: --webtex
+  pdf_document:
+    extra_dependencies: ["float", "longtable"]
+bibliography: ../../inst/references/references.bib
+cls: ../../inst/references/proceedings-of-the-royal-society-a.csl
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, 
-                      eval = FALSE,
-                      comment = "#>",
-                      fig.path = "man/figures/el-canizar-de-villarquemado-",
-                      out.width = "100%",
-                      dpi = 300, 
-                      fig.width = 7)
-`%>%` <- dplyr::`%>%`
+knitr::opts_chunk$set(
+  echo = TRUE, 
+  eval = FALSE,
+  comment = "#>",
+  fig.path = "man/figures/el-canizar-de-villarquemado-",
+  out.width = "100%",
+  dpi = 300, 
+  fig.width = 10)
+
+`%>%` <- magrittr::`%>%`
 ```
 
 ```{r, eval = TRUE, echo = FALSE}
@@ -41,7 +47,7 @@ out <- mi_input %>%
   dplyr::mutate(ca_temp = past_temp - present_t,
                 ca_co2 = past_co2 / modern_co2) %>%
   purrr::pmap(function(ca_temp, present_t, recon_mi, ca_co2, ...) {
-    codos::P_model_inverter$new(ca_temp, present_t, recon_mi, ca_co2)$calculate_m_true()
+    codos:::P_model_inverter$new(ca_temp, present_t, recon_mi, ca_co2)$calculate_m_true()
   }) %>% purrr::transpose() %>%
   tibble::as_tibble()
 
@@ -151,9 +157,15 @@ data.frame(x = rep(seq_len(332), 2),
 Solve relation between `GDD0`, `Tmin` and `Tmax`:
 ```{r}
 path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
-GDD0 <- matrix(codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gdd0.nc"), "tmp")$data, ncol = 1, byrow = TRUE)
-MTCO <- matrix(codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int-gs.nc"), "tmn")$data, ncol = 1, byrow = TRUE)
-Tmp <- matrix(codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"), "tmp")$data, ncol = 1, byrow = TRUE)
+GDD0 <- matrix(codos:::nc_var_get(file.path(path, 
+                                            "cru_ts4.04-clim-1961-1990-daily.tmp-gdd0.nc"),
+                                  "tmp")$data, ncol = 1, byrow = TRUE)
+MTCO <- matrix(codos:::nc_var_get(file.path(path,
+                                            "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int-gs.nc"), 
+                                  "tmn")$data, ncol = 1, byrow = TRUE)
+Tmp <- matrix(codos:::nc_var_get(file.path(path, 
+                                           "cru_ts4.04-clim-1961-1990-daily.tmp-gs.nc"), 
+                                 "tmp")$data, ncol = 1, byrow = TRUE)
 
 # Remove NAs
 idx <- !is.na(GDD0) & !is.na(MTCO)
@@ -202,7 +214,7 @@ if (length(MAT[(MTCO >= 0) & (GDD0 == 0.0)]) > 0)
 # MAT[(MTCO < 0) & (GDD0 > 0)] <- -MTCO[(MTCO < 0) & (GDD0 > 0)] * u / (1 - u)
 ```
 
-Calculate `u` for all values pf `GDDD0 / MTCO`:
+Calculate `u` for all values of `GDDD0 / MTCO`:
 ```{r}
 x <- GDD0 / MTCO
 x[x > 0] <- -x[x > 0]
@@ -259,3 +271,126 @@ data.frame(x = Tmp,
                                 direction = -1) +
     ggplot2::theme_bw()
 ```
+
+## Obtain past CO2 from [@Bereiter2015] 
+
+```{r}
+past_co2 <- purrr::map_dbl(m0$age, codos::past_co2)
+```
+
+#### Compare to original values (past CO2 calculated using LOESS with `span = 0.1`)
+
+```{r, include = knitr::is_latex_output(), echo = FALSE, eval = TRUE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE}
+m0 <- mi_input
+past_co2 <- purrr::map_dbl(m0$age, codos::past_co2)
+tibble::tibble(x = rep(m0$age, 2),
+               y = c(m0$past_co2,
+                     past_co2),
+               var = rep(c("LOESS", "mean"), each = nrow(m0))) %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") + 
+  ggplot2::labs(x = "Age [cal yr BP]",
+                y = "past CO2 [ppm]") +
+  ggplot2::theme_bw()
+
+m0$past_co2 <- past_co2
+m0 %>% 
+  write.csv(file = "villarquemado-with-corrected-mi.csv",
+            row.names = FALSE)
+```
+
+```{r, include = knitr::is_latex_output(), echo = FALSE, eval = TRUE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+## Corrected MI
+```{r}
+codos::corrected_mi(m0$present_t, m0$past_temp, m0$recon_mi, m0$modern_co2, m0$past_co2)
+```
+
+```{r, echo = FALSE, eval = TRUE}
+expected <- mi_output
+tibble::tibble(x = rep(m0$age, 3),#rep(seq_len(nrow(m0)), 3), #,
+               y = c(m0$recon_mi,
+                     # mi_correction(m0$past_temp, vpd2 / 100),
+                     codos::corrected_mi(m0$present_t, m0$past_temp, m0$recon_mi, m0$modern_co2, m0$past_co2),
+                     expected$result),
+               co2 = rep(m0$past_co2/ 100, 3),
+               past_temp = rep(m0$past_temp / 5, 3),
+               mi = rep(c("Dongyang's reconstructed",
+                          # "vpd ~ exp(T0 - Mi + T0 MI)",
+                          "past (vpd ~ exp(T0 - Mi))",
+                          "Dongyang's corrected"),
+                        each = nrow(m0))) %>%
+  # .[.$x < 20000, ] %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = mi)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2), colour = "gold") +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+                              sec.axis = ggplot2::sec_axis(~.*5,
+                                                           name = "Temp [°C]",
+                                                           breaks = scales::pretty_breaks(15))
+  ) +
+  ggplot2::labs(x = "Age",
+  title = "CO2 [1/100 ppm]",
+  y = "MI [-] and CO2 [1/100 ppm]") +
+  ggplot2::theme_bw()
+```
+
+- `age < 20k`
+
+```{r, echo = FALSE, eval = TRUE}
+expected <- mi_output
+tibble::tibble(x = rep(m0$age, 3),#rep(seq_len(nrow(m0)), 3), #,
+               y = c(m0$recon_mi,
+                     # mi_correction(m0$past_temp, vpd2 / 100),
+                     codos::corrected_mi(m0$present_t, m0$past_temp, m0$recon_mi, m0$modern_co2, m0$past_co2),
+                     expected$result),
+               co2 = rep(m0$past_co2/ 100, 3),
+               past_temp = rep(m0$past_temp / 5, 3),
+               mi = rep(c("Dongyang's reconstructed",
+                          # "vpd ~ exp(T0 - Mi + T0 MI)",
+                          "past (vpd ~ exp(T0 - Mi))",
+                          "Dongyang's corrected"),
+                        each = nrow(m0))) %>%
+  .[.$x < 20000, ] %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = mi)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2), colour = "gold") +
+  ggplot2::geom_line(ggplot2::aes(x, past_temp)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+                              sec.axis = ggplot2::sec_axis(~.*5,
+                                                           name = "Temp [°C]",
+                                                           breaks = scales::pretty_breaks(15))
+  ) +
+  ggplot2::labs(x = "Age",
+  title = "CO2 [1/100 ppm]",
+  y = "MI [-] and CO2 [1/100 ppm]") +
+  ggplot2::theme_bw()
+```
+
+```{r, include = knitr::is_latex_output(), echo = FALSE, eval = TRUE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+# Appendix
+
+## A1. El Cañizar de Villarquemado Data
+Download the CSV file: [villarquemado-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/villarquemado-with-corrected-mi.csv)
+
+```{r, echo = FALSE, eval = TRUE}
+m0 %>%
+  knitr::kable(longtable = TRUE)
+```
+
+# References
