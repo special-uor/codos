@@ -204,29 +204,21 @@ mat <- function(gdd0, mtco) {
   GDD0 <- gdd0
   MTCO <- mtco # Tmin
   MAT <- rep(NA, length(GDD0))
-  # ============================================================================
   # If Tmin >= 0 MAT = GDD0/(2*pi)
-  # ============================================================================
   MAT[MTCO >= 0] <- GDD0[MTCO >= 0] / (2 * pi)
-  # ============================================================================
   # If Tmin < 0 and GDD0 = 0, MAT = less than Tmin/2 but cannot be accurately
   # determined
-  # ============================================================================
   if (length(MTCO[(MTCO < 0) & (GDD0 == 0.0)]) > 0)
     message("There are values where MTCO < 0 and GDD0 = 0. ",
             "Only the maximum MAT can be determined (Tmin/2). ",
             "Return -9999 as values")
   MAT[(MTCO < 0) & (GDD0 == 0.0)] <- -9999
-  # ============================================================================
   # If Tmin >= 0 and GDD0 = 0, something is fishy
-  # ============================================================================
   if (length(MAT[(MTCO >= 0) & (GDD0 == 0.0)]) > 0)
     message("There seems to be some values where Tmin >= 0 and GDD0 = 0; ",
             "This is very fishy and should never happen (would mean that ",
             "MTCO was not really MTCO)")
-  # ============================================================================
   # If Tmin < 0 and GDD0 > 0, MAT can be calculated using the optimise method
-  # ============================================================================
   t0 <- GDD0 / MTCO
   min_u <- -1 # minimum valid value for 'u' is -1
   max_u <- 0.9999999999 # maximum valid value for 'u' is 1
