@@ -5,6 +5,7 @@
 ^pkgdown$
 ^LICENSE\.md$
 ^README\.Rmd$
+^README\.pdf$
 ^inst$
 ^data-raw$
 ^R\.ignore$
