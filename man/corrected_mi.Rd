@@ -4,18 +4,18 @@
 \alias{corrected_mi}
 \title{Calculate corrected moisture index (MI)}
 \usage{
-corrected_mi(Tc0, Tc1, MI, co20, co21, ...)
+corrected_mi(Tc0, Tc1, MI, ca0, ca1, ...)
 }
 \arguments{
-\item{Tc0}{Numeric vector with modern temperature values (°C).}
+\item{Tc0}{Numeric vector with present temperature values (°C).}
 
 \item{Tc1}{Numeric vector with past temperature values (°C).}
 
 \item{MI}{Numeric vector with reconstructed moisture index values (-).}
 
-\item{co20}{Numeric vector of modern CO2 partial pressures (umol/mol).}
+\item{ca0}{Numeric vector of 'recent' CO2 partial pressures (umol/mol).}
 
-\item{co21}{Numeric vector of past CO2 partial pressures (umol/mol).}
+\item{ca1}{Numeric vector of past CO2 partial pressures (umol/mol).}
 
 \item{...}{
   Arguments passed on to \code{\link[=vpd]{vpd}}
