@@ -159,6 +159,36 @@ f <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
   # (E(Tc) * sqrt(vpd_internal(Tc, MI)) + vpd_internal(Tc, MI)) / (co2 - compensation_point(Tc))
 }
 
+#' Calculate the Growing Season Length (GSL)
+#'
+#' Calculate the Growing Season Length (GSL) from Growing Degree Days above 0 °C
+#' (GDD0) and Mean Temperature of the Coldest Month (MTCO).
+#'
+#' @importFrom magrittr `%>%`
+#' @param gdd0 Numeric vector with Growing Degree Days above 0 °C (GDD0) data.
+#' @param mtco Numeric vector with Mean Temperature of the Coldest Month (MTCO)
+#'     data.
+#'
+#' @return Numeric vector with Growing Season Length (GSL) data.
+#' @export
+#'
+# @examples
+# gsl(20, 5)
+gsl <- function(gdd0, mtco) {
+  GDD0 <- gdd0
+  MTCO <- mtco # Tmin
+  # Calculate `u` for all values pf `GDDD0 / MTCO`:
+  x <- GDD0 / MTCO
+  x[x > 0] <- -x[x > 0]
+  u <- x %>%
+    purrr::map(find_u) %>%
+    purrr::transpose("par") %>%
+    purrr::pluck("par") %>%
+    purrr::flatten_dbl()
+
+  # Calculate growing season length (GSL):
+  (365 / pi) * acos(-u)
+}
 
 #' Find past CO2
 #'
