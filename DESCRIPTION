@@ -30,6 +30,7 @@ Imports:
     foreach,
     ggplot2,
     lubridate,
+    magrittr,
     ncdf4,
     parallel,
     progress,

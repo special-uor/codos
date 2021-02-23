@@ -4,18 +4,18 @@
 \alias{vpd}
 \title{Vapour-pressure deficit (Pa)}
 \usage{
-vpd(Tc0, Tc1, MI, co20, co21, scale_factor = 101.325 * 10^-3)
+vpd(Tc0, Tc1, MI, ca0, ca1, scale_factor = 101.325 * 10^-3)
 }
 \arguments{
-\item{Tc0}{Numeric vector with modern temperature values (°C).}
+\item{Tc0}{Numeric vector with present temperature values (°C).}
 
 \item{Tc1}{Numeric vector with past temperature values (°C).}
 
 \item{MI}{Numeric vector with reconstructed moisture index values (-).}
 
-\item{co20}{Numeric vector of modern CO2 partial pressures (umol/mol).}
+\item{ca0}{Numeric vector of 'recent' CO2 partial pressures (umol/mol).}
 
-\item{co21}{Numeric vector of past CO2 partial pressures (umol/mol).}
+\item{ca1}{Numeric vector of past CO2 partial pressures (umol/mol).}
 
 \item{scale_factor}{Scale factor to transform the output, default =
 101.325 Pa/ppm at standard sea level pressure.}
