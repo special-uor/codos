@@ -114,14 +114,14 @@ temperature, past and modern." />
 temperature, past and modern.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>corrected_mi</span><span class='op'>(</span><span class='va'>Tc0</span>, <span class='va'>Tc1</span>, <span class='va'>MI</span>, <span class='va'>co20</span>, <span class='va'>co21</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>corrected_mi</span><span class='op'>(</span><span class='va'>Tc0</span>, <span class='va'>Tc1</span>, <span class='va'>MI</span>, <span class='va'>ca0</span>, <span class='va'>ca1</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>Tc0</th>
-      <td><p>Numeric vector with modern temperature values (°C).</p></td>
+      <td><p>Numeric vector with present temperature values (°C).</p></td>
     </tr>
     <tr>
       <th>Tc1</th>
@@ -132,11 +132,11 @@ temperature, past and modern.</p>
       <td><p>Numeric vector with reconstructed moisture index values (-).</p></td>
     </tr>
     <tr>
-      <th>co20</th>
-      <td><p>Numeric vector of modern CO2 partial pressures (umol/mol).</p></td>
+      <th>ca0</th>
+      <td><p>Numeric vector of 'recent' CO2 partial pressures (umol/mol).</p></td>
     </tr>
     <tr>
-      <th>co21</th>
+      <th>ca1</th>
       <td><p>Numeric vector of past CO2 partial pressures (umol/mol).</p></td>
     </tr>
     <tr>
