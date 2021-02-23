@@ -247,7 +247,10 @@ knitr::asis_output('\n\n\\newpage')
 The following equations were used:
 
 <center>$$f = e/1.6 = D/[\text{c}_\text{a}(1-\chi)]$$</center>
+OLD:
 <center>$$\chi  =  [\xi/(\xi + \text{vpd}^ {1/2})] [1 - \Gamma^*/\text{c}_\text{a}] + \Gamma^*/\text{c}_\text{a}$$</center>
+NEW:
+<center>$$\chi  =  \frac{[\xi \times \text{vpd} + \text{vpd}]}{[\text{c}_\text{a} / (c_a + 9.7)]}$$</center>
 <center>$$\xi =  [\beta (K + \Gamma^*) / (1.6 \eta^*)] ^ {1/2}$$</center>
 
 where:
@@ -278,7 +281,12 @@ Steps in the solution:
 
 1. Evaluate $f(\text{T}_\text{c0}, \text{MI}_\text{0}, \text{c}_\text{a,0})$
 2. Equate this to:
+
+OLD:
 $$[\xi(\text{T}_\text{c1}, z) \text{vpd}_1^{1/2} + \text{vpd}_1] / [\text{c}_\text{a,1}(z) - \Gamma^*(\text{T}_\text{c1}, z)] $$
+NEW:
+$$[\xi(\text{T}_\text{c1}, z) \text{vpd}_1 + \text{vpd}_1] / [\text{c}_\text{a,1}(z) / (\text{c}_\text{a,1}(z) + 9.7)] $$
+
 where:
 
 - $z$ is elevation 

@@ -276,6 +276,8 @@ D/\[\\text{c}\_\\text{a}(1-\\chi)\]](https://latex.codecogs.com/png.latex?f%20%3
 
 </center>
 
+OLD:
+
 <center>
 
   
@@ -283,6 +285,18 @@ D/\[\\text{c}\_\\text{a}(1-\\chi)\]](https://latex.codecogs.com/png.latex?f%20%3
 \\Gamma^\*/\\text{c}\_\\text{a}\] +
 \\Gamma^\*/\\text{c}\_\\text{a}](https://latex.codecogs.com/png.latex?%5Cchi%20%20%3D%20%20%5B%5Cxi%2F%28%5Cxi%20%2B%20%5Ctext%7Bvpd%7D%5E%20%7B1%2F2%7D%29%5D%20%5B1%20-%20%5CGamma%5E%2A%2F%5Ctext%7Bc%7D_%5Ctext%7Ba%7D%5D%20%2B%20%5CGamma%5E%2A%2F%5Ctext%7Bc%7D_%5Ctext%7Ba%7D
 "\\chi  =  [\\xi/(\\xi + \\text{vpd}^ {1/2})] [1 - \\Gamma^*/\\text{c}_\\text{a}] + \\Gamma^*/\\text{c}_\\text{a}")  
+
+</center>
+
+NEW:
+
+<center>
+
+  
+![\\chi = \\frac{\[\\xi \\times \\text{vpd} +
+\\text{vpd}\]}{\[\\text{c}\_\\text{a} / (c\_a
++ 9.7)\]}](https://latex.codecogs.com/png.latex?%5Cchi%20%20%3D%20%20%5Cfrac%7B%5B%5Cxi%20%5Ctimes%20%5Ctext%7Bvpd%7D%20%2B%20%5Ctext%7Bvpd%7D%5D%7D%7B%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%7D%20%2F%20%28c_a%20%2B%209.7%29%5D%7D
+"\\chi  =  \\frac{[\\xi \\times \\text{vpd} + \\text{vpd}]}{[\\text{c}_\\text{a} / (c_a + 9.7)]}")  
 
 </center>
 
@@ -354,15 +368,21 @@ Steps in the solution:
 1.  Evaluate ![f(\\text{T}\_\\text{c0}, \\text{MI}\_\\text{0},
     \\text{c}\_\\text{a,0})](https://latex.codecogs.com/png.latex?f%28%5Ctext%7BT%7D_%5Ctext%7Bc0%7D%2C%20%5Ctext%7BMI%7D_%5Ctext%7B0%7D%2C%20%5Ctext%7Bc%7D_%5Ctext%7Ba%2C0%7D%29
     "f(\\text{T}_\\text{c0}, \\text{MI}_\\text{0}, \\text{c}_\\text{a,0})")
-2.  Equate this to:   
-    ![\[\\xi(\\text{T}\_\\text{c1}, z) \\text{vpd}\_1^{1/2} +
-    \\text{vpd}\_1\] / \[\\text{c}\_\\text{a,1}(z) -
-    \\Gamma^\*(\\text{T}\_\\text{c1}, z)\]
-    ](https://latex.codecogs.com/png.latex?%5B%5Cxi%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%20%5Ctext%7Bvpd%7D_1%5E%7B1%2F2%7D%20%2B%20%5Ctext%7Bvpd%7D_1%5D%20%2F%20%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20-%20%5CGamma%5E%2A%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%5D%20
-    "[\\xi(\\text{T}_\\text{c1}, z) \\text{vpd}_1^{1/2} + \\text{vpd}_1] / [\\text{c}_\\text{a,1}(z) - \\Gamma^*(\\text{T}_\\text{c1}, z)] ")  
-        where:
+2.  Equate this to:
 
-<!-- end list -->
+OLD:   
+![\[\\xi(\\text{T}\_\\text{c1}, z) \\text{vpd}\_1^{1/2} +
+\\text{vpd}\_1\] / \[\\text{c}\_\\text{a,1}(z) -
+\\Gamma^\*(\\text{T}\_\\text{c1}, z)\]
+](https://latex.codecogs.com/png.latex?%5B%5Cxi%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%20%5Ctext%7Bvpd%7D_1%5E%7B1%2F2%7D%20%2B%20%5Ctext%7Bvpd%7D_1%5D%20%2F%20%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20-%20%5CGamma%5E%2A%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%5D%20
+"[\\xi(\\text{T}_\\text{c1}, z) \\text{vpd}_1^{1/2} + \\text{vpd}_1] / [\\text{c}_\\text{a,1}(z) - \\Gamma^*(\\text{T}_\\text{c1}, z)] ")  
+NEW:   
+![\[\\xi(\\text{T}\_\\text{c1}, z) \\text{vpd}\_1 + \\text{vpd}\_1\] /
+\[\\text{c}\_\\text{a,1}(z) / (\\text{c}\_\\text{a,1}(z) + 9.7)\]
+](https://latex.codecogs.com/png.latex?%5B%5Cxi%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%20%5Ctext%7Bvpd%7D_1%20%2B%20%5Ctext%7Bvpd%7D_1%5D%20%2F%20%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20%2F%20%28%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20%2B%209.7%29%5D%20
+"[\\xi(\\text{T}_\\text{c1}, z) \\text{vpd}_1 + \\text{vpd}_1] / [\\text{c}_\\text{a,1}(z) / (\\text{c}_\\text{a,1}(z) + 9.7)] ")  
+
+where:
 
   - ![z](https://latex.codecogs.com/png.latex?z "z") is elevation
   - ![\\text{vpd}\_1](https://latex.codecogs.com/png.latex?%5Ctext%7Bvpd%7D_1
