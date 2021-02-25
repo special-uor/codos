@@ -137,20 +137,20 @@ Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
 
 ## Find the corrected Annual Precipitation, `P_ann`
 
-Approximated as the ratios of potential evapotranspiration (`Ep`) and moisture index (`MI`), multiplied by the reconstructed annual precipitation, $\text{P}_\text{ann, 0}$:
+<!-- Approximated as the ratios of potential evapotranspiration (`Ep`) and moisture index (`MI`), multiplied by the reconstructed annual precipitation, $\text{P}_\text{ann, 0}$: -->
 
-$$\text{P}_\text{ann, 1} = \frac{\text{MI}_1}{\text{MI}_0} \times \frac{\text{Ep}_1}{\text{Ep}_0} \times \text{P}_\text{ann, 0}$$
-The ratio of evapotranspiration (`Ep`) is given by
-$$\frac{\text{Ep}_1}{\text{Ep}_0} = \left(\frac{\text{vpd}_1}{\text{vpd}_0}\right) \times \frac{[(1 + \text{MI}_0^\omega)^{(1 / \omega)} - \text{MI}_0]}{[(1 + \text{MI}_1^\omega)^{(1 / \omega)} - \text{MI}_1]}$$
+<!-- $$\text{P}_\text{ann, 1} = \frac{\text{MI}_1}{\text{MI}_0} \times \frac{\text{Ep}_1}{\text{Ep}_0} \times \text{P}_\text{ann, 0}$$ -->
+<!-- The ratio of evapotranspiration (`Ep`) is given by -->
+<!-- $$\frac{\text{Ep}_1}{\text{Ep}_0} = \left(\frac{\text{vpd}_1}{\text{vpd}_0}\right) \times \frac{[(1 + \text{MI}_0^\omega)^{(1 / \omega)} - \text{MI}_0]}{[(1 + \text{MI}_1^\omega)^{(1 / \omega)} - \text{MI}_1]}$$ -->
 
-  where:
-  
-  - $\text{vpd}_0$ and $\text{vpd}_1$ are the values of vapour pressure deficit (reconstructed and corrected, respectively)
-  - $\text{MI}_0$ amd $\text{MI}_1$ are the values of moisture index (reconstructed and corrected, respectively)
-  - $\omega$ is a constant equals to `3`.
+<!--   where: -->
+
+<!--   - $\text{vpd}_0$ and $\text{vpd}_1$ are the values of vapour pressure deficit (reconstructed and corrected, respectively) -->
+<!--   - $\text{MI}_0$ amd $\text{MI}_1$ are the values of moisture index (reconstructed and corrected, respectively) -->
+<!--   - $\omega$ is a constant equals to `3`. -->
 
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = FALSE}
 MI0 <- padul2$recon_mi
 MI1 <- padul2$corrected_mi
 vpd0 <- codos:::vpd_internal(padul2$past_temp, MI0)
@@ -161,20 +161,18 @@ mi_ratio <- MI1 / MI0
 padul2$corrected_P_ann <- padul$P_ann * ep_ratio * mi_ratio
 ```
 
-<!-- Approximated as the ratio -->
+Approximated as the ratio
 
-<!-- $$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$ -->
-<!-- multiplied by reconstructed `P_ann`. -->
+$$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$
+multiplied by reconstructed `P_ann`.
 
-<!-- ```{r} -->
-<!-- mi_ratio <- padul2$corrected_mi / padul2$recon_mi -->
-<!-- padul2$corrected_P_ann <- padul$P_ann * mi_ratio -->
-<!-- ``` -->
+```{r}
+mi_ratio <- padul2$corrected_mi / padul2$recon_mi
+padul2$corrected_P_ann <- padul$P_ann * mi_ratio
+```
 
-```{r, echo = FALSE}
+```{r, echo = TRUE}
 padul2 %>% 
-  # dplyr::select(-c(past_co2_loess, corrected_mi_loess)) %>%
-  # dplyr::select(age, dplyr::starts_with("corrected")) %>%
   write.csv(file = "padul-with-corrected-mi.csv",
             row.names = FALSE)
 
@@ -355,12 +353,12 @@ tibble::tibble(x = rep(padul2$age_calBP, 2),
     ggplot2::theme_bw()
 ```
 
-```{r, include=knitr::is_latex_output(), echo = FALSE}
+```{r, include=knitr::is_latex_output(), echo = FALSE, eval = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-### Constrast between two approaches to find corrected `P_ann`
-```{r, echo = FALSE}
+<!-- ### Constrast between two approaches to find corrected `P_ann` -->
+```{r, echo = FALSE, eval = FALSE}
 padul2$corrected_P_ann_old <- padul$P_ann * mi_ratio
 tibble::tibble(x = rep(padul2$age_calBP, 3),
                y = c(padul$P_ann, 
@@ -380,9 +378,9 @@ tibble::tibble(x = rep(padul2$age_calBP, 3),
     ggplot2::theme_bw()
 ```
 
-- `age < 5k`
+<!-- - `age < 5k` -->
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = FALSE}
 tibble::tibble(x = rep(padul2$age_calBP, 3),
                y = c(padul$P_ann, 
                      padul2$corrected_P_ann,
