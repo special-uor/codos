@@ -5,6 +5,7 @@ output:
     extra_dependencies: ["float", "longtable"]
   github_document:
     pandoc_args: --webtex
+    always_allow_html: true
 ---
 
 ```{r setup, include=FALSE}
@@ -101,13 +102,22 @@ padul_tmp <- rowMeans(padul[, c("T_djf", "T_jja")])
 past_co2 <- purrr::map_dbl(padul$`Age (cal yr BP)`, codos::past_co2)
 ```
 
+## Obtain modern CO2 from (Bereiter et al. 2015)
+
+```{r}
+modern_co2 <- tibble::tibble(age = 1950 - c(1961:1990),
+                             co2 = purrr::map_dbl(age, codos::past_co2)) %>%
+  .$co2 %>%
+  mean()
+```
+
 ## Assemble the Padul data
 ```{r}
-padul2 <- tibble::tibble(age = padul$`Age (cal yr BP)`,
+padul2 <- tibble::tibble(age_calBP = padul$`Age (cal yr BP)`,
                          past_temp = padul_tmp,
                          past_co2 = past_co2,
-                         modern_co2 = 340,
-                         present_t = modern_tmp, 
+                         modern_co2 = modern_co2, # 340,
+                         present_t = padul_tmp, # modern_tmp, 
                          recon_mi = padul$MI)
 
 ```
@@ -120,22 +130,46 @@ padul2$corrected_mi <- codos::corrected_mi(padul2$present_t,
                                            padul2$modern_co2,
                                            padul2$past_co2)
 # Small subset
-knitr::kable(head(padul2, 10))
+knitr::kable(head(padul2, 7))
 ```
 
 Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
 
 ## Find the corrected Annual Precipitation, `P_ann`
 
-Approximated as the ratio
+Approximated as the ratios of potential evapotranspiration (`Ep`) and moisture index (`MI`), multiplied by the reconstructed annual precipitation, $\text{P}_\text{ann, 0}$:
 
-$$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$
-multiplied by reconstructed `P_ann`.
+$$\text{P}_\text{ann, 1} = \frac{\text{MI}_1}{\text{MI}_0} \times \frac{\text{Ep}_1}{\text{Ep}_0} \times \text{P}_\text{ann, 0}$$
+The ratio of evapotranspiration (`Ep`) is given by
+$$\frac{\text{Ep}_1}{\text{Ep}_0} = \left(\frac{\text{vpd}_1}{\text{vpd}_0}\right) \times \frac{[(1 + \text{MI}_0^\omega)^{(1 / \omega)} - \text{MI}_0]}{[(1 + \text{MI}_1^\omega)^{(1 / \omega)} - \text{MI}_1]}$$
 
-```{r}
-mi_ratio <- padul2$corrected_mi / padul2$recon_mi
-padul2$corrected_P_ann <- padul$P_ann * mi_ratio
+  where:
+  
+  - $\text{vpd}_0$ and $\text{vpd}_1$ are the values of vapour pressure deficit (reconstructed and corrected, respectively)
+  - $\text{MI}_0$ amd $\text{MI}_1$ are the values of moisture index (reconstructed and corrected, respectively)
+  - $\omega$ is a constant equals to `3`.
+
+
+```{r, echo = FALSE}
+MI0 <- padul2$recon_mi
+MI1 <- padul2$corrected_mi
+vpd0 <- codos:::vpd_internal(padul2$past_temp, MI0)
+vpd1 <- codos:::vpd_internal(padul2$present_t, MI1)
+o <- 3
+ep_ratio <- (vpd1 / vpd0) * ((1 + MI0 ^ o)^(1 / o) - MI0) / ((1 + MI1 ^ o)^(1 / o) - MI1)
+mi_ratio <- MI1 / MI0
+padul2$corrected_P_ann <- padul$P_ann * ep_ratio * mi_ratio
 ```
+
+<!-- Approximated as the ratio -->
+
+<!-- $$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$ -->
+<!-- multiplied by reconstructed `P_ann`. -->
+
+<!-- ```{r} -->
+<!-- mi_ratio <- padul2$corrected_mi / padul2$recon_mi -->
+<!-- padul2$corrected_P_ann <- padul$P_ann * mi_ratio -->
+<!-- ``` -->
 
 ```{r, echo = FALSE}
 padul2 %>% 
@@ -145,7 +179,7 @@ padul2 %>%
             row.names = FALSE)
 
 # Small subset
-knitr::kable(head(padul2, 10)) %>%
+knitr::kable(head(padul2, 20)) %>%
   kableExtra::kable_styling()
 ```
 
@@ -164,7 +198,7 @@ knitr::asis_output('\n\n\\hfill\\break')
 ```
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi, 
                      padul2$corrected_mi),
                var = rep(c("Reconstructed", 
@@ -183,7 +217,7 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
 
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi, 
                      padul2$corrected_mi),
                var = rep(c("Reconstructed", 
@@ -210,7 +244,7 @@ knitr::asis_output('\n\n\\hfill\\break')
 ```
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi,
                      padul2$corrected_mi),
                co2 = rep(padul2$past_co2 / 100, 2),
@@ -234,7 +268,7 @@ tibble::tibble(x = rep(padul2$age, 2),
                                                            name = "Temp [°C]",
                                                            breaks = scales::pretty_breaks(15))
   ) +
-  ggplot2::labs(x = "Age",
+  ggplot2::labs(x = "Age [cal yr BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
@@ -243,7 +277,7 @@ tibble::tibble(x = rep(padul2$age, 2),
 - `age < 5k`
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi,
                      padul2$corrected_mi),
                co2 = rep(padul2$past_co2 / 100, 2),
@@ -268,7 +302,7 @@ tibble::tibble(x = rep(padul2$age, 2),
                                                            name = "Temp [°C]",
                                                            breaks = scales::pretty_breaks(15))
   ) +
-  ggplot2::labs(x = "Age",
+  ggplot2::labs(x = "Age [cal yr BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
@@ -285,7 +319,7 @@ knitr::asis_output('\n\n\\hfill\\break')
 ```
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul$P_ann, 
                      padul2$corrected_P_ann),
                var = rep(c("reconstructed", 
@@ -301,16 +335,16 @@ tibble::tibble(x = rep(padul2$age, 2),
     ggplot2::theme_bw()
 ```
 
-- `age < 20k`
+- `age < 5k`
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul$P_ann, 
                      padul2$corrected_P_ann),
                var = rep(c("reconstructed", 
                            "corrected"), 
                          each = nrow(padul2))) %>%
-  .[.$x < 20000, ] %>%
+  .[.$x < 5000, ] %>%
   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
     ggplot2::geom_line() +
     ggplot2::scale_colour_brewer(name = "P_ann", palette = "Set2") + 
@@ -325,6 +359,54 @@ tibble::tibble(x = rep(padul2$age, 2),
 knitr::asis_output('\n\n\\newpage')
 ```
 
+### Constrast between two approaches to find corrected `P_ann`
+```{r, echo = FALSE}
+padul2$corrected_P_ann_old <- padul$P_ann * mi_ratio
+tibble::tibble(x = rep(padul2$age_calBP, 3),
+               y = c(padul$P_ann, 
+                     padul2$corrected_P_ann,
+                     padul2$corrected_P_ann_old),
+               var = rep(c("reconstructed", 
+                           "corrected (Ep * MI)",
+                           "corrected (MI)"), 
+                         each = nrow(padul2))) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Set2") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", 
+                  y = "Annual precipitation [mm/year]") +
+    ggplot2::theme_bw()
+```
+
+- `age < 5k`
+
+```{r, echo = FALSE}
+tibble::tibble(x = rep(padul2$age_calBP, 3),
+               y = c(padul$P_ann, 
+                     padul2$corrected_P_ann,
+                     padul2$corrected_P_ann_old),
+               var = rep(c("reconstructed", 
+                           "corrected (Ep * MI)",
+                           "corrected (MI)"), 
+                         each = nrow(padul2))) %>%
+  .[.$x < 5000, ] %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Set2") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", 
+                  y = "Annual precipitation [mm/year]") +
+    ggplot2::theme_bw()
+```
+
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Include past CO2 and Temperature
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -332,7 +414,7 @@ knitr::asis_output('\n\n\\hfill\\break')
 ```
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul$P_ann,
                      padul2$corrected_P_ann),
                co2 = rep(padul2$past_co2, 2),
@@ -355,16 +437,16 @@ tibble::tibble(x = rep(padul2$age, 2),
                                                            name = "Temp [°C]",
                                                            breaks = scales::pretty_breaks(15))
   ) +
-  ggplot2::labs(x = "Age",
+  ggplot2::labs(x = "Age [cal yr BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "Annual precipitation [mm/year] and CO2 [ppm]") +
   ggplot2::theme_bw()
 ```
 
-- `age < 20k`
+- `age < 5k`
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul$P_ann,
                      padul2$corrected_P_ann),
                co2 = rep(padul2$past_co2, 2),
@@ -372,7 +454,7 @@ tibble::tibble(x = rep(padul2$age, 2),
                var = rep(c("P_ann: reconstructed",
                            "P_ann: corrected"),
                         each = nrow(padul2))) %>%
-  .[.$x < 20000, ] %>%
+  .[.$x < 5000, ] %>%
   ggplot2::ggplot() +
   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2")) +
@@ -388,7 +470,7 @@ tibble::tibble(x = rep(padul2$age, 2),
                                                            name = "Temp [°C]",
                                                            breaks = scales::pretty_breaks(15))
   ) +
-  ggplot2::labs(x = "Age",
+  ggplot2::labs(x = "Age [cal yr BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "Annual precipitation [mm/year] and CO2 [ppm]") +
   ggplot2::theme_bw()
@@ -406,22 +488,22 @@ Dome C CO2 record from 800 to 600 kyr before present, Geophys. Res. Lett.,
 ## A1. Find reconstructed `MI` using `loess`
 
 ```{r}
-past_co2_loess <- function(age, ref = codos::ice_core) {
+past_co2_loess <- function(age_calBP, ref = codos::ice_core) {
   # Extract the reference age and co2
   ref_age <- purrr::pluck(ref, 1)
   ref_co2 <- purrr::pluck(ref, 2)
-  if (age < min(ref_age))
+  if (age_calBP < min(ref_age))
     return(ref_co2[which.min(ref_age)])
   
-  if (age > max(ref_age))
+  if (age_calBP > max(ref_age))
     return(ref_co2[which.max(ref_age)])
-  loessMod10 <- loess(co2 ~ age,
-                      tibble::tibble(age = ref_age,
+  loessMod10 <- loess(co2 ~ age_calBP,
+                      tibble::tibble(age_calBP = ref_age,
                                      co2 = ref_co2), span = 0.1)
-  return(predict(loessMod10, age))
+  return(predict(loessMod10, age_calBP))
 }
 
-padul2$past_co2_loess <- purrr::map_dbl(padul2$age, 
+padul2$past_co2_loess <- purrr::map_dbl(padul2$age_calBP, 
                                         past_co2_loess)
 padul2$corrected_mi_loess <- codos::corrected_mi(padul2$present_t,
                                                  padul2$past_temp,
@@ -442,7 +524,7 @@ knitr::asis_output('\n\n\\newpage')
 ## A2. Plot reconstructed vs corrected `MI` both approaches
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age, 3),
+tibble::tibble(x = rep(padul2$age_calBP, 3),
                y = c(padul2$recon_mi, 
                      padul2$corrected_mi, 
                      padul2$corrected_mi_loess),
@@ -462,7 +544,7 @@ tibble::tibble(x = rep(padul2$age, 3),
 - `age < 5k`
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age, 3),
+tibble::tibble(x = rep(padul2$age_calBP, 3),
                y = c(padul2$recon_mi, 
                      padul2$corrected_mi, 
                      padul2$corrected_mi_loess),
@@ -492,7 +574,7 @@ knitr::asis_output('\n\n\\hfill\\break')
 ```
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi,
                      padul2$corrected_mi_loess),
                co2 = rep(padul2$past_co2_loess / 100, 2),
@@ -516,7 +598,7 @@ tibble::tibble(x = rep(padul2$age, 2),
                                                            name = "Temp [°C]",
                                                            breaks = scales::pretty_breaks(15))
   ) +
-  ggplot2::labs(x = "Age",
+  ggplot2::labs(x = "Age [cal yr BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
@@ -525,7 +607,7 @@ tibble::tibble(x = rep(padul2$age, 2),
 - `age < 5k`
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi,
                      padul2$corrected_mi_loess),
                co2 = rep(padul2$past_co2_loess / 100, 2),
@@ -550,7 +632,7 @@ tibble::tibble(x = rep(padul2$age, 2),
                                                            name = "Temp [°C]",
                                                            breaks = scales::pretty_breaks(15))
   ) +
-  ggplot2::labs(x = "Age",
+  ggplot2::labs(x = "Age [cal yr BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
   ggplot2::theme_bw()
@@ -559,14 +641,14 @@ tibble::tibble(x = rep(padul2$age, 2),
 ## A4. Compare  `codos::ice_core` vs past CO2 calculate using `mean` and `loess`
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$past_co2,
                      padul2$past_co2_loess),
                var = rep(c("Mean", 
                            "LOESS (span = 0.1)"), 
                          each = nrow(padul2))) %>%
   ggplot2::ggplot() +
-    ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= max(padul2$age), ],
+    ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= max(padul2$age_calBP), ],
                        ggplot2::aes(age_gas_calBP, 
                                     co2_ppm, 
                                     colour = "ice-core")) +
@@ -584,7 +666,7 @@ tibble::tibble(x = rep(padul2$age, 2),
 - `age < 5k`
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                      y = c(padul2$past_co2,
                            padul2$past_co2_loess),
                      var = rep(c("Mean", 
@@ -612,7 +694,7 @@ knitr::asis_output('\n\n\\newpage')
 - `age < 500`
 
 ```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age, 2),
+tibble::tibble(x = rep(padul2$age_calBP, 2),
                      y = c(padul2$past_co2,
                            padul2$past_co2_loess),
                      var = rep(c("Mean", 
