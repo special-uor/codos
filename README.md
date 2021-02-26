@@ -37,6 +37,13 @@ devtools::install_github("special-uor/codos", "dev")
 
 <!-- - CRU TS 4.04: [inst/extdocs/cru-ts-4.04.md](inst/extdocs/cru-ts-4.04.md) -->
 
+-----
+
+Note: Some of the equations on this document are not displayed properly
+(due to a server issue), check out the [README.pdf](README.pdf).
+
+-----
+
 ## Background:
 
 ### Vapour-pressure deficit (`vpd`)
@@ -276,27 +283,18 @@ D/\[\\text{c}\_\\text{a}(1-\\chi)\]](https://latex.codecogs.com/png.latex?f%20%3
 
 </center>
 
-OLD:
+<!-- OLD: -->
+
+<!-- <center>$$\chi  =  [\xi/(\xi + \text{vpd}^ {1/2})] [1 - \Gamma^*/\text{c}_\text{a}] + \Gamma^*/\text{c}_\text{a}$$</center> -->
+
+<!-- NEW: -->
 
 <center>
 
   
-![\\chi = \[\\xi/(\\xi + \\text{vpd}^ {1/2})\] \[1 -
-\\Gamma^\*/\\text{c}\_\\text{a}\] +
-\\Gamma^\*/\\text{c}\_\\text{a}](https://latex.codecogs.com/png.latex?%5Cchi%20%20%3D%20%20%5B%5Cxi%2F%28%5Cxi%20%2B%20%5Ctext%7Bvpd%7D%5E%20%7B1%2F2%7D%29%5D%20%5B1%20-%20%5CGamma%5E%2A%2F%5Ctext%7Bc%7D_%5Ctext%7Ba%7D%5D%20%2B%20%5CGamma%5E%2A%2F%5Ctext%7Bc%7D_%5Ctext%7Ba%7D
-"\\chi  =  [\\xi/(\\xi + \\text{vpd}^ {1/2})] [1 - \\Gamma^*/\\text{c}_\\text{a}] + \\Gamma^*/\\text{c}_\\text{a}")  
-
-</center>
-
-NEW:
-
-<center>
-
-  
-![\\chi = \\frac{\[\\xi \\times \\text{vpd} +
-\\text{vpd}\]}{\[\\text{c}\_\\text{a} / (c\_a
-+ 9.7)\]}](https://latex.codecogs.com/png.latex?%5Cchi%20%20%3D%20%20%5Cfrac%7B%5B%5Cxi%20%5Ctimes%20%5Ctext%7Bvpd%7D%20%2B%20%5Ctext%7Bvpd%7D%5D%7D%7B%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%7D%20%2F%20%28c_a%20%2B%209.7%29%5D%7D
-"\\chi  =  \\frac{[\\xi \\times \\text{vpd} + \\text{vpd}]}{[\\text{c}_\\text{a} / (c_a + 9.7)]}")  
+![\\chi = \\frac{\\xi \\times \\text{vpd}^{1/2} +
+\\text{vpd}}{\\text{c}\_\\text{a}/\\left(\\text{c}\_\\text{a}+9.7\\right)}](https://latex.codecogs.com/png.latex?%5Cchi%20%3D%20%5Cfrac%7B%5Cxi%20%5Ctimes%20%5Ctext%7Bvpd%7D%5E%7B1%2F2%7D%20%2B%20%5Ctext%7Bvpd%7D%7D%7B%5Ctext%7Bc%7D_%5Ctext%7Ba%7D%2F%5Cleft%28%5Ctext%7Bc%7D_%5Ctext%7Ba%7D%2B9.7%5Cright%29%7D
+"\\chi = \\frac{\\xi \\times \\text{vpd}^{1/2} + \\text{vpd}}{\\text{c}_\\text{a}/\\left(\\text{c}_\\text{a}+9.7\\right)}")  
 
 </center>
 
@@ -304,8 +302,8 @@ NEW:
 
   
 ![\\xi = \[\\beta (K + \\Gamma^\*) / (1.6 \\eta^\*)\] ^
-{1/2}](https://latex.codecogs.com/png.latex?%5Cxi%20%3D%20%20%5B%5Cbeta%20%28K%20%2B%20%5CGamma%5E%2A%29%20%2F%20%281.6%20%5Ceta%5E%2A%29%5D%20%5E%20%7B1%2F2%7D
-"\\xi =  [\\beta (K + \\Gamma^*) / (1.6 \\eta^*)] ^ {1/2}")  
+{1/2}](https://latex.codecogs.com/png.latex?%5Cxi%20%3D%20%5B%5Cbeta%20%28K%20%2B%20%5CGamma%5E%2A%29%20%2F%20%281.6%20%5Ceta%5E%2A%29%5D%20%5E%20%7B1%2F2%7D
+"\\xi = [\\beta (K + \\Gamma^*) / (1.6 \\eta^*)] ^ {1/2}")  
 
 </center>
 
@@ -370,17 +368,18 @@ Steps in the solution:
     "f(\\text{T}_\\text{c0}, \\text{MI}_\\text{0}, \\text{c}_\\text{a,0})")
 2.  Equate this to:
 
-OLD:   
-![\[\\xi(\\text{T}\_\\text{c1}, z) \\text{vpd}\_1^{1/2} +
-\\text{vpd}\_1\] / \[\\text{c}\_\\text{a,1}(z) -
-\\Gamma^\*(\\text{T}\_\\text{c1}, z)\]
-](https://latex.codecogs.com/png.latex?%5B%5Cxi%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%20%5Ctext%7Bvpd%7D_1%5E%7B1%2F2%7D%20%2B%20%5Ctext%7Bvpd%7D_1%5D%20%2F%20%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20-%20%5CGamma%5E%2A%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%5D%20
-"[\\xi(\\text{T}_\\text{c1}, z) \\text{vpd}_1^{1/2} + \\text{vpd}_1] / [\\text{c}_\\text{a,1}(z) - \\Gamma^*(\\text{T}_\\text{c1}, z)] ")  
-NEW:   
-![\[\\xi(\\text{T}\_\\text{c1}, z) \\text{vpd}\_1 + \\text{vpd}\_1\] /
-\[\\text{c}\_\\text{a,1}(z) / (\\text{c}\_\\text{a,1}(z) + 9.7)\]
-](https://latex.codecogs.com/png.latex?%5B%5Cxi%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%20%5Ctext%7Bvpd%7D_1%20%2B%20%5Ctext%7Bvpd%7D_1%5D%20%2F%20%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20%2F%20%28%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20%2B%209.7%29%5D%20
-"[\\xi(\\text{T}_\\text{c1}, z) \\text{vpd}_1 + \\text{vpd}_1] / [\\text{c}_\\text{a,1}(z) / (\\text{c}_\\text{a,1}(z) + 9.7)] ")  
+<!-- OLD: -->
+
+<!-- $$[\xi(\text{T}_\text{c1}, z) \text{vpd}_1^{1/2} + \text{vpd}_1] / [\text{c}_\text{a,1}(z) - \Gamma^*(\text{T}_\text{c1}, z)] $$ -->
+
+<!-- NEW: -->
+
+  
+![\[\\xi(\\text{T}\_\\text{c1}, z) \\times \\text{vpd}\_1 ^ {1/2} +
+\\text{vpd}\_1\] / \[\\text{c}\_\\text{a,1}(z) /
+(\\text{c}\_\\text{a,1}(z) + 9.7)\]
+](https://latex.codecogs.com/png.latex?%5B%5Cxi%28%5Ctext%7BT%7D_%5Ctext%7Bc1%7D%2C%20z%29%20%5Ctimes%20%5Ctext%7Bvpd%7D_1%20%5E%20%7B1%2F2%7D%20%2B%20%5Ctext%7Bvpd%7D_1%5D%20%2F%20%5B%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20%2F%20%28%5Ctext%7Bc%7D_%5Ctext%7Ba%2C1%7D%28z%29%20%2B%209.7%29%5D%20
+"[\\xi(\\text{T}_\\text{c1}, z) \\times \\text{vpd}_1 ^ {1/2} + \\text{vpd}_1] / [\\text{c}_\\text{a,1}(z) / (\\text{c}_\\text{a,1}(z) + 9.7)] ")  
 
 where:
 
