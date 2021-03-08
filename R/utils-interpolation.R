@@ -163,6 +163,61 @@ int_acm2 <- function(y_points, month_len) {
   new_MN
 }
 
+#' Sinusoidal interpolation
+#'
+#' Create sinusoidal interpolation based on two values, \code{minv} and
+#' \code{maxv}. The lower and upper bounds/peaks of the function.
+#'
+#' @param minv Numeric value, used as the lower bound.
+#' @param maxv Numeric value, used as the upper bound.
+#' @param period Numeric value, period width (e.g. 365 days).
+#' @param x Numeric value, number of partitions to use.
+#' @param phi Numeric value, phase shift.
+#' @param plot Boolean flag, to indicate whether or not a plot should be
+#'     displayed.
+#'
+#' @return Numeric vector with the interpolated function. Same length as
+#'    \code{x}. Returned invisibly, so it must be assigned to a variable.
+#' @export
+#'
+#' @examples
+#' int_sin(-1, 1)
+#' int_sin(-1, 1, plot = TRUE)
+#' int_sin(-1, 1, period = 10, plot = TRUE)
+int_sin <- function(minv,
+                    maxv,
+                    period = 365,
+                    x = period,
+                    phi = - pi / 2,
+                    plot = FALSE) {
+  amplitud <- (maxv - minv) / 2
+  mid_point <- (maxv + minv) / 2
+  x <- seq_len(x)
+  y <- amplitud * sin(2 * pi / period * x + phi) + mid_point
+  if (plot) {
+    p <- tibble::tibble(x = x,
+                        y = y) %>%
+      ggplot2::ggplot(ggplot2::aes(x, y)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = minv),
+                          ggplot2::aes(x, y, colour = "T_djf")) +
+      # colour = "#0080ff") +
+      ggplot2::geom_point(data = tibble::tibble(x = period / 2, y = maxv),
+                          ggplot2::aes(x, y, colour = "T_jja")) +
+      # colour = "#ff3333") +
+      ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
+                                   values = c("#0080ff","#ff3333")) +
+      ggplot2::labs(x = "[days]",
+                    y = "Temp [°C]") +
+      ggplot2::theme_bw()
+    print(p)
+    # plot(x, y, type = "l")
+    # points(1, minv, pch = 19, col = "blue")
+    # points(period / 2, maxv, pch = 19, col = "red")
+  }
+  return(invisible(y))
+}
+
 #' Monthly to daily interpolation
 #'
 #' @importFrom foreach "%dopar%"
