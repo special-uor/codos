@@ -1105,16 +1105,17 @@ nc_Tg <- function(filename,
 #' @param is.dim Boolean flag to indicate if the variable is a dimension
 #'     (e.g. time, latitude, or longitude).
 #' @inheritParams nc2ts
+#' @inheritDotParams ncdf4::ncvar_get -nc varid
 #'
 #' @return List with data, filename, id, and units linked to the variable.
 #' @keywords internal
-nc_var_get <- function(filename, varid, is.dim = FALSE) {
+nc_var_get <- function(filename, varid, is.dim = FALSE, ...) {
   nc <- ncdf4::nc_open(filename)
   on.exit(ncdf4::nc_close(nc)) # Close the file
 
   # Read variable
   tryCatch({
-    var_data <- ncdf4::ncvar_get(nc, varid)
+    var_data <- ncdf4::ncvar_get(nc, varid, ...)
     var_units <- ncdf4::ncatt_get(nc, varid, "units")$value
   }, error = function(e) {
     stop("Error reading the ", varid, " ",
