@@ -333,10 +333,10 @@ df_test <- df[-idx, ]
 
 ## Start with a simple model to find the start points
 lmod <- lm(log(vpd) ~ Tmp * MI,# poly(Tmp, 2) + poly(MI, 2),
-           data = df)
+           data = df_train)
 
 model1 <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI + kMITmp * MI * Tmp) + b,
-              df,
+              df_train,
               start = list(a = exp(coef(lmod)[1]),
                            kTmp = coef(lmod)[2],
                            kMI = coef(lmod)[3],
@@ -428,6 +428,100 @@ ggplot2::ggplot(df, ggplot2::aes(Tmp, vpd)) +
   ggplot2::theme_bw()
 ```
 
+#### Without intercept
+
+``` r
+## Start with a simple model to find the start points
+lmod <- lm(log(vpd) ~ Tmp * MI,# poly(Tmp, 2) + poly(MI, 2),
+           data = df_train)
+
+model1b <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI + kMITmp * MI * Tmp),
+              df_train,
+              start = list(a = exp(coef(lmod)[1]),
+                           kTmp = coef(lmod)[2],
+                           kMI = coef(lmod)[3],
+                           kMITmp = coef(lmod)[4]),
+              control = list(maxiter = 200))
+
+
+a <- coef(model1b)[1]
+kTmp <- coef(model1b)[2]
+kMI <- coef(model1b)[3]
+kMITmp <- coef(model1b)[4]
+```
+
+``` r
+mi_test <- seq(0, 6.6, 0.1)
+tmp_test <- c(7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+df2 <- data.frame(x = rep(mi_test, length(tmp_test)),
+                  y = unlist(lapply(tmp_test,
+                                    function(x) a[1] * exp(kTmp[1] * x - kMI[1] * mi_test + kMITmp * x * mi_test))),
+                  z = rep(tmp_labs,
+                          each = length(mi_test)))
+# df2$z <- factor(df2$z, c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35"), ordered = TRUE)
+ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = tmp), alpha = 0.5) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  # ggplot2::geom_point(ggplot2::aes(y = vpd_calc, color = tmp), alpha = 0.3) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               # "Tmp^{",
+                               # round(kaTmp, 3),
+                               # "} - ",
+                               round(kMI, 3),
+                               " MI",
+                               # "^",
+                               # round(kaMI, 3),
+                               ifelse(kMITmp >= 0, "-", " "),
+                               round(kMITmp, 4),
+                               " MI * Tmp)"),
+                x = "MI [-]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]", 
+                              palette = "Spectral", 
+                              direction = -1) +
+  ggplot2::theme_bw()
+```
+
+``` r
+mi_labs <- c("0-0.5","0.5-1", "1-1.5", "1.5-2", "2+")
+mi_test <- c(0.25, 0.75, 1.25, 1.75, 2.25)
+tmp_test <- seq(5, 35, 1)
+df2 <- data.frame(x = rep(tmp_test, length(mi_test)),
+                  y = unlist(lapply(mi_test,
+                                    function(x) a[1] * exp(kTmp[1] * tmp_test - kMI[1] * x + kMITmp * x * tmp_test))),
+                  z = rep(mi_labs,
+                          each = length(tmp_test)))
+ggplot2::ggplot(df, ggplot2::aes(Tmp, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               # "Tmp^{",
+                               # round(kaTmp, 3),
+                               # "} - ",
+                               round(kMI, 3),
+                               " MI",
+                               # "^",
+                               # round(kaMI, 3),
+                               ifelse(kMITmp >= 0, "-", " "),
+                               round(kMITmp, 4),
+                               " MI * Tmp)"),
+                x = "Tmp [°C]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "MI [-]",
+                              palette = "Spectral", 
+                              direction = -1) +
+  ggplot2::theme_bw()
+```
+
 ### Without interaction term
 
 ``` r
@@ -502,6 +596,81 @@ ggplot2::ggplot(df, ggplot2::aes(Tmp, vpd)) +
                                " MI",
                                ") + ",
                                round(b, 3)),
+                x = "Tmp [°C]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "MI [-]", 
+                              palette = "Spectral", 
+                              direction = -1) +
+  ggplot2::theme_bw()
+```
+
+#### Without intercept
+
+``` r
+## Start with a simple model to find the start points
+lmod2 <- lm(log(vpd) ~ Tmp + MI,# poly(Tmp, 2) + poly(MI, 2),
+           data = df_train)
+
+model2b <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI),
+              df_train,
+              start = list(a = exp(coef(lmod2)[1]),
+                           kTmp = coef(lmod2)[2],
+                           kMI = coef(lmod2)[3]),
+              control = list(maxiter = 200))
+
+
+a <- coef(model2b)[1]
+kTmp <- coef(model2b)[2]
+kMI <- coef(model2b)[3]
+```
+
+``` r
+mi_test <- seq(0, 6.6, 0.1)
+tmp_labels <- c("5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+tmp_test <- c(7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+df5 <- data.frame(x = rep(mi_test, length(tmp_test)),
+                  y = unlist(lapply(tmp_test,
+                                    function(x) (a * exp(kTmp[1] * x - kMI[1] * mi_test)))),
+                  z = rep(tmp_labels,
+                          each = length(mi_test)))
+ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = tmp), alpha = 0.5) +
+  ggplot2::geom_line(data = df5, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df5, ggplot2::aes(x = x, y = y)) +
+  # ggplot2::geom_point(ggplot2::aes(y = vpd_calc, color = tmp), alpha = 0.3) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               round(kMI, 3),
+                               " MI)"),
+                x = "MI [-]", y = "vpd [hPa]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral", 
+                              direction = -1) +
+  ggplot2::theme_bw()
+```
+
+``` r
+mi_labels <- c("0-0.5", "0.5-1", "1-1.5", "1.5-2", "2+")
+mi_test <- c(0.25, 0.75, 1.25, 1.75, 2.25)
+tmp_test <- seq(5, 35, 1)
+df6 <- data.frame(x = rep(tmp_test, length(mi_test)),
+                  y = unlist(lapply(mi_test,
+                                    function(x) a[1] * exp(kTmp[1] * tmp_test - kMI[1] * x))),
+                  z = rep(mi_labels,
+                          each = length(tmp_test)))
+ggplot2::ggplot(df, ggplot2::aes(Tmp, vpd)) +
+  ggplot2::geom_point(ggplot2::aes(color = mi), alpha = 0.5) +
+  ggplot2::geom_line(data = df6, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df6, ggplot2::aes(x = x, y = y)) +
+  ggplot2::labs(title = paste0("vpd = ",
+                               round(a, 3),
+                               " exp(",
+                               round(kTmp, 3),
+                               " Tmp - ",
+                               round(kMI, 3),
+                               " MI)"),
                 x = "Tmp [°C]", y = "vpd [hPa]") +
   ggplot2::scale_color_brewer(name = "MI [-]", 
                               palette = "Spectral", 
@@ -611,107 +780,6 @@ for (i in levels(df$mi)[-6]) {
 ```
 
 ## Plots of `VPD` vs `MI`
-
-``` r
-df <- df[!is.na(df$MI) & !is.na(df$vpd), ]
-                  
-all <- ggplot2::ggplot(df, ggplot2::aes(MI, vpd)) +
-        ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
-        ggplot2::labs(title = NULL, x = "MI [-]", y = "vpd [hPa]") +
-        ggplot2::scale_color_brewer(palette = "Spectral", direction = -1) +
-        ggplot2::theme_bw()
-
-ggplot2::ggsave("mi-vpd.pdf",
-                plot = all,
-                device = "pdf",
-                width = 20,
-                height = 12,
-                path = "~/Desktop/iCloud/UoR/Data/codos",
-                limitsize = FALSE)
-plots <- list()
-p <- 1
-for (i in levels(df$tg)[-c(8:9)]) {
-  plots[[p]] <- ggplot2::ggplot(df[df$tg == i,], ggplot2::aes(MI, vpd)) +
-                  ggplot2::geom_point(ggplot2::aes(color = tg), alpha = 0.5) +
-                  ggplot2::scale_color_manual(values = c("#8c94c0"), guide = FALSE) +
-                  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 8)) + 
-                  ggplot2::theme_bw()
-  ggplot2::ggsave(paste0("mi-vpd-", i, ".pdf"),
-                plot = plots[[p]]  +
-                  ggplot2::labs(title = paste0("Tg: ", i, " [°C]"), 
-                                x = "MI [-]", 
-                                y = "vpd [hPa]"),
-                device = "pdf",
-                width = 20,
-                height = 12,
-                path = "~/Desktop/iCloud/UoR/Data/codos",
-                limitsize = FALSE)
-  ggplot2::ggsave(paste0("mi-vpd-", i, "-lm.pdf"),
-                plot = plots[[p]] +
-                  ggplot2::stat_smooth(method = lm, formula = y ~ x)  +
-                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Linear regression"), 
-                                x = "MI [-]", 
-                                y = "vpd [hPa]") +
-                  ggpubr::stat_regline_equation(
-                      ggplot2::aes(label = paste(..eq.label.., 
-                                                 ..adj.rr.label.., 
-                                                 sep = "~~~~")),
-                      formula = y ~ x),
-                device = "pdf",
-                width = 20,
-                height = 12,
-                path = "~/Desktop/iCloud/UoR/Data/codos",
-                limitsize = FALSE)
-  ggplot2::ggsave(paste0("mi-vpd-", i, "-lm-x2.pdf"),
-                plot = plots[[p]] +
-                  ggplot2::stat_smooth(method = lm, 
-                                       formula = y ~ poly(x, 2, raw = TRUE)) +
-                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Polynomial regression"), 
-                                x = "MI [-]",
-                                y = "vpd [hPa]") +
-                  ggpubr::stat_regline_equation(
-                      ggplot2::aes(label = paste(..eq.label.., 
-                                                 ..adj.rr.label.., 
-                                                 sep = "~~~~")),
-                      formula = y ~ poly(x, 2, raw = TRUE)),
-                device = "pdf",
-                width = 20,
-                height = 12,
-                path = "~/Desktop/iCloud/UoR/Data/codos",
-                limitsize = FALSE)
-  ggplot2::ggsave(paste0("mi-vpd-", i, "-splines.pdf"),
-                plot = plots[[p]] +
-                  ggplot2::stat_smooth(method = lm, 
-                                       formula = y ~ splines::bs(x, df = 3)) +
-                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Spline regression (df = 3)"), 
-                                x = "MI [-]",
-                                y = "vpd [hPa]") +
-                  ggpubr::stat_regline_equation(
-                      ggplot2::aes(label = paste(..eq.label.., 
-                                                 ..adj.rr.label.., 
-                                                 sep = "~~~~")),
-                      formula = y ~ splines::bs(x, df = 3)),
-                device = "pdf",
-                width = 20,
-                height = 12,
-                path = "~/Desktop/iCloud/UoR/Data/codos",
-                limitsize = FALSE)
-  formula <- with(df, vpd ~ s(Tg))
-  ggplot2::ggsave(paste0("mi-vpd-", i, "-gam.pdf"),
-                plot = plots[[p]] +
-                  ggplot2::stat_smooth(method = "gam", 
-                                       formula = y ~ s(x)) +
-                  ggplot2::labs(title = paste0("Tg: ", i, " [°C] - Generalized additive models (GAM)"), 
-                                x = "MI [-]",
-                                y = "vpd [hPa]"),
-                device = "pdf",
-                width = 20,
-                height = 12,
-                path = "~/Desktop/iCloud/UoR/Data/codos",
-                limitsize = FALSE)
-  p <- p + 1
-}
-```
 
 ### `0 < MI < 0.5`
 

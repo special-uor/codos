@@ -1,14 +1,14 @@
 ---
 title: "Cloud coverage (`cld`)"
 output:
-  github_document:
-    pandoc_args: --webtex
-  html_document:
-    df_print: paged
   pdf_document:
     extra_dependencies:
     - float
     - longtable
+  html_document:
+    df_print: paged
+  github_document:
+    pandoc_args: --webtex
 ---
 
 ```{r setup, include=FALSE}
@@ -126,9 +126,9 @@ df <- df %>%
 #   knitr::kable()
 ```
 
-## Fit models
+<!-- ## Fit models -->
 
-```{r}
+```{r, echo = FALSE}
 # Subset data
 set.seed(1)
 idx <- sample(seq_len(nrow(df)), size = floor(nrow(df) * 0.7), replace = FALSE)
@@ -136,17 +136,184 @@ df_train <- df[idx, ]
 df_test <- df[-idx, ]
 ```
 
+### `cld` vs `MI`
+
+##### Linear regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
+# Start with a simple model to find the start points
+model <- lm(CLD ~ MI, df_train)
+
+
+lmod <- lm(log(CLD) ~ MI,# poly(Tmp, 2) + poly(MI, 2),
+           data = df_train)
+
+# Build the model
+model <- nls(CLD ~ a + b * (1 - exp(-kMI * MI)),
+             df_train,
+             start = list(a = 0.1,
+                          kMI = 0.001,
+                          b = 0.5),
+              control = list(maxiter = 1000,
+                             minFactor = 1e-10))
+
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+
+# model_summary <- 
+#   tibble::tibble(model = "lm", 
+#                  RMSE = caret::RMSE(predictions, df_test$CLD), 
+#                  R2 = caret::R2(predictions, df_test$CLD))
+
+# ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() #+
+#   # ggplot2::stat_smooth(method = lm, formula = y ~ x)
+
+MI_test <- seq(0, max(df$MI), 0.1)
+# tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+# tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = MI_test,
+                 y = MI_test %>%
+                   purrr::map(~co[1] + co[3] * (1 - exp(-co[2] * .x))) %>% 
+                   purrr::flatten_dbl()) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " [1 - exp(",
+                               ifelse(co[2] >= 0, " ", "- "),
+                               abs(round(co[2], 3)),
+                               " MI)]"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  ggplot2::theme_bw()
+
+summary(model)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+##### Linear regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
+df_train5 <- df_train %>%
+  dplyr::filter(Tmp > 5)
+
+# Start with a simple model to find the start points
+model <- lm(CLD ~ MI, df_train5)
+
+
+lmod <- lm(log(CLD) ~ MI,# poly(Tmp, 2) + poly(MI, 2),
+           data = df_train5)
+
+# Build the model
+model <- nls(CLD ~ a + b * (1 - exp(-kMI * MI)),
+             df_train5,
+             start = list(a = 0.1,
+                          kMI = 0.001,
+                          b = 0.5),
+              control = list(maxiter = 1000,
+                             minFactor = 1e-10))
+
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+
+# model_summary <- 
+#   tibble::tibble(model = "lm", 
+#                  RMSE = caret::RMSE(predictions, df_test$CLD), 
+#                  R2 = caret::R2(predictions, df_test$CLD))
+
+# ggplot2::ggplot(df_train5, ggplot2::aes(MI, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() #+
+#   # ggplot2::stat_smooth(method = lm, formula = y ~ x)
+
+MI_test <- seq(0, max(df$MI), 0.1)
+# tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+# tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = MI_test,
+                 y = MI_test %>%
+                   purrr::map(~co[1] + co[3] * (1 - exp(-co[2] * .x))) %>% 
+                   purrr::flatten_dbl()) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train5, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " [1 - exp(",
+                               ifelse(co[2] >= 0, " ", "- "),
+                               abs(round(co[2], 3)),
+                               " MI)]"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  ggplot2::theme_bw()
+
+summary(model)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+# Old plots
+
 ### `cld` vs `vpd`
 
 ##### Linear regression
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
-# j <- 181
-# i <- mi[, j] > mi_min & mi[, j] <= mi_max & !is.na(mi[, j])
-# ip <- mi[, j + 1] > mi_min & mi[, j + 1] <= mi_max & !is.na(mi[, j + 1])
-# 
-# df_train <- data.frame(vpd = vpd[i, j], vpd = vpd[i, j])
-# df_test <-  data.frame(vpd = vpd[ip, j + 1], vpd = vpd[ip, j + 1])
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ vpd, df_train)
 # Make predictions
@@ -161,10 +328,6 @@ model_summary <-
   tibble::tibble(model = "lm", 
                  RMSE = caret::RMSE(predictions, df_test$CLD), 
                  R2 = caret::R2(predictions, df_test$CLD))
-# model_summary <- model_summary  %>%
-#   rbind(c("lm", 
-#           caret::RMSE(predictions, df_test$CLD),
-#           caret::R2(predictions, df_test$CLD)))
 
 ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
   ggplot2::geom_point(alpha = ALPHA) +
@@ -178,8 +341,17 @@ summary(model)
 
 <!-- `r cat(paste0("$$cld = ", round(coefficients(model)[1], 4), ifelse(coefficients(model)[2] < 0, " - ", " + "), round(abs(coefficients(model)[2]), 4), " \\times vpd$$"))` -->
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Polynomial regression
 ##### 2nd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ poly(vpd, 2, raw = TRUE), data = df_train)
@@ -206,7 +378,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### 3rd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ poly(vpd, 3, raw = TRUE), data = df_train)
@@ -233,7 +414,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Log transformation
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ log(vpd), data = df_train)
@@ -259,7 +449,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Spline regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ splines2::bSpline(vpd,df = 3), data = df_train)
@@ -285,7 +484,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Generalized additive models (GAM)
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE}
 # Build the model
 model <- mgcv::gam(CLD ~ s(vpd), data = df_train)
@@ -313,14 +521,32 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Summary
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE}
 knitr::kable(model_summary)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
 ```
 
 ### `cld` vs `MI`
 
 ##### Linear regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ MI, df_train)
@@ -336,10 +562,6 @@ model_summary <-
   tibble::tibble(model = "lm", 
                  RMSE = caret::RMSE(predictions, df_test$CLD), 
                  R2 = caret::R2(predictions, df_test$CLD))
-# model_summary <- model_summary  %>%
-#   rbind(c("lm", 
-#           caret::RMSE(predictions, df_test$CLD),
-#           caret::R2(predictions, df_test$CLD)))
 
 ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
   ggplot2::geom_point(alpha = ALPHA) +
@@ -352,9 +574,18 @@ summary(model)
 ```
 
 <!-- `r cat(paste0("$$cld = ", round(coefficients(model)[1], 4), ifelse(coefficients(model)[2] < 0, " - ", " + "), round(abs(coefficients(model)[2]), 4), " \\times MI$$"))` -->
-  
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Polynomial regression
 ##### 2nd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ poly(MI, 2, raw = TRUE), data = df_train)
@@ -381,7 +612,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### 3rd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ poly(MI, 3, raw = TRUE), data = df_train)
@@ -408,7 +648,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Log transformation
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ log(MI + 1), data = df_train)
@@ -434,7 +683,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Spline regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ splines2::bSpline(MI,df = 3), data = df_train)
@@ -460,7 +718,16 @@ ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Generalized additive models (GAM)
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE}
 # Build the model
 model <- mgcv::gam(CLD ~ s(MI), data = df_train)
@@ -488,14 +755,32 @@ ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Summary
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE}
 knitr::kable(model_summary)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
 ```
 
 ### `cld` vs `vpd` and `Tmp`
 
 ##### Linear regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
 model <- lm(CLD ~ vpd + Tmp, df_train)
@@ -523,7 +808,7 @@ df2 <-
                                 ~ co[1] + co[2] * vpd_test + co[3] * .x) %>% purrr::flatten_dbl(),
                  z = rep(tmp_labs,
                           each = length(vpd_test))) %>%
-  dplyr::filter(y >= 0)
+  dplyr::filter(y >= 0 & y <= 100)
 
 ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
   ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
@@ -539,21 +824,31 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
                                abs(round(co[3], 3)),
                                " Tmp"),
                 x = "vpd [hPa]", y = "cld [%]") +
-  # ggplot2::scale_color_brewer(name = "Tmp [°C]", 
-  #                             palette = "Spectral", 
-  #                             direction = -1) +
   ggplot2::scale_color_brewer(name = "Tmp [°C]",
-                              palette = "Set1") +
+                              palette = "Spectral",
+                              direction = -1) +
+  # ggplot2::scale_color_brewer(name = "Tmp [°C]",
+  #                             palette = "Set1") +
   ggplot2::theme_bw()
 
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Polynomial regression
 ##### 2nd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
-model <- lm(CLD ~ poly(vpd, 2, raw = TRUE), data = df_train)
+model <- lm(CLD ~ poly(vpd, 2, raw = TRUE) + 
+                  poly(Tmp, 2, raw = TRUE), data = df_train)
 # Make predictions
 predictions <- predict(model, df_test)
 # Model performance
@@ -567,20 +862,70 @@ model_summary <- model_summary  %>%
           caret::RMSE(predictions, df_test$CLD),
           caret::R2(predictions, df_test$CLD)))
 
+vpd_test <- seq(0, max(df$vpd), 1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(vpd_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * vpd_test + co[3] * vpd_test ^ 2 + co[4] * .x + co[5] * .x ^ 2) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(vpd_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
 ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
-  ggplot2::geom_point(alpha = ALPHA) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  ggplot2::scale_color_brewer(palette = "Set1") +
-  ggplot2::theme_bw() +
-  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " vpd ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " vpd ^ 2",
+                               ifelse(co[4] >= 0, " + ", " - "),
+                               abs(round(co[4], 3)),
+                               " Tmp",
+                               ifelse(co[5] >= 0, " + ", " - "),
+                               abs(round(co[5], 3)),
+                               " Tmp ^ 2"),
+                x = "vpd [hPa]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  # ggplot2::scale_color_brewer(name = "Tmp [°C]",
+  #                             palette = "Set1") +
+  ggplot2::theme_bw()
+
+# ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
 
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### 3rd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
-model <- lm(CLD ~ poly(vpd, 3, raw = TRUE), data = df_train)
+model <- lm(CLD ~ poly(vpd, 3, raw = TRUE) +
+                  poly(Tmp, 3, raw = TRUE), data = df_train)
 # Make predictions
 predictions <- predict(model, df_test)
 # Model performance
@@ -594,20 +939,72 @@ model_summary <- model_summary  %>%
           caret::RMSE(predictions, df_test$CLD),
           caret::R2(predictions, df_test$CLD)))
 
+vpd_test <- seq(0, max(df$vpd), 1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(vpd_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * vpd_test + co[3] * vpd_test ^ 2 + co[4] * vpd_test ^ 3 + co[5] * .x + co[6] * .x ^ 2 + co[7] * .x ^ 3) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(vpd_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
 ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
-  ggplot2::geom_point(alpha = ALPHA) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  ggplot2::scale_color_brewer(palette = "Set1") +
-  ggplot2::theme_bw() +
-  ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 3, raw = TRUE))
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " vpd ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " vpd ^ 2",
+                               ifelse(co[4] >= 0, " + ", " - "),
+                               abs(round(co[4], 3)),
+                               " vpd ^ 3",
+                               ifelse(co[5] >= 0, " + ", " - "),
+                               abs(round(co[5], 3)),
+                               " Tmp",
+                               ifelse(co[6] >= 0, " + ", " - "),
+                               abs(round(co[6], 3)),
+                               " Tmp ^ 2",
+                               ifelse(co[7] >= 0, " + ", " - "),
+                               abs(round(co[7], 3)),
+                               " Tmp ^ 3"),
+                x = "vpd [hPa]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  ggplot2::theme_bw()
+# ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 3, raw = TRUE))
 
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Log transformation
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE, eval = TRUE, cache = TRUE}
 # Build the model
-model <- lm(CLD ~ log(vpd), data = df_train)
+model <- lm(CLD ~ log(vpd) + log(Tmp), data = df_train)
 # Make predictions
 predictions <- predict(model, df_test)
 # Model performance
@@ -620,20 +1017,56 @@ model_summary <- model_summary  %>%
           caret::RMSE(predictions, df_test$CLD),
           caret::R2(predictions, df_test$CLD)))
 
+vpd_test <- seq(0, max(df$vpd), 1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(vpd_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * log(vpd_test) + co[3] * log(.x)) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(vpd_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
 ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
-  ggplot2::geom_point(alpha = ALPHA) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  ggplot2::scale_color_brewer(palette = "Set1") +
-  ggplot2::theme_bw() +
-  ggplot2::stat_smooth(method = lm, formula = y ~ log(x))
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " log(vpd) ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " log(Tmp)"),
+                x = "vpd [hPa]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  # ggplot2::scale_color_brewer(name = "Tmp [°C]",
+  #                             palette = "Set1") +
+  ggplot2::theme_bw()
+
+# ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ log(x))
 
 summary(model)
 ```
 
-##### Spline regression
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+<!-- ##### Spline regression -->
+```{r, echo = FALSE, eval = FALSE, cache = TRUE}
 # Build the model
-model <- lm(CLD ~ splines2::bSpline(vpd,df = 3), data = df_train)
+model <- lm(CLD ~ splines2::bSpline(vpd, df = 3) +
+                  splines2::bSpline(Tmp, df = 3), 
+            data = df_train)
 # Make predictions
 predictions <- predict(model, df_test)
 # Model performance
@@ -646,18 +1079,62 @@ model_summary <- model_summary  %>%
           caret::RMSE(predictions, df_test$CLD),
           caret::R2(predictions, df_test$CLD)))
 
+vpd_test <- seq(0, max(df$vpd), 1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(vpd_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * vpd_test + co[3] * vpd_test ^ 2 + co[4] * vpd_test ^ 3 + co[5] * .x + co[6] * .x ^ 2 + co[7] * .x ^ 3) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(vpd_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
 ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
-  ggplot2::geom_point(alpha = ALPHA) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
-  ggplot2::scale_color_brewer(palette = "Set1") +
-  ggplot2::theme_bw() +
-  ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " vpd ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " vpd ^ 2",
+                               ifelse(co[4] >= 0, " + ", " - "),
+                               abs(round(co[4], 3)),
+                               " vpd ^ 3",
+                               ifelse(co[5] >= 0, " + ", " - "),
+                               abs(round(co[5], 3)),
+                               " Tmp",
+                               ifelse(co[6] >= 0, " + ", " - "),
+                               abs(round(co[6], 3)),
+                               " Tmp ^ 2",
+                               ifelse(co[7] >= 0, " + ", " - "),
+                               abs(round(co[7], 3)),
+                               " Tmp ^ 3"),
+                x = "vpd [hPa]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  ggplot2::theme_bw()
+
+# ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
 
 summary(model)
 ```
 
-##### Generalized additive models (GAM)
-```{r, echo = FALSE, eval = TRUE}
+<!-- ##### Generalized additive models (GAM) -->
+```{r, echo = FALSE, eval = FALSE}
 # Build the model
 model <- mgcv::gam(CLD ~ s(vpd), data = df_train)
 # Make predictions
@@ -684,22 +1161,435 @@ ggplot2::ggplot(df_train, ggplot2::aes(vpd, CLD)) +
 summary(model)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ##### Summary
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
 ```{r, echo = FALSE}
 knitr::kable(model_summary)
 ```
 
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
 
 ### `cld` vs `MI` and `Tmp`
 
+##### Linear regression
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+# Build the model
+model <- lm(CLD ~ MI + Tmp, df_train)
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+
+model_summary <- 
+  tibble::tibble(model = "lm", 
+                 RMSE = caret::RMSE(predictions, df_test$CLD), 
+                 R2 = caret::R2(predictions, df_test$CLD))
+
+MI_test <- seq(0, max(df$MI), 0.1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(MI_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * MI_test + co[3] * .x) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(MI_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " MI ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " Tmp"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  # ggplot2::scale_color_brewer(name = "Tmp [°C]",
+  #                             palette = "Set1") +
+  ggplot2::theme_bw()
+
+summary(model)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+##### Polynomial regression
+
+##### 2nd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+# Build the model
+model <- lm(CLD ~ poly(MI, 2, raw = TRUE) + 
+                  poly(Tmp, 2, raw = TRUE), data = df_train)
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+
+model_summary <- model_summary  %>%
+  rbind(c("poly - 2nd deg", 
+          caret::RMSE(predictions, df_test$CLD),
+          caret::R2(predictions, df_test$CLD)))
+
+MI_test <- seq(0, max(df$MI), 0.1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(MI_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * MI_test + co[3] * MI_test ^ 2 + co[4] * .x + co[5] * .x ^ 2) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(MI_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " MI ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " MI ^ 2",
+                               ifelse(co[4] >= 0, " + ", " - "),
+                               abs(round(co[4], 3)),
+                               " Tmp",
+                               ifelse(co[5] >= 0, " + ", " - "),
+                               abs(round(co[5], 3)),
+                               " Tmp ^ 2"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  # ggplot2::scale_color_brewer(name = "Tmp [°C]",
+  #                             palette = "Set1") +
+  ggplot2::theme_bw()
+
+# ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 2, raw = TRUE))
+
+summary(model)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+##### 3rd degree
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+# Build the model
+model <- lm(CLD ~ poly(MI, 3, raw = TRUE) +
+                  poly(Tmp, 3, raw = TRUE), data = df_train)
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+
+model_summary <- model_summary  %>%
+  rbind(c("poly - 3rd deg", 
+          caret::RMSE(predictions, df_test$CLD),
+          caret::R2(predictions, df_test$CLD)))
+
+MI_test <- seq(0, max(df$MI), 0.1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(MI_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * MI_test + co[3] * MI_test ^ 2 + co[4] * MI_test ^ 3 + co[5] * .x + co[6] * .x ^ 2 + co[7] * .x ^ 3) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(MI_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " MI ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " MI ^ 2",
+                               ifelse(co[4] >= 0, " + ", " - "),
+                               abs(round(co[4], 3)),
+                               " MI ^ 3",
+                               ifelse(co[5] >= 0, " + ", " - "),
+                               abs(round(co[5], 3)),
+                               " Tmp",
+                               ifelse(co[6] >= 0, " + ", " - "),
+                               abs(round(co[6], 3)),
+                               " Tmp ^ 2",
+                               ifelse(co[7] >= 0, " + ", " - "),
+                               abs(round(co[7], 3)),
+                               " Tmp ^ 3"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  ggplot2::theme_bw()
+# ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ poly(x, 3, raw = TRUE))
+
+summary(model)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+##### Log transformation
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+# Build the model
+model <- lm(CLD ~ log(MI + 1) + log(Tmp), data = df_train)
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+model_summary <- model_summary  %>%
+  rbind(c("log (ln [x + 1])", 
+          caret::RMSE(predictions, df_test$CLD),
+          caret::R2(predictions, df_test$CLD)))
+
+MI_test <- seq(0, max(df$MI), 0.1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(MI_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * log(MI_test) + co[3] * log(.x)) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(MI_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " log(MI) ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " log(Tmp)"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  # ggplot2::scale_color_brewer(name = "Tmp [°C]",
+  #                             palette = "Set1") +
+  ggplot2::theme_bw()
+
+# ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ log(x))
+
+summary(model)
+```
+
+<!-- ##### Spline regression -->
+```{r, echo = FALSE, eval = FALSE, cache = TRUE}
+# Build the model
+model <- lm(CLD ~ splines2::bSpline(MI, df = 3) +
+                  splines2::bSpline(Tmp, df = 3), 
+            data = df_train)
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+model_summary <- model_summary  %>%
+  rbind(c("spline", 
+          caret::RMSE(predictions, df_test$CLD),
+          caret::R2(predictions, df_test$CLD)))
+
+MI_test <- seq(0, max(df$MI), 0.1)
+tmp_test <- c(2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5)
+tmp_labs <- c("0-5", "5-10", "10-15", "15-20", "20-25", "25-30", "30-35")
+
+co <- coefficients(model)
+df2 <- 
+  tibble::tibble(x = rep(MI_test, length(tmp_test)),
+                 y = purrr::map(tmp_test,
+                                ~ co[1] + co[2] * MI_test + co[3] * MI_test ^ 2 + co[4] * MI_test ^ 3 + co[5] * .x + co[6] * .x ^ 2 + co[7] * .x ^ 3) %>% purrr::flatten_dbl(),
+                 z = rep(tmp_labs,
+                          each = length(MI_test))) %>%
+  dplyr::filter(y >= 0 & y <= 100)
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point(ggplot2::aes(colour = tmp), alpha = ALPHA) +
+  ggplot2::geom_line(data = df2, ggplot2::aes(x = x, y = y, color = z)) +
+  ggplot2::geom_point(data = df2, ggplot2::aes(x = x, y = y)) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::labs(title = paste0("cld = ",
+                               round(co[1], 3),
+                               ifelse(co[2] >= 0, " + ", " - "),
+                               abs(round(co[2], 3)),
+                               " MI ",
+                               ifelse(co[3] >= 0, " + ", " - "),
+                               abs(round(co[3], 3)),
+                               " MI ^ 2",
+                               ifelse(co[4] >= 0, " + ", " - "),
+                               abs(round(co[4], 3)),
+                               " MI ^ 3",
+                               ifelse(co[5] >= 0, " + ", " - "),
+                               abs(round(co[5], 3)),
+                               " Tmp",
+                               ifelse(co[6] >= 0, " + ", " - "),
+                               abs(round(co[6], 3)),
+                               " Tmp ^ 2",
+                               ifelse(co[7] >= 0, " + ", " - "),
+                               abs(round(co[7], 3)),
+                               " Tmp ^ 3"),
+                x = "MI [-]", y = "cld [%]") +
+  ggplot2::scale_color_brewer(name = "Tmp [°C]",
+                              palette = "Spectral",
+                              direction = -1) +
+  ggplot2::theme_bw()
+
+# ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+#   ggplot2::geom_point(alpha = ALPHA) +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+#   ggplot2::scale_color_brewer(palette = "Set1") +
+#   ggplot2::theme_bw() +
+#   ggplot2::stat_smooth(method = lm, formula = y ~ splines::bs(x, df = 3))
+
+summary(model)
+```
+
+<!-- ##### Generalized additive models (GAM) -->
 ```{r, echo = FALSE, eval = FALSE}
-lmod1 <- lm(CLD ~ vpd, data = df_train)
+# Build the model
+model <- mgcv::gam(CLD ~ s(MI), data = df_train)
+# Make predictions
+predictions <- predict(model, df_test)
+# Model performance
+knitr::kable(data.frame(
+  RMSE = caret::RMSE(predictions, df_test$CLD),
+  R2 = caret::R2(predictions, df_test$CLD)
+))
+
+model_summary <- model_summary  %>%
+  rbind(c("GAM", 
+          caret::RMSE(predictions, df_test$CLD),
+          caret::R2(predictions, df_test$CLD)))
+
+ggplot2::ggplot(df_train, ggplot2::aes(MI, CLD)) +
+  ggplot2::geom_point() +
+  # ggplot2::labs(title = main, x = xlab, y = ylab) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) +
+  ggplot2::scale_color_brewer(palette = "Set1") +
+  ggplot2::theme_bw() +
+  ggplot2::stat_smooth(method = "gam", formula = y ~ s(x, k = 100))
+
+summary(model)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+##### Summary
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE}
+knitr::kable(model_summary)
+```
+
+```{r, echo = FALSE, eval = FALSE}
+lmod1 <- lm(CLD ~ MI, data = df_train)
 
 ## Start with a simple model to find the start points
-lmod <- lm(log(vpd) ~ Tmp * MI,# poly(Tmp, 2) + poly(MI, 2),
+lmod <- lm(log(MI) ~ Tmp * MI,# poly(Tmp, 2) + poly(MI, 2),
            data = df_train)
 
-model1 <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI + kMITmp * MI * Tmp) + b,
+model1 <- nls(MI ~ a * exp(kTmp * Tmp - kMI * MI + kMITmp * MI * Tmp) + b,
               df_train,
               start = list(a = exp(coef(lmod)[1]),
                            kTmp = coef(lmod)[2],
