@@ -104,14 +104,30 @@ alpha_from_mi_om3 <- function(mi) {
 #' @param co2 Numeric value of CO2 partial pressure (umol/mol).
 #' @param scale_factor Scale factor to transform the output, default =
 #'     101.325 Pa/ppm at standard sea level pressure.
+#' @param Tc0 Numeric value of temperature (°C).
 #'
 #' @return Numeric value of ratio of leaf-internal to ambient CO2 partial
 #' pressures.
 #' @keywords internal
-chi <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3) {
+chi <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3, Tc0 = Tc) {
   co2 <-  scale_factor * co2
-  E(Tc) / (E(Tc) + sqrt(vpd_internal(Tc, MI))) * (1 - compensation_point(Tc) / co2) +
-    compensation_point(Tc) / co2
+  # E(Tc) / (E(Tc) + sqrt(vpd_internal(Tc, MI))) * (1 - compensation_point(Tc) / co2) +
+  #   compensation_point(Tc) / co2
+  (E(Tc) * sqrt(vpd_internal(Tc0, MI)) + vpd_internal(Tc0, MI)) / ((co2 - compensation_point(Tc)) / (co2 + 9.7))
+}
+
+#' Cloud coverage (%)
+#'
+#' @param MI Numeric value of moisture index.
+#'
+#' @return Numeric value of cloud coverage.
+#' @export
+# @keywords internal
+cld <- function(MI) {
+  terms <- list(a = 28.007,
+                b = 45.17,
+                kMI = 1.831)
+  with(terms, a + b * (1 - exp(-kMI * MI)))
 }
 
 #' Photorespiratory compensation point (Pa)
@@ -382,14 +398,16 @@ vpd_internal <- function(Tc, MI, scale_factor = 100) {
 vpd <- function(Tc0, Tc1, MI, ca0, ca1, scale_factor = 101.325 * 10^-3) {
   ca0 <- scale_factor * ca0
   ca1 <- scale_factor * ca1
-  f0 <- vpd_internal(Tc0, MI) / (ca0 * (1 - chi(Tc0, MI, ca0 / scale_factor)))
+  # f0 <- vpd_internal(Tc0, MI) / (ca0 * (1 - chi(Tc0, MI, ca0 / scale_factor)))
+  f0 <- chi(Tc0, MI, ca0 / scale_factor, Tc0 = Tc1) * ((ca1 - compensation_point(Tc1)) / (ca1 + 9.7))
 
   purrr::map_dbl(seq_len(length(Tc1)),
                  function (i) {
                    optim(par = 0,
                          function(x, kE, val) abs(kE * sqrt(x) + x - val),
                          kE = E(Tc1[i]),
-                         val = f0[i] * (ca1[i] - compensation_point(Tc1[i])),
+                         # val = f0[i] * (ca1[i] - compensation_point(Tc1[i])),
+                         val = f0[i],
                          method = "Brent",
                          lower = 0,
                          upper = 10^6)$par
