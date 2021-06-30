@@ -175,7 +175,7 @@ knitr::asis_output('\n\n\\newpage')
 ```{r, cache = TRUE, echo = TRUE}
 year <- 1961
 padul_lat <- 37.0108
-#Estimate net longwave radiation (rnl), W/m^2
+# Estimate daily extraterrestrial radiation, J/m^2
 padul_sw <- c(1, 179, 247) %>%
   purrr::map(function(k) {
     purrr::map_dbl(seq_len(365),
@@ -186,8 +186,8 @@ padul_sw <- c(1, 179, 247) %>%
                                               y = year,
                                               sf = padul_sf[i],
                                               tc = padul_tmp[i] + 
-                                                padul_anomalies[[k]][i])$rnl_w.m2
-                   })
+                                                padul_anomalies[[k]][i])$ra_j.m2 #rnl_w.m2
+                   }) / 24 / 3600 # Divide by 24 hours, then 3600 seconds
   })
 ```
 
@@ -197,7 +197,7 @@ padul_soil_data <-c(sand = 0, # sand(perc)
                     clay = 0, # clay(perc)
                     OM = 0, # organic matter(perc)
                     gravel = 0, # coarse-fragments-fraction(perc)
-                    bulk_dens = NA, # bulk density(g cm-3), bd
+                    bulk_dens = 0, # bulk density(g cm-3), bd
                     maxdepth = 0) # depth
 ```
 
@@ -266,7 +266,7 @@ tibble::tibble(x = rep(seq_len(365), 3),
   ggplot2::theme_bw()
 ```
 
-### Comparisons
+### PET comparisons
 <!-- #### `r age = padul[1, 1]` -->
 ```{r, echo = FALSE}
 k <- 1
@@ -361,7 +361,8 @@ padul2 <- tibble::tibble(age_calBP = padul$`Age (cal yr BP)`,
                            .$co2 %>%
                            mean(), # 340,
                          present_t = rowMeans(padul[, c("T_djf", "T_jja")]), # modern_tmp, 
-                         recon_mi = padul$MI)
+                         recon_mi = padul$MI,
+                         P_ann = padul$P_ann)
 padul2$corrected_mi <- codos::corrected_mi(padul2$present_t,
                                            padul2$past_temp,
                                            padul2$recon_mi,
@@ -378,9 +379,9 @@ padul_corrected_pr_splashv2 <- seq_along(padul_pet_splashv2) %>%
 #### SPLASH v1.0.0
 ```{r, echo = FALSE}
 padul2 %>%
-  dplyr::slice(ref_idx) %>%
-  purrr::map_df(mean) %>%
-  dplyr::mutate(age_calBP = NA) %>%
+  dplyr::slice(1) %>%#ref_idx) %>%
+  # purrr::map_df(mean) %>%
+  # dplyr::mutate(age_calBP = NA) %>%
   dplyr::bind_rows(padul2 %>%
                      dplyr::slice(179, 247)) %>%
   dplyr::mutate(corrected_P_ann = padul_corrected_pr_splashv1) %>%
@@ -390,9 +391,9 @@ padul2 %>%
 #### SPLASH v2.0.0
 ```{r, echo = FALSE}
 padul2 %>%
-  dplyr::slice(ref_idx) %>%
-  purrr::map_df(mean) %>%
-  dplyr::mutate(age_calBP = NA) %>%
+  dplyr::slice(1) %>%#ref_idx) %>%
+  # purrr::map_df(mean) %>%
+  # dplyr::mutate(age_calBP = NA) %>%
   dplyr::bind_rows(padul2 %>%
                      dplyr::slice(179, 247)) %>%
   dplyr::mutate(corrected_P_ann = padul_corrected_pr_splashv2) %>%
