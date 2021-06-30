@@ -38,6 +38,8 @@ path <- "~/OneDrive - University of Reading/UoR/Data/CRU/4.04/"
 padul <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/padul.csv")
 
 `%>%` <- magrittr::`%>%`
+
+ref_idx <- 5:9 # -40 < age < -10
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -59,27 +61,28 @@ padul <- padul %>%
 ```
 
 ```{r, echo = FALSE, fig.height = 5}
-codos::int_sin(padul$Tmin[1], padul$Tmax[1]) %>%
+codos::int_sin(padul$Tmin[9], padul$Tmax[9]) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
       ggplot2::geom_line() +
-      ggplot2::geom_point(data = tibble::tibble(x = 1, y = padul$T_djf[1]),
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = padul$T_djf[9]),
                           ggplot2::aes(x, y, colour = "T_djf")) +
-      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = padul$T_jja[1]),
+      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = padul$T_jja[9]),
                           ggplot2::aes(x, y, colour = "T_jja")) +
       ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
                                    values = c("#0080ff","#ff3333")) +
       ggplot2::labs(x = "[days]",
                     y = "Temp [°C]",
-                    title = paste0(padul$`Age (cal yr BP)`[1], " cal yr BP")) +
+                    title = paste0(padul$`Age (cal yr BP)`[9], " cal yr BP")) +
       ggplot2::theme_bw()
 ```
 
-Row 1 was used as the baseline to calculate the temperature anomalies.
+Rows `r min(ref_idx)`:`r max(ref_idx)` were used as the baseline to calculate the temperature anomalies.
 
-```{r}
+```{r, echo = FALSE}
 padul %>%
-  dplyr::slice(1) %>%
+  dplyr::slice(ref_idx) %>%
+  rbind(c(NA, mean(.$MI), mean(.$P_ann), mean(.$T_djf), mean(.$T_jja), mean(.$Tmean), mean(.$Tmax), mean(.$Tmin))) %>%
   knitr::kable()
 ```
 
@@ -88,10 +91,15 @@ $$T_\text{mean} = (T_\text{jja} + T_\text{djf}) / 2$$
 $$T_\text{max} = T_\text{mean} + (T_\text{jja} - T_\text{mean}) / 0.9$$
 $$T_\text{min} = T_\text{mean} + (T_\text{djf} - T_\text{mean}) / 0.9$$
 
-```{r, echo = TRUE}
+```{r, echo = FALSE}
+padul_modern <- padul %>%
+  dplyr::slice(ref_idx) %>%
+  dplyr::select(-1) %>%
+  dplyr::summarise(dplyr::across(dplyr::everything(), mean))
+
 padul_anomalies <- seq_len(nrow(padul)) %>%
-  purrr::map(~codos::int_sin(padul$Tmin[.x] - padul$Tmin[1],
-                             padul$Tmax[.x] - padul$Tmax[1]))
+  purrr::map(~codos::int_sin(padul$Tmin[.x] - padul_modern$Tmin,
+                             padul$Tmax[.x] - padul_modern$Tmax))
 ```                         
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -102,20 +110,23 @@ Padul: Anomaly for age = `r padul[179, 1]` cal yr BP
 
 ```{r, echo = FALSE}
 padul %>%
-  dplyr::slice(1, 179) %>%
+  dplyr::slice(179) %>%
+  rbind(padul_modern %>%
+          dplyr::mutate(`Age (cal yr BP)` = NA, .before = 1),
+        .) %>%
   rbind(c(NA, NA, NA, diff(.$T_djf), diff(.$T_jja), diff(.$Tmean), diff(.$Tmax), diff(.$Tmin))) %>%
   knitr::kable()
 ```
 
 ```{r, fig.height = 5, echo = FALSE}
-codos::int_sin(padul$Tmin[179] - padul$Tmin[1], 
-               padul$Tmax[179] - padul$Tmax[1]) %>%
+codos::int_sin(padul$Tmin[179] - padul_modern$Tmin, 
+               padul$Tmax[179] - padul_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
       ggplot2::geom_line() +
-      ggplot2::geom_point(data = tibble::tibble(x = 1, y = padul$T_djf[179] - padul$T_djf[1]),
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = padul$T_djf[179] - padul_modern$T_djf),
                           ggplot2::aes(x, y, colour = "dT_djf")) +
-      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = padul$T_jja[179] - padul$T_jja[1]),
+      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = padul$T_jja[179] - padul_modern$T_jja),
                           ggplot2::aes(x, y, colour = "dT_jja")) +
       ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
                                    values = c("#0080ff","#ff3333")) +
@@ -129,20 +140,23 @@ Padul: Anomaly for age = `r padul[274, 1]` cal yr BP
 
 ```{r, echo = FALSE}
 padul %>%
-  dplyr::slice(1, 274) %>%
+  dplyr::slice(274) %>%
+  rbind(padul_modern %>%
+          dplyr::mutate(`Age (cal yr BP)` = NA, .before = 1),
+        .) %>%
   rbind(c(NA, NA, NA, diff(.$T_djf), diff(.$T_jja), diff(.$Tmean), diff(.$Tmax), diff(.$Tmin))) %>%
   knitr::kable()
 ```
 
 ```{r, fig.height = 5, echo = FALSE}
-codos::int_sin(padul$Tmin[274] - padul$Tmin[1], 
-               padul$Tmax[274] - padul$Tmax[1]) %>%
+codos::int_sin(padul$Tmin[274] - padul_modern$Tmin, 
+               padul$Tmax[274] - padul_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
       ggplot2::geom_line() +
-      ggplot2::geom_point(data = tibble::tibble(x = 1, y = padul$T_djf[274] - padul$T_djf[1]),
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = padul$T_djf[274] - padul_modern$T_djf),
                           ggplot2::aes(x, y, colour = "dT_djf")) +
-      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = padul$T_jja[274] - padul$T_jja[1]),
+      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = padul$T_jja[274] - padul_modern$T_jja),
                           ggplot2::aes(x, y, colour = "dT_jja")) +
       ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
                                    values = c("#0080ff","#ff3333")) +
@@ -334,7 +348,7 @@ padul_corrected_pr <- purrr::map_dbl(seq_along(padul_pet2),
 
 ```{r, echo = FALSE}
 padul2 %>%
-  dplyr::slice(1, 179, 247) %>%
+  dplyr::slice(9, 179, 247) %>%
   dplyr::mutate(corrected_P_ann = padul_corrected_pr) %>%
   knitr::kable("pandoc")
 ```
