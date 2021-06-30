@@ -4,7 +4,7 @@
 \alias{int_sin}
 \title{Sinusoidal interpolation}
 \usage{
-int_sin(minv, maxv, period = 365, x = period, phi = -pi/2, plot = FALSE)
+int_sin(minv, maxv, period = 365, x = period, phi = -pi/2)
 }
 \arguments{
 \item{minv}{Numeric value, used as the lower bound.}
@@ -16,9 +16,6 @@ int_sin(minv, maxv, period = 365, x = period, phi = -pi/2, plot = FALSE)
 \item{x}{Numeric value, number of partitions to use.}
 
 \item{phi}{Numeric value, phase shift.}
-
-\item{plot}{Boolean flag, to indicate whether or not a plot should be
-displayed.}
 }
 \value{
 Numeric vector with the interpolated function. Same length as
@@ -30,6 +27,5 @@ Create sinusoidal interpolation based on two values, \code{minv} and
 }
 \examples{
 int_sin(-1, 1)
-int_sin(-1, 1, plot = TRUE)
-int_sin(-1, 1, period = 10, plot = TRUE)
+int_sin(-1, 1, period = 10)
 }
