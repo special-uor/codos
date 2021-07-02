@@ -112,7 +112,7 @@
     <p>Ratio of leaf-internal to ambient CO2 partial pressures (–)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>chi</span><span class='op'>(</span><span class='va'>Tc</span>, <span class='va'>MI</span>, <span class='va'>co2</span>, scale_factor <span class='op'>=</span> <span class='fl'>101.325</span> <span class='op'>*</span> <span class='fl'>10</span><span class='op'>^</span><span class='op'>-</span><span class='fl'>3</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>chi</span><span class='op'>(</span><span class='va'>Tc</span>, <span class='va'>MI</span>, <span class='va'>co2</span>, scale_factor <span class='op'>=</span> <span class='fl'>101.325</span> <span class='op'>*</span> <span class='fl'>10</span><span class='op'>^</span><span class='op'>-</span><span class='fl'>3</span>, Tc0 <span class='op'>=</span> <span class='va'>Tc</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -133,6 +133,10 @@
       <th>scale_factor</th>
       <td><p>Scale factor to transform the output, default =
 101.325 Pa/ppm at standard sea level pressure.</p></td>
+    </tr>
+    <tr>
+      <th>Tc0</th>
+      <td><p>Numeric value of temperature (°C).</p></td>
     </tr>
     </table>
 

@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Show progress bar — pb • codos</title>
+<title>Cloud coverage (%) — cld • codos</title>
 
 
 <!-- jquery -->
@@ -39,8 +39,8 @@
 
 
 
-<meta property="og:title" content="Show progress bar — pb" />
-<meta property="og:description" content="Show progress bar" />
+<meta property="og:title" content="Cloud coverage (%) — cld" />
+<meta property="og:description" content="Cloud coverage (%)" />
 
 
 
@@ -103,49 +103,29 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Show progress bar</h1>
+    <h1>Cloud coverage (%)</h1>
     
-    <div class="hidden name"><code>pb.Rd</code></div>
+    <div class="hidden name"><code>cld.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Show progress bar</p>
+    <p>Cloud coverage (%)</p>
     </div>
 
-    <pre class="usage"><span class='fu'>pb</span><span class='op'>(</span><span class='va'>expr</span>, <span class='va'>...</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>cld</span><span class='op'>(</span><span class='va'>MI</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>expr</th>
-      <td><p>R expression.</p></td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td><p>Arguments passed on to <code><a href='https://progressr.futureverse.org/reference/with_progress.html'>progressr::with_progress</a></code></p><dl>
-    <dt><code>cleanup</code></dt><dd><p>If TRUE, all progression handlers will be shutdown
-at the end regardless of the progression is complete or not.</p></dd>
-    <dt><code>delay_terminal</code></dt><dd><p>If TRUE, output and conditions that may end up in
-the terminal will delayed.</p></dd>
-    <dt><code>delay_stdout</code></dt><dd><p>If TRUE, standard output is captured and relayed
-at the end just before any captured conditions are relayed.</p></dd>
-    <dt><code>delay_conditions</code></dt><dd><p>A character vector specifying <a href='https://rdrr.io/r/base/conditions.html'>base::condition</a>
-classes to be captured and relayed at the end after any captured
-standard output is relayed.</p></dd>
-    <dt><code>interval</code></dt><dd><p>(numeric) The minimum time (in seconds) between
-successive progression updates from handlers.</p></dd>
-    <dt><code>enable</code></dt><dd><p>(logical) If FALSE, then progress is not reported.  The
-default is to report progress in interactive mode but not batch mode.
-See below for more details.</p></dd>
-  
-</dl></td>
+      <th>MI</th>
+      <td><p>Numeric value of moisture index.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>Return data from the function called.</p>
+    <p>Numeric value of cloud coverage.</p>
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

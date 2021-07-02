@@ -112,7 +112,7 @@
     <p>Get variable from netCDF file</p>
     </div>
 
-    <pre class="usage"><span class='fu'>nc_var_get</span><span class='op'>(</span><span class='va'>filename</span>, <span class='va'>varid</span>, is.dim <span class='op'>=</span> <span class='cn'>FALSE</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>nc_var_get</span><span class='op'>(</span><span class='va'>filename</span>, <span class='va'>varid</span>, is.dim <span class='op'>=</span> <span class='cn'>FALSE</span>, <span class='va'>...</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -129,6 +129,33 @@
       <th>is.dim</th>
       <td><p>Boolean flag to indicate if the variable is a dimension
 (e.g. time, latitude, or longitude).</p></td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td><p>Arguments passed on to <code><a href='https://rdrr.io/pkg/ncdf4/man/ncvar_get.html'>ncdf4::ncvar_get</a></code></p><dl>
+    <dt><code>start</code></dt><dd><p>A vector of indices indicating where to start reading the passed values
+ (beginning at 1).  
+ The length of this vector must equal the number of dimensions the variable has.
+ Order is X-Y-Z-T (i.e., the time dimension is last).  If not specified, reading 
+ starts at the beginning of the file (1,1,1,...).</p></dd>
+    <dt><code>count</code></dt><dd><p>A vector of integers indicating the count of values to read
+ along each dimension (order is X-Y-Z-T).  
+ The length of this vector must equal the number of dimensions the variable has.
+ If not specified and the variable does
+ NOT have an unlimited dimension, the entire variable is read.  
+ As a special case, the value
+ "-1" indicates that all entries along that dimension should be read.</p></dd>
+    <dt><code>verbose</code></dt><dd><p>If TRUE, then progress information is printed.</p></dd>
+    <dt><code>signedbyte</code></dt><dd><p>If TRUE (default), then on-disk byte variables are interpreted
+ as signed.  This is in accord with the netCDF standard.  If FALSE, then
+ on-disk byte variables are interpreted as unsigned.</p></dd>
+    <dt><code>collapse_degen</code></dt><dd><p>If TRUE (the default), then degenerate (length==1) dimensions
+ in the returned array are removed.</p></dd>
+    <dt><code>raw_datavals</code></dt><dd><p>If TRUE, then the actual raw data values from the
+ file are returned with no conversion to NA (if equal to the missing value/fill value) or
+ scale/offset applied. Default is FALSE.</p></dd>
+  
+</dl></td>
     </tr>
     </table>
 
