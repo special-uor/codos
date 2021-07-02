@@ -4,7 +4,7 @@
 \alias{chi}
 \title{Ratio of leaf-internal to ambient CO2 partial pressures (–)}
 \usage{
-chi(Tc, MI, co2, scale_factor = 101.325 * 10^-3)
+chi(Tc, MI, co2, scale_factor = 101.325 * 10^-3, Tc0 = Tc)
 }
 \arguments{
 \item{Tc}{Numeric value of temperature (°C).}
@@ -15,6 +15,8 @@ chi(Tc, MI, co2, scale_factor = 101.325 * 10^-3)
 
 \item{scale_factor}{Scale factor to transform the output, default =
 101.325 Pa/ppm at standard sea level pressure.}
+
+\item{Tc0}{Numeric value of temperature (°C).}
 }
 \value{
 Numeric value of ratio of leaf-internal to ambient CO2 partial

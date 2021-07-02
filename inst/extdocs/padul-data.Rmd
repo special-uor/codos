@@ -38,6 +38,463 @@ padul <- readr::read_csv("~/Desktop/iCloud/UoR/Data/padul.csv")
 knitr::asis_output('\n\n\\renewcommand{\\arraystretch}{1.5}')
 ```
 
+## Calculate temperature anomalies
+
+Using both $T_\text{djf}$ and $T_\text{jja}$ for each record, a sinusoidal curve
+was fitted using the `int_sin` function.
+
+```{r, fig.height = 5}
+codos::int_sin(padul$T_djf[1], padul$T_jja[1], plot = TRUE)
+```
+
+Row 1 was used as the baseline to calculate the temperature anomalies:
+```{r}
+padul_anomalies <- seq_len(nrow(padul)) %>%
+  purrr::map(~codos::int_sin(padul$T_djf[.x] - padul$T_djf[1],
+                             padul$T_jja[.x] - padul$T_jja[1]))
+```                      
+
+
+Padul: Anomaly for age = `r padul[274, 1]` cal yr BP
+```{r, fig.height = 5, echo = FALSE}
+codos::int_sin(padul$T_djf[274] - padul$T_djf[1], 
+               padul$T_jja[274] - padul$T_jja[1], plot = TRUE)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+## Calculate potential evapotranspiration (PET)
+
+Padul location: 37.0108, -3.6039
+
+```{r}
+elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), 
+                          "elv")
+cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), 
+                          "cld")$data
+tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.daily.tmp.nc"), 
+                          "tmp")$data
+sf <- 1 - cld / 100
+
+# Extract the nearest 4 grid cells
+idx_y <- which.min(abs(codos::lat$data - 37.0108))
+idx_x <- which.min(abs(codos::lon$data + 3.6039))
+
+# Extract elevation subset
+padul_elv <- elv$data[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y)]
+rownames(padul_elv) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(padul_elv) <- codos::lon$data[c(idx_x, idx_x + 1)]
+padul_elv <- mean(padul_elv)
+
+# Extract sunshine fraction subset
+padul_sf <- sf[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(padul_sf) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(padul_sf) <- codos::lon$data[c(idx_x, idx_x + 1)]
+padul_sf <- colMeans(padul_sf, dims = 2)
+
+# Extract cloud coverage subset
+padul_cld <- cld[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(padul_cld) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(padul_cld) <- codos::lon$data[c(idx_x, idx_x + 1)]
+padul_cld <- colMeans(padul_cld, dims = 2)
+
+# Extract temperature subset
+padul_tmp <- tmp[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(padul_tmp) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(padul_tmp) <- codos::lon$data[c(idx_x, idx_x + 1)]
+padul_tmp <- colMeans(padul_tmp, dims = 2)
+```
+
+```{r, echo = FALSE}
+# Delete large objects from the environment
+rm(elv, cld, sf, tmp)
+```
+
+```{r, cache = TRUE}
+year <- 1961
+oplan <- future::plan(future::multisession, workers = 14)
+{p <- progressr::progressor(steps = length(padul_anomalies))
+padul_pet <- 
+  padul_anomalies %>%
+  furrr::future_map(~{
+    p()
+    purrr::map_dbl(seq_len(365),
+                   function(i) {
+                     splash::calc_daily_evap(lat = 37.0108,
+                                             n = i,
+                                             elv = padul_elv,
+                                             y = year,
+                                             sf = padul_sf[i],
+                                             tc = padul_tmp[i] + .x[i])$pet_mm
+                   })
+  })} %>% 
+  progressr::with_progress()
+future::plan(oplan)
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+Padul: modern temperature [CRU TS 4.04]
+```{r, echo = FALSE}
+tibble::tibble(x = seq_len(365),
+               y = padul_tmp) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "Temp [°C]") +
+  ggplot2::theme_bw()
+```
+
+Padul: modern cloud coverage [CRU TS 4.04]
+```{r, echo = FALSE}
+tibble::tibble(x = seq_len(365),
+               y = (1 - padul_sf) * 100) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "Sunshine fraction [-]") +
+  ggplot2::theme_bw()
+```
+
+<!-- Padul: sunshine fraction [CRU TS 4.04] -->
+```{r, echo = FALSE, eval = FALSE}
+tibble::tibble(x = seq_len(365),
+               y = padul_sf) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "Sunshine fraction [-]") +
+  ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- Padul: PET for age = `r padul[113, 1]` cal yr BP -->
+Padul: PET for age = `r padul[2, 1]` cal yr BP
+```{r, echo = FALSE}
+tibble::tibble(x = seq_len(365),
+               y = padul_pet[2][[1]]) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "PET [mm/day]") +
+  ggplot2::theme_bw()
+``` 
+
+Padul: PET for age = `r padul[274, 1]` cal yr BP
+```{r, echo = FALSE}
+tibble::tibble(x = seq_len(365),
+               y = padul_pet[274][[1]]) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "PET [mm/day]") +
+  ggplot2::theme_bw()
+``` 
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+## Calculate Precipitation
+
+Using reconstructed MI and PET (calculated from modern temperature [CRU TS 4.04] and Padul temperature anomalies).
+
+```{r}
+padul_recon_pr <- purrr::map_dbl(seq_along(padul_pet),
+                                  ~sum(padul_pet[.x][[1]], na.rm = TRUE) * padul$MI[.x])
+```
+
+```{r, echo = FALSE}
+padul %>%
+  dplyr::mutate(recon_precip = padul_recon_pr) %>%
+  dplyr::slice(c(1:10), c(270:280)) %>%
+  knitr::kable("pandoc")
+```
+
+<!-- ## Calculate MI -->
+
+<!-- Using modern precipitation [CRU TS 4.04] and the PET (calculated from modern temperature [CRU TS 4.04] and the Padul temperature anomalies). -->
+
+```{r, echo = FALSE}
+pr <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
+
+# Extract the nearest 4 grid cells
+idx_y <- which.min(abs(codos::lat$data - 37.0108))
+idx_x <- which.min(abs(codos::lon$data + 3.6039))
+
+# Extract precipitation subset
+padul_pr <- pr[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(padul_pr) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(padul_pr) <- codos::lon$data[c(idx_x, idx_x + 1)]
+padul_pr <- colMeans(padul_pr, dims = 2)
+
+rm(pr)
+padul_mi <- purrr::map_dbl(padul_pet,
+                           ~sum(padul_pr, na.rm = TRUE) / sum(.x, na.rm = TRUE))
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+Padul: annual precipitation vs reconstructed precipitation with temperature anomalies
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(padul$`Age (cal yr BP)`, 2),
+               y = c(padul$P_ann, 
+                     padul_recon_pr),
+               var = rep(c("P_ann", 
+                           "With Tmp anomalies"), 
+                         each = nrow(padul))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yr BP]", y = "Precip [mm/day]") +
+  ggplot2::theme_bw()
+```
+
+### `age < 20k`
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(padul$`Age (cal yr BP)`, 2),
+               y = c(padul$P_ann, 
+                     padul_recon_pr),
+               var = rep(c("P_ann", 
+                           "With Tmp anomalies"), 
+                         each = nrow(padul))) %>%
+  dplyr::filter(x < 20000) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yr BP]", y = "Precip [mm/day]") +
+    ggplot2::theme_bw()
+```
+
+<!-- Padul: modern precipitation [CRU TS 4.04] -->
+```{r, echo = FALSE, eval = FALSE}
+tibble::tibble(x = seq_len(365),
+               y = padul_pr) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "Precipitation [mm/day]") +
+  ggplot2::theme_bw()
+```
+
+<!-- Padul: reconstructed MI vs MI with temperature anomalies -->
+
+```{r, echo = FALSE, eval = FALSE}
+tibble::tibble(x = rep(padul$`Age (cal yr BP)`, 2),
+               y = c(padul$MI, 
+                     padul_mi),
+               var = rep(c("Reconstructed", 
+                           "With Tmp anomalies"), 
+                         each = nrow(padul))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
+  ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+## Calculate cloud coverage from reconstructed MI
+
+<!-- ## Calculate cloud coverage from MI (with temperature anomalies) -->
+
+```{r, eval = FALSE, echo = FALSE}
+padul_cld_recon_mi <- padul$MI %>%
+  purrr::map_dbl(codos::cld)
+```
+
+```{r}
+padul_cld_recon_mi <- padul$MI %>%
+  purrr::map_dbl(codos::cld)
+```
+
+Padul: cloud coverage
+```{r, echo = FALSE}
+tibble::tibble(x = padul$`Age (cal yr BP)`,
+               y = padul_cld_recon_mi) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "Age [cal yr BP]",
+                y = "Cloud coverage [%]") +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::theme_bw()
+```
+
+### Calculate cloud coverage anomalies
+
+Row 1 was used as the baseline to calculate the anomalies:
+```{r}
+padul_cld_anomalies <- seq_len(nrow(padul)) %>%
+  purrr::map_dbl(~padul_cld_recon_mi[.x] - padul_cld_recon_mi[1])
+```
+
+Padul: cloud coverage anomalies
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = padul$`Age (cal yr BP)`,
+               y = padul_cld_anomalies) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "Age [cal yr BP]",
+                y = "Cloud coverage anomalies [%]") +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::theme_bw()
+```
+
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+## Re-calculate potential evapotranspiration (PET)
+
+After including temperature and cloud coverage anomalies.
+
+```{r, cache = TRUE}
+year <- 1961
+padul_sf2 <- 1 - (padul_cld_recon_mi + padul_cld_anomalies) / 100
+
+oplan <- future::plan(future::multisession, workers = 14)
+{p <- progressr::progressor(steps = length(padul_cld_recon_mi))
+padul_pet2 <- 
+  seq_along(padul_cld) %>%
+  furrr::future_map(function(k) {
+    p()
+    purrr::map_dbl(seq_len(365),
+                   function(i) {
+                     splash::calc_daily_evap(lat = 37.0108,
+                                             n = i,
+                                             elv = padul_elv,
+                                             y = year,
+                                             sf = padul_sf2[k],
+                                             tc = padul_tmp[i] + 
+                                               padul_anomalies[k][[1]][i])$pet_mm
+                   })
+  })} %>% 
+  progressr::with_progress()
+future::plan(oplan)
+```
+
+
+<!-- Padul: PET for age = `r padul[113, 1]` cal yr BP -->
+Padul: PET for age = `r padul[2, 1]` cal yr BP
+```{r, echo = FALSE}
+tibble::tibble(x = rep(seq_len(365), 2),
+               y = c(padul_pet[2][[1]],
+                     padul_pet2[2][[1]]),
+               var = rep(c("Tmp only",
+                           "Tmp + cld "),
+                         each = 365)) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::scale_colour_brewer(name = "Anomalies", palette = "Set1") + 
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "PET [mm/day]") +
+  ggplot2::theme_bw()
+``` 
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+Padul: PET for age = `r padul[274, 1]` cal yr BP
+```{r, echo = FALSE}
+tibble::tibble(x = rep(seq_len(365), 2),
+               y = c(padul_pet[274][[1]],
+                     padul_pet2[274][[1]]),
+               var = rep(c("Tmp only",
+                           "Tmp + cld "),
+                         each = 365)) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::scale_colour_brewer(name = "Anomalies", palette = "Set1") + 
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "PET [mm/day]") +
+  ggplot2::theme_bw()
+``` 
+
+<!-- Padul: PET for age = `r padul[399, 1]` cal yr BP -->
+```{r, echo = FALSE, eval = FALSE}
+tibble::tibble(x = rep(seq_len(365), 2),
+               y = c(padul_pet[399][[1]],
+                     padul_pet2[399][[1]]),
+               var = rep(c("Tmp only",
+                           "Tmp + cld "),
+                         each = 365)) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::scale_colour_brewer(name = "Anomalies", palette = "Set1") + 
+  ggplot2::geom_line() +
+  ggplot2::labs(x = "[days]",
+                y = "PET [mm/day]") +
+  ggplot2::theme_bw()
+``` 
+
+```{r, include=knitr::is_latex_output(), echo = FALSE, eval = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- ## Re-calculate MI -->
+
+```{r, echo = FALSE, eval = FALSE}
+padul_mi2 <- purrr::map_dbl(padul_pet2,
+                            ~sum(padul_pr, na.rm = TRUE) / sum(.x, na.rm = TRUE))
+```
+
+```{r, echo = FALSE, eval = FALSE}
+padul %>%
+  dplyr::mutate(MI_w_Tmp_anomalies = padul_mi) %>%
+  dplyr::mutate(MI_w_Tmp_cld_anomalies = padul_mi2) %>%
+  dplyr::slice(c(1:10), c(270:280), c(350:359)) %>%
+  knitr::kable("pandoc")
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- Padul: reconstructed MI vs MI with anomalies -->
+
+```{r, echo = FALSE, eval = FALSE}
+tibble::tibble(x = rep(padul$`Age (cal yr BP)`, 3),
+               y = c(padul$MI, 
+                     padul_mi, 
+                     padul_mi2),
+               var = rep(c("Reconstructed", 
+                           "With Tmp anomalies",
+                           "With Tmp + cld anomalies"), 
+                         each = nrow(padul))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yr BP]", y = "MI [-]") +
+  ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
 ## Calculate daily temperature (modern)
 
 CRU TS 4.04 daily interpolations from monthly data:
@@ -134,6 +591,29 @@ knitr::kable(head(padul2, 7))
 ```
 
 Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
+
+
+## P_ann with tmp anomalies
+```{r}
+padul_recon_pr <- purrr::map_dbl(seq_along(padul_pet),
+                                  ~sum(padul_pet[.x][[1]], na.rm = TRUE) * padul2$corrected_mi[.x])
+```
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(padul$`Age (cal yr BP)`, 2),
+               y = c(padul$P_ann, 
+                     padul_recon_pr),
+               var = rep(c("P_ann", 
+                           "With Tmp anomalies"), 
+                         each = nrow(padul))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yr BP]", y = "Precip [mm/day]") +
+  ggplot2::theme_bw()
+```
 
 ## Find the corrected Annual Precipitation, `P_ann`
 

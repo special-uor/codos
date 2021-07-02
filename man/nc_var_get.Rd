@@ -4,7 +4,7 @@
 \alias{nc_var_get}
 \title{Get variable from netCDF file}
 \usage{
-nc_var_get(filename, varid, is.dim = FALSE)
+nc_var_get(filename, varid, is.dim = FALSE, ...)
 }
 \arguments{
 \item{filename}{Filename for the netCDF input (relative or absolute path).}
@@ -13,6 +13,32 @@ nc_var_get(filename, varid, is.dim = FALSE)
 
 \item{is.dim}{Boolean flag to indicate if the variable is a dimension
 (e.g. time, latitude, or longitude).}
+
+\item{...}{
+  Arguments passed on to \code{\link[ncdf4:ncvar_get]{ncdf4::ncvar_get}}
+  \describe{
+    \item{\code{start}}{A vector of indices indicating where to start reading the passed values
+ (beginning at 1).  
+ The length of this vector must equal the number of dimensions the variable has.
+ Order is X-Y-Z-T (i.e., the time dimension is last).  If not specified, reading 
+ starts at the beginning of the file (1,1,1,...).}
+    \item{\code{count}}{A vector of integers indicating the count of values to read
+ along each dimension (order is X-Y-Z-T).  
+ The length of this vector must equal the number of dimensions the variable has.
+ If not specified and the variable does
+ NOT have an unlimited dimension, the entire variable is read.  
+ As a special case, the value
+ "-1" indicates that all entries along that dimension should be read.}
+    \item{\code{verbose}}{If TRUE, then progress information is printed.}
+    \item{\code{signedbyte}}{If TRUE (default), then on-disk byte variables are interpreted
+ as signed.  This is in accord with the netCDF standard.  If FALSE, then
+ on-disk byte variables are interpreted as unsigned.}
+    \item{\code{collapse_degen}}{If TRUE (the default), then degenerate (length==1) dimensions
+ in the returned array are removed.}
+    \item{\code{raw_datavals}}{If TRUE, then the actual raw data values from the
+ file are returned with no conversion to NA (if equal to the missing value/fill value) or
+ scale/offset applied. Default is FALSE.}
+  }}
 }
 \value{
 List with data, filename, id, and units linked to the variable.

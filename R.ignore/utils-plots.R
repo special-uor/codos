@@ -42,7 +42,7 @@ climatology <- c(cld_ts_clim[650, 120, ],
                  tmx_ts_clim[650, 120, ],
                  vap_ts_clim[650, 120, ])
 month_len <- codos::days_in_month(paste0("1961-", 1:12, "-01"))
-codos::ts_comp(climatology,
+codos:::ts_comp(climatology,
         interpolated,
         month_len,
         main = paste0("Time series at (", lat[j], ", ", lon[i], ")"),
