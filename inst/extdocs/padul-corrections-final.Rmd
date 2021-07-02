@@ -37,6 +37,8 @@ padul <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/padul.csv"
   magrittr::set_colnames(c("age_cal_yr_BP", colnames(.)[-1]))
 
 ref_idx <- 5:9 # -40 < age < -10
+LAT <- 37.0108
+LON <- -3.6039
 
 theme_pet <- 
   ggplot2::theme(panel.background = ggplot2::element_rect(fill = "white",
@@ -177,8 +179,8 @@ pre <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim
 sf <- 1 - cld / 100
 
 # Extract the nearest 4 grid cells
-idx_y <- which.min(abs(codos::lat$data - 37.0108))
-idx_x <- which.min(abs(codos::lon$data + 3.6039))
+idx_y <- which.min(abs(codos::lat$data - LAT))
+idx_x <- which.min(abs(codos::lon$data - LON))
 
 # Extract elevation subset
 padul_elv <- elv$data[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y)]
@@ -220,7 +222,7 @@ rm(elv, cld, pre, sf, tmp)
 year <- 1961
 padul_pet_modern <- seq_len(365) %>%
   purrr::map_dbl(function(i) {
-    splash::calc_daily_evap(lat = 37.0108,
+    splash::calc_daily_evap(lat = LAT,
                             n = i,
                             elv = padul_elv,
                             y = year,
@@ -345,8 +347,6 @@ knitr::asis_output('\n\n\\newpage')
 
 ## Calculate potential evapotranspiration (PET)
 
-Padul location: 37.0108, -3.6039
-
 ```{r pet-w-tmp-anomalies, cache = TRUE, echo = FALSE, eval = TRUE}
 year <- 1961
 oplan <- future::plan(future::multisession, workers = 8)
@@ -356,7 +356,7 @@ padul_pet_tmp <- seq_along(padul_anomalies) %>%
     p()
     purrr::map_dbl(seq_len(365),
                    function(i) {
-                     splash::calc_daily_evap(lat = 37.0108,
+                     splash::calc_daily_evap(lat = LAT,
                                              n = i,
                                              elv = padul_elv,
                                              y = year,
@@ -370,7 +370,7 @@ future::plan(oplan)
 
 ##### Params (`splash::calc_daily_evap`)
 
-- Latitude: `37.0108`
+- Latitude: `r LAT`
 - Elevation: `r padul_elv`
 - Year: `1961`
 - Sunshine fraction: [`CRU TS 4.04`]
@@ -423,8 +423,8 @@ padul %>%
 pr <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.pre.dat-new-clim-1961-1990-int.nc"), "pre")$data
 
 # Extract the nearest 4 grid cells
-idx_y <- which.min(abs(codos::lat$data - 37.0108))
-idx_x <- which.min(abs(codos::lon$data + 3.6039))
+idx_y <- which.min(abs(codos::lat$data - LAT))
+idx_x <- which.min(abs(codos::lon$data - LON))
 
 # Extract precipitation subset
 padul_pr <- pr[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
@@ -507,7 +507,7 @@ padul_pet_cld <-
     p()
     purrr::map_dbl(seq_len(365),
                    function(i) {
-                     splash::calc_daily_evap(lat = 37.0108,
+                     splash::calc_daily_evap(lat = LAT,
                                              n = i,
                                              elv = padul_elv,
                                              y = year,
@@ -536,7 +536,7 @@ padul_pet_tmp_cld <-
     p()
     purrr::map_dbl(seq_len(365),
                    function(i) {
-                     splash::calc_daily_evap(lat = 37.0108,
+                     splash::calc_daily_evap(lat = LAT,
                                              n = i,
                                              elv = padul_elv,
                                              y = year,
@@ -664,7 +664,7 @@ padul_pet_orb_params <- seq_along(padul_anomalies) %>%
     p()
     purrr::map_dbl(seq_len(365),
                    function(i) {
-                     splash::calc_daily_evap(lat = 37.0108,
+                     splash::calc_daily_evap(lat = LAT,
                                              n = i,
                                              elv = padul_elv,
                                              y = padul_years[k],
@@ -697,7 +697,7 @@ padul_pet_ultimate <-
     p()
     purrr::map_dbl(seq_len(365),
                    function(i) {
-                     splash::calc_daily_evap(lat = 37.0108,
+                     splash::calc_daily_evap(lat = LAT,
                                              n = i,
                                              elv = padul_elv,
                                              y = year,
