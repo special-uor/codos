@@ -1,5 +1,5 @@
 ---
-title: "Lago di Fimon Data: MI and P_ann corrections"
+title: "Lago di Fimon Data: MI and Pann corrections"
 subtitle: "(45.469951, 11.543468)"
 output:
   pdf_document:
@@ -16,7 +16,7 @@ knitr::opts_chunk$set(
   dpi = 500,
   out.width = "100%",
   comment = "#>",
-  fig.path = "man/figures/fimon-mi-pr-",
+  fig.path = "man/figures/lago-di-fimon-",
   fig.width = 12,
   fig.height = 6,
   fig.pos = "!H",
@@ -30,7 +30,8 @@ options(knitr.kable.NA = '',
 path <- "~/OneDrive - University of Reading/UoR/Data/CRU/4.04/"
 
 `%>%` <- magrittr::`%>%`
-`%$%` <- magrittr::`%$%`
+
+month_breaks <- c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
 
 # Load fimon data
 fimon <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/fimon.csv", skip = 2) %>%
@@ -38,12 +39,31 @@ fimon <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake
                            stringr::str_remove_all("_MAT_wm$") %>%
                            stringr::str_replace_all("k5", "ssse") %>%
                            stringr::str_replace_all("age_chron21", "age_cal_yr_BP") %>%
-                           stringr::str_replace_all("Pann", "P_ann") %>%
-                           stringr::str_replace_all("Tjan", "T_djf") %>%
-                           stringr::str_replace_all("Tjuly", "T_jja")) %>%
+                           # stringr::str_replace_all("Pann", "Pann") %>%
+                           # stringr::str_replace_all("Tjan", "Tjan") %>%
+                           stringr::str_replace_all("Tjuly", "Tjul")) %>%
   dplyr::select(-dplyr::starts_with("ATR"),
                 -dplyr::ends_with("ssse"),
-                -depth_cm)
+                -depth_cm) %>%
+  dplyr::mutate(Tmean = (Tjul + Tjan) / 2,
+                Tmax = Tmean + (Tjul - Tmean) / 0.9,
+                Tmin = Tmean + (Tjan - Tmean) / 0.9,
+                Tgs = list(Tmin, Tmax) %>%
+                  purrr::pmap_dbl(function(Tmin, Tmax) {
+                    aux <- codos::int_sin(Tmin, Tmax)
+                    mean(aux[aux > 0])
+                  })
+                # Tgs = seq_len(nrow(fimon)) %>%
+                #   purrr::map_dbl(function(i) {
+                #     aux <- codos::int_sin(fimon$Tmin[i], fimon$Tmax[i])
+                #     mean(aux[aux > 0])
+                #   })
+                # Tgs = seq_len(nrow(fimon)) %>%
+                #   purrr::map_dbl(function(i) {
+                #     aux <- codos::int_sin(fimon$Tjan[i], fimon$Tjul[i])
+                #     mean(aux[aux > 0])
+                #   })
+                )
 head(fimon)
 
 ref_idx <- 5:9 # -40 < age < -10
@@ -83,16 +103,6 @@ theme_pet_black <-
 knitr::asis_output('\n\n\\renewcommand{\\arraystretch}{1.5}')
 ```
 
-#### Calculate daily mean temperature
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
-```
-
-```{r}
-fimon_tmp <- rowMeans(fimon[, c("T_djf", "T_jja")])
-```
-
 ## Obtain past CO2 from (Bereiter et al. 2015)
 
 ```{r}
@@ -110,14 +120,92 @@ modern_co2 <- tibble::tibble(age = 1950 - c(1901:1990),
   median()
 ```
 
+## Read "modern" data - Quinto Vicentino
+```{r, eval = FALSE}
+quinto_vicentino_tmin <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_tmin.csv", 
+                                         na = ">>") %>%
+  magrittr::set_names(tolower(colnames(.)))
+quinto_vicentino_tmax <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_tmax.csv", 
+                                         na = ">>") %>%
+  magrittr::set_names(tolower(colnames(.)))
+```
+
+```{r, echo = FALSE, message = FALSE}
+quinto_vicentino_tmin <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/quinto_vicentino_tmin.csv", 
+                                         na = ">>") %>%
+  magrittr::set_names(tolower(colnames(.)))
+quinto_vicentino_tmax <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/quinto_vicentino_tmax.csv", 
+                                         na = ">>") %>%
+  magrittr::set_names(tolower(colnames(.)))
+# Find mean temperature
+quinto_vicentino_tmean <- (quinto_vicentino_tmax + quinto_vicentino_tmin) / 2
+quinto_vicentino_clim <- quinto_vicentino_tmean %>%
+  dplyr::summarise(dplyr::across(dplyr::everything(), mean, na.rm = TRUE)) %>%
+  dplyr::mutate(Tjan = jan,
+                Tjul = jul) %>%
+  dplyr::mutate(Tmean = (Tjul + Tjan) / 2) %>%
+  dplyr::mutate(Tmax = Tmean + (Tjul - Tmean) / 0.9) %>%
+  dplyr::mutate(Tmin = Tmean + (Tjan - Tmean) / 0.9)
+quinto_vicentino_tmp <- with(quinto_vicentino_clim, codos::int_sin(Tjan, Tjul))
+```
+
+Fit a sinusoidal curve between the mean value for the coldest month, `T_jan =` `r round(quinto_vicentino_clim$Tjan, 4)`, and the warmest month, `T_jul =` `r round(quinto_vicentino_clim$Tjul, 4)`.
+
+```{r, echo = FALSE, fig.height = 5}
+codos::int_sin(quinto_vicentino_clim$Tmin, quinto_vicentino_clim$Tmax) %>%
+  tibble::tibble(x = seq_len(365), y = .) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = quinto_vicentino_clim$Tjan),
+                          ggplot2::aes(x, y, colour = "Tjan")) +
+      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = quinto_vicentino_clim$Tjul),
+                          ggplot2::aes(x, y, colour = "Tjul")) +
+      ggplot2::scale_colour_manual(name = "Temp.",
+                                   values = c("#0080ff","#ff3333")) +
+  
+      ggplot2::scale_x_continuous(breaks = month_breaks) +
+      ggplot2::labs(x = "[days]",
+                    y = "Temp [°C]",
+                    title = "'Modern' Lago di Fimon [avg. for 1994 < year < 2018]") +
+      ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+```{r, echo = FALSE}
+tibble::tibble(x = rep(fimon$age_cal_yr_BP, 4),
+               y = c(fimon$Tjan,
+                     fimon$Tjul,
+                     fimon$Tgs,
+                     rep(mean(quinto_vicentino_tmp), nrow(fimon))),
+               var = rep(c("Tjan", 
+                           "Tjul", 
+                           "Mean Growing Season", 
+                           "Modern Growing Season"), 
+                         each = nrow(fimon))) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggsci::scale_color_jco(name = "") +
+  # ggplot2::scale_colour_brewer(name = "", palette = "Set1") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(10)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yrs BP]", 
+                y = "Temperature [°C]") +
+  theme_pet
+```
+
 ## Assemble the _Lago di Fimon_ data
+
 ```{r}
 fimon2 <- tibble::tibble(age_calBP = fimon$age_cal_yr_BP,
-                         past_temp = fimon_tmp,
+                         past_temp = fimon$Tgs,
                          past_co2 = past_co2,
                          modern_co2 = modern_co2,
-                         present_t = fimon_tmp,
-                         recon_mi = fimon$MI)
+                         present_t = mean(quinto_vicentino_tmp),
+                         recon_mi = fimon$MI,
+                         recon_Pann = fimon$Pann)
 ```
 
 ## Find the corrected `MI`
@@ -131,119 +219,41 @@ fimon2$corr_mi <- codos::corrected_mi(fimon2$present_t,
 
 ```{r, echo = FALSE}
 # Small subset
-knitr::kable(head(fimon2, 4),
+knitr::kable(head(fimon2, 7),
              col.names = c("age cal yr BP",
                            "past temp",
                            "past co2",
                            "modern co2",
                            "present temp",
                            "recon. MI",
+                           "recon. Pann",
                            "corr. MI"))
-```
-
-
-## Read "modern" data - Quinto Vicentino
-```{r, eval = FALSE}
-quinto_vicentino_precip <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_precip.csv", 
-                                           na = ">>") %>%
-  magrittr::set_names(tolower(colnames(.)))
-quinto_vicentino_tmin <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_tmin.csv", 
-                                         na = ">>") %>%
-  magrittr::set_names(tolower(colnames(.)))
-quinto_vicentino_tmax <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_tmax.csv", 
-                                         na = ">>") %>%
-  magrittr::set_names(tolower(colnames(.)))
-```
-
-
-```{r, echo = FALSE, message = FALSE}
-quinto_vicentino_precip <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/quinto_vicentino_precip.csv", 
-                                           na = ">>") %>%
-  magrittr::set_names(tolower(colnames(.)))
-quinto_vicentino_tmin <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/quinto_vicentino_tmin.csv", 
-                                         na = ">>") %>%
-  magrittr::set_names(tolower(colnames(.)))
-quinto_vicentino_tmax <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/quinto_vicentino_tmax.csv", 
-                                         na = ">>") %>%
-  magrittr::set_names(tolower(colnames(.)))
-```
-
-##### P_ann
-```{r, echo = FALSE}
-quinto_vicentino_precip %>%
-  knitr::kable()
-```
-
-##### Tmin
-```{r, echo = FALSE}
-quinto_vicentino_tmin %>%
-  knitr::kable()
-```
-
-#### Tmax
-```{r, echo = FALSE}
-quinto_vicentino_tmin %>%
-  knitr::kable()
-```
-
-#### Summary
-```{r, echo = FALSE, message = FALSE}
-quinto_vicentino_precip_long <- quinto_vicentino_precip %>%
-  tidyr::pivot_longer(2:13, names_to = "month", values_to = "P_ann")
-quinto_vicentino_tmin_long <- quinto_vicentino_tmin %>%
-  tidyr::pivot_longer(2:13, names_to = "month", values_to = "Tmin")
-quinto_vicentino_tmax_long <- quinto_vicentino_tmax %>%
-  tidyr::pivot_longer(2:13, names_to = "month", values_to = "Tmax")
-
-quinto_vicentino_all <- quinto_vicentino_precip_long %>%
-  dplyr::left_join(quinto_vicentino_tmin_long, by = c("year", "month")) %>%
-  dplyr::left_join(quinto_vicentino_tmax_long, by = c("year", "month")) %>%
-  # dplyr::mutate(Tmean = mean(Tmin, Tmax, na.rm = TRUE))
-  dplyr::mutate(Tmean = (Tmin + Tmax) / 2)
-
-quinto_vicentino_all %>%
-  dplyr::mutate(season = dplyr::case_when(month %in% c("dic", "jan", "feb") ~ "djf",
-                                          month %in% c("jun", "jul", "aug") ~ "jja",
-                                          TRUE ~ NA_character_)) %>%
-                                          # month %in% c("mar", "apr", "may") ~ "mam",
-                                          # TRUE ~ as.character("son"))) %>%
-  dplyr::filter(season %in% c("djf", "jja")) %>%
-  dplyr::group_by(year, season) %>%
-  dplyr::summarise(P_ann = mean(P_ann),
-                   Tmin = mean(Tmin, na.rm = TRUE),
-                   Tmax = mean(Tmax, na.rm = TRUE)) %>%
-  dplyr::ungroup() %>%
-  tidyr::pivot_longer(3:5) %>%
-  dplyr::arrange(year, name, season) %>%
-  dplyr::mutate(var = stringr::str_c(name, "_", season)) %>%
-  dplyr::select(-season, -name) %>%
-  tidyr::pivot_wider(names_from = var, values_from = value) %>%
-  knitr::kable()
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-## Find the corrected Annual Precipitation, `P_ann`
+## Find the corrected Annual Precipitation, `Pann`
 
 Approximated as the ratio
 
 $$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$
-multiplied by reconstructed `P_ann`.
+multiplied by reconstructed `Pann`.
 
-```{r}
+```{r, echo = FALSE}
 mi_ratio <- fimon2$corr_mi / fimon2$recon_mi
-fimon2$corr_P_ann <- fimon$P_ann * mi_ratio
+# fimon2$recon_Pann <- fimon$Pann
+fimon2$corr_Pann <- fimon2$recon_Pann * mi_ratio
 ```
 
-```{r, echo = TRUE}
+```{r, echo = FALSE}
 fimon2 %>% 
   write.csv(file = "fimon-with-corrected-mi.csv",
             row.names = FALSE)
 
 # Small subset
-knitr::kable(head(fimon2, 13),
+knitr::kable(head(fimon2, 20),
              col.names = c("age cal yr BP",
                            "past temp",
                            "past co2",
@@ -251,6 +261,7 @@ knitr::kable(head(fimon2, 13),
                            "present temp",
                            "recon. MI",
                            "corr. MI",
+                           "recon. Pann",
                            "corr. Pann"))
 ```
 
@@ -280,22 +291,22 @@ colnames(fimon_elv) <- codos::lon$data[c(idx_x, idx_x + 1)]
 fimon_elv <- mean(fimon_elv)
 
 # Extract sunshine fraction subset
-fimon_sf <- sf[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
-rownames(fimon_sf) <- codos::lat$data[c(idx_y, idx_y - 1)]
-colnames(fimon_sf) <- codos::lon$data[c(idx_x, idx_x + 1)]
-fimon_sf <- colMeans(fimon_sf, dims = 2)
+fimon_sf_cru_ts <- sf[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(fimon_sf_cru_ts) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(fimon_sf_cru_ts) <- codos::lon$data[c(idx_x, idx_x + 1)]
+fimon_sf_cru_ts <- colMeans(fimon_sf_cru_ts, dims = 2)
 
 # Extract cloud coverage subset
-fimon_cld <- cld[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
-rownames(fimon_cld) <- codos::lat$data[c(idx_y, idx_y - 1)]
-colnames(fimon_cld) <- codos::lon$data[c(idx_x, idx_x + 1)]
-fimon_cld <- colMeans(fimon_cld, dims = 2)
+fimon_cld_cru_ts <- cld[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(fimon_cld_cru_ts) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(fimon_cld_cru_ts) <- codos::lon$data[c(idx_x, idx_x + 1)]
+fimon_cld_cru_ts <- colMeans(fimon_cld_cru_ts, dims = 2)
 
 # Extract temperature subset
-fimon_tmp <- tmp[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
-rownames(fimon_tmp) <- codos::lat$data[c(idx_y, idx_y - 1)]
-colnames(fimon_tmp) <- codos::lon$data[c(idx_x, idx_x + 1)]
-fimon_tmp <- colMeans(fimon_tmp, dims = 2)
+fimon_tmp_cru_ts <- tmp[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
+rownames(fimon_tmp_cru_ts) <- codos::lat$data[c(idx_y, idx_y - 1)]
+colnames(fimon_tmp_cru_ts) <- codos::lon$data[c(idx_x, idx_x + 1)]
+fimon_tmp_cru_ts <- colMeans(fimon_tmp_cru_ts, dims = 2)
 ```
 
 ```{r, echo = FALSE}
@@ -311,8 +322,8 @@ fimon_pet_modern <- seq_len(365) %>%
                             n = i,
                             elv = fimon_elv,
                             y = year,
-                            sf = fimon_sf[i],
-                            tc = fimon_tmp[i])$pet_mm
+                            sf = fimon_sf_cru_ts[i],
+                            tc = quinto_vicentino_tmp[i])$pet_mm#fimon_tmp_cru_ts[i])$pet_mm
  })
 ```
 
@@ -321,139 +332,126 @@ knitr::asis_output('\n\n\\newpage')
 ```
 
 # New corrections
-
-## Calculate temperature anomalies
-
-Using both $T_\text{djf}$ and $T_\text{jja}$ for each record, a sinusoidal curve
-was fitted using the `int_sin` function.
-
-```{r, echo = TRUE}
-fimon <- fimon %>%
-  dplyr::mutate(Tmean = (T_jja + T_djf) / 2) %>%
-  dplyr::mutate(Tmax = Tmean + (T_jja - Tmean) / 0.9) %>%
-  dplyr::mutate(Tmin = Tmean + (T_djf - Tmean) / 0.9)
-```
-
-```{r, echo = FALSE}
-fimon_modern <- quinto_vicentino_all %>%
-  dplyr::mutate(season = dplyr::case_when(month %in% c("dec", "jan", "feb") ~ "djf",
-                                          month %in% c("mar", "apr", "may") ~ "mam",
-                                          month %in% c("jun", "jul", "aug") ~ "jja",
-                                          TRUE ~ as.character("son"))) %>%
-  dplyr::select(-month) %>%
-  dplyr::group_by(year, season) %>%
-  dplyr::summarise(dplyr::across(dplyr::everything(), mean, na.rm = TRUE)) %>%
-  # dplyr::summarise(P_ann = mean(P_ann, na.rm = TRUE),
-  #                  Tmin = mean(Tmin, na.rm = TRUE),
-  #                  Tmax = mean(Tmax, na.rm = TRUE)) %>%
-  dplyr::ungroup() %>%
-  dplyr::filter(season %in% c("djf", "jja")) %>%
-  tidyr::pivot_longer(3:6) %>%
-  dplyr::arrange(year, name, season) %>%
-  dplyr::mutate(var = stringr::str_c(name, "_", season)) %>%
-  dplyr::select(-season, -name) %>%
-  tidyr::pivot_wider(names_from = var, values_from = value) %>%
-  dplyr::select(-1) %>%
-  dplyr::summarise(dplyr::across(dplyr::everything(), mean, na.rm = TRUE)) %>%
-  dplyr::mutate(P_ann = (P_ann_djf + P_ann_djf) / 2,
-                T_djf = (Tmax_djf + Tmin_djf) / 2,
-                T_jja = (Tmax_jja + Tmin_jja) / 2) %>%
-  dplyr::mutate(Tmean = (T_jja + T_djf) / 2) %>%
-  dplyr::mutate(Tmax = Tmean + (T_jja - Tmean) / 0.9) %>%
-  dplyr::mutate(Tmin = Tmean + (T_djf - Tmean) / 0.9)
-```
-
-```{r, echo = FALSE, fig.height = 5}
-codos::int_sin(fimon_modern$Tmin, fimon_modern$Tmax) %>%
-  tibble::tibble(x = seq_len(365), y = .) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y)) +
-      ggplot2::geom_line() +
-      ggplot2::geom_point(data = tibble::tibble(x = 1, y = fimon_modern$T_djf),
-                          ggplot2::aes(x, y, colour = "T_djf")) +
-      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = fimon_modern$T_jja),
-                          ggplot2::aes(x, y, colour = "T_jja")) +
-      ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
-                                   values = c("#0080ff","#ff3333")) +
-      ggplot2::labs(x = "[days]",
-                    y = "Temp [°C]",
-                    title = "'Modern' Lago di Fimon") +
-      ggplot2::theme_bw()
-```
-
+## Find anomalies (`Tmp` and `cld`)
 Data from the weather station Quinto Vicentino was used as the baseline to calculate the temperature anomalies.
 
 ```{r, echo = FALSE}
-quinto_vicentino_all %>%
-  dplyr::select(-month) %>%
-  dplyr::group_by(year) %>%
-  dplyr::summarise(dplyr::across(dplyr::everything(), mean, na.rm = TRUE)) %>%
-  rbind(c(NA, mean(.$P_ann, na.rm = TRUE), mean(.$Tmean, na.rm = TRUE), mean(.$Tmax, na.rm = TRUE), mean(.$Tmin, na.rm = TRUE))) %>%
-  knitr::kable()
+fimon_cld_corr_mi <- fimon2$corr_mi %>%
+  purrr::map_dbl(codos::cld)
+
+# ref_cld_corr_mi <- fimon_cld_corr_mi %>%
+#   mean()
+ref_cld_corr_mi <- mean(fimon_cld_cru_ts)
+fimon_modern <- quinto_vicentino_clim
 ```
 
-where
-$$T_\text{mean} = (T_\text{jja} + T_\text{djf}) / 2$$
-$$T_\text{max} = T_\text{mean} + (T_\text{jja} - T_\text{mean}) / 0.9$$
-
-$$T_\text{min} = T_\text{mean} + (T_\text{djf} - T_\text{mean}) / 0.9$$
-
 ```{r, echo = TRUE}
-fimon_anomalies <- seq_len(nrow(fimon)) %>%
+fimon_tmp_anomalies <- seq_len(nrow(fimon)) %>%
   purrr::map(~codos::int_sin(fimon$Tmin[.x] - fimon_modern$Tmin,
                              fimon$Tmax[.x] - fimon_modern$Tmax))
+
+fimon_cld_anomalies <- seq_len(nrow(fimon)) %>%
+  purrr::map_dbl(~fimon_cld_corr_mi[.x] - ref_cld_corr_mi)
+fimon_sf_anomalies <- 1 - (fimon_cld_corr_mi + fimon_cld_anomalies) / 100
 ```                         
+
+
+Lago di Fimon: Anomalies for age = `r fimon[1, 1]` cal yr BP
+```{r, fig.height = 5, echo = FALSE}
+codos::int_sin(fimon$Tmin[1] - fimon_modern$Tmin,
+               fimon$Tmax[1] - fimon_modern$Tmax) %>%
+  tibble::tibble(x = seq_len(365), y = .) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = fimon$Tjan[1] - fimon_modern$Tjan),
+                          ggplot2::aes(x, y, colour = "dTjan")) +
+      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = fimon$Tjul[1] - fimon_modern$Tjul),
+                          ggplot2::aes(x, y, colour = "dTjul")) +
+      ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
+                                   values = c("#0080ff","#ff3333")) +
+      ggplot2::labs(x = "[days]",
+                    y = "Temp [°C]") +
+      ggplot2::theme_bw()
+```
+
+Lago di Fimon: Anomalies for age = `r fimon[59, 1]` cal yr BP
+```{r, fig.height = 5, echo = FALSE}
+codos::int_sin(fimon$Tmin[59] - fimon_modern$Tmin,
+               fimon$Tmax[59] - fimon_modern$Tmax) %>%
+  tibble::tibble(x = seq_len(365), y = .) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point(data = tibble::tibble(x = 1, y = fimon$Tjan[59] - fimon_modern$Tjan),
+                          ggplot2::aes(x, y, colour = "dTjan")) +
+      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = fimon$Tjul[59] - fimon_modern$Tjul),
+                          ggplot2::aes(x, y, colour = "dTjul")) +
+      ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
+                                   values = c("#0080ff","#ff3333")) +
+      ggplot2::labs(x = "[days]",
+                    y = "Temp [°C]") +
+      ggplot2::theme_bw()
+```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-Padul: Anomaly for age = `r fimon[1, 1]` cal yr BP
-```{r, fig.height = 5, echo = FALSE}
-codos::int_sin(fimon$Tmin[1] - fimon_modern$Tmin, 
-               fimon$Tmax[1] - fimon_modern$Tmax) %>%
-  tibble::tibble(x = seq_len(365), y = .) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y)) +
-      ggplot2::geom_line() +
-      ggplot2::geom_point(data = tibble::tibble(x = 1, y = fimon$T_djf[1] - fimon_modern$T_djf),
-                          ggplot2::aes(x, y, colour = "dT_djf")) +
-      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = fimon$T_jja[1] - fimon_modern$T_jja),
-                          ggplot2::aes(x, y, colour = "dT_jja")) +
-      ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
-                                   values = c("#0080ff","#ff3333")) +
-      ggplot2::labs(x = "[days]",
-                    y = "Temp [°C]") +
-      ggplot2::theme_bw()
+## Find orbital parameters
+
+Selected samples and their orbital parameters:
+```{r orbital-params, echo = FALSE, message = FALSE, fig.height = 10}
+fimon_years <- as.integer(fimon$age_cal_yr_BP)
+# Find orbital parameters
+fimon_orb_params <- -fimon_years %>%
+  purrr::map_df(palinsol::astro, solution = palinsol::ber78, degree = TRUE)
+
+# Append the years to the table with the orbital parameters
+fimon_orb_params <- fimon_orb_params %>%
+  dplyr::mutate(year = fimon_years, .before = 1)
+
+# fimon_orb_params <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-orbital-params.csv")
+
+# Print table with the first 10 rows
+fimon_orb_params %>%
+  dplyr::slice(1:4, 59, 169, 146) %>%
+  knitr::kable()
+
+fimon_orb_params %>%
+  tidyr::pivot_longer(cols = c(eps, ecc, varpi, epsp),
+                      names_to = "var") %>%
+  ggplot2::ggplot(ggplot2::aes(year / 1000, value)) +
+  ggplot2::geom_point() +
+  ggplot2::geom_line() +
+  ggplot2::scale_x_reverse(breaks = seq(0, 200, 10),
+                              labels = seq(0, 200, 10)) +
+                              # scales::pretty_breaks(20)) +
+  ggplot2::labs(x = "Age [kcal yrs BP]") +
+  ggplot2::facet_wrap(facets = ~var,
+                      scales = "free",
+                      labeller = ggplot2::labeller(var = c("ecc" = "Eccentricity (ecc)",
+                                                           "eps" = "Obliquity (eps)",
+                                                           "varpi" = "True Solar Longitude of the Perihelion (varpi)",
+                                                           "epsp" = "(epsp)"))) +
+  ggplot2::theme_bw()
 ```
 
-Padul: Anomaly for age = `r fimon[59, 1]` cal yr BP
-```{r, fig.height = 5, echo = FALSE}
-codos::int_sin(fimon$Tmin[59] - fimon_modern$Tmin, 
-               fimon$Tmax[59] - fimon_modern$Tmax) %>%
-  tibble::tibble(x = seq_len(365), y = .) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y)) +
-      ggplot2::geom_line() +
-      ggplot2::geom_point(data = tibble::tibble(x = 1, y = fimon$T_djf[59] - fimon_modern$T_djf),
-                          ggplot2::aes(x, y, colour = "dT_djf")) +
-      ggplot2::geom_point(data = tibble::tibble(x = 365 / 2, y = fimon$T_jja[59] - fimon_modern$T_jja),
-                          ggplot2::aes(x, y, colour = "dT_jja")) +
-      ggplot2::scale_colour_manual(name = "Recon. \nTemp.",
-                                   values = c("#0080ff","#ff3333")) +
-      ggplot2::labs(x = "[days]",
-                    y = "Temp [°C]") +
-      ggplot2::theme_bw()
-```
+<!-- where -->
+<!-- $$T_\text{mean} = (T_\text{jja} + T_\text{djf}) / 2$$ -->
+<!-- $$T_\text{max} = T_\text{mean} + (T_\text{jja} - T_\text{mean}) / 0.9$$ -->
 
-```{r, include=knitr::is_latex_output(), echo = FALSE}
+<!-- $$T_\text{min} = T_\text{mean} + (T_\text{djf} - T_\text{mean}) / 0.9$$ -->
+
+```{r, include=knitr::is_latex_output(), echo = FALSE, eval = TRUE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
 ## Calculate potential evapotranspiration (PET)
 
-```{r pet-w-tmp-anomalies, cache = TRUE, echo = FALSE, eval = TRUE}
+```{r pet-w-tmp-anomalies, echo = FALSE, eval = TRUE}
 year <- 1961
 oplan <- future::plan(future::multisession, workers = 8)
-{p <- progressr::progressor(steps = length(fimon_anomalies))
-fimon_pet_tmp <- seq_along(fimon_anomalies) %>%
+{p <- progressr::progressor(steps = length(fimon_tmp_anomalies))
+fimon_pet_ultimate <- seq_along(fimon_tmp_anomalies) %>%
   furrr::future_map(function(k) {
     p()
     purrr::map_dbl(seq_len(365),
@@ -462,8 +460,12 @@ fimon_pet_tmp <- seq_along(fimon_anomalies) %>%
                                              n = i,
                                              elv = fimon_elv,
                                              y = year,
-                                             sf = fimon_sf[i],
-                                             tc = fimon_tmp[i] + fimon_anomalies[[k]][i])$pet_mm
+                                             sf = fimon_sf_anomalies[k],
+                                             tc = quinto_vicentino_tmp[i] + 
+                                               fimon_tmp_anomalies[[k]][i],
+                                             ke = fimon_orb_params$ecc[k],
+                                             keps = fimon_orb_params$eps[k],
+                                             komega = fimon_orb_params$varpi[k])$pet_mm
                    })
   })} %>% 
   progressr::with_progress()
@@ -475,17 +477,17 @@ future::plan(oplan)
 - Latitude: `r LAT`
 - Elevation: `r fimon_elv`
 - Year: `1961`
-- Sunshine fraction: [`CRU TS 4.04`]
-- Temperature:  [`CRU TS 4.04`] $+ T_\text{anomalies}$
+- Sunshine fraction: [`CRU TS 4.04`] $ + \texttt{Cld}_\text{anomalies}$ 
+- Temperature:  [`CRU TS 4.04`] $ + {Tmp}_\text{anomalies}$
 
 ```{r, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(seq_len(365), 3),
-               y = c(fimon_pet_tmp[1][[1]],
-                     fimon_pet_tmp[59][[1]],
+               y = c(fimon_pet_ultimate[[1]],
+                     fimon_pet_ultimate[[59]],
                      fimon_pet_modern),
                age = rep(c(fimon$age_cal_yr_BP[1], 
                            fimon$age_cal_yr_BP[59],
-                           "[CRU TS 4.04]"),
+                           "[Modern, 1994 - 2018]"),
                          each = 365) %>%
                  as.factor()) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
@@ -493,97 +495,30 @@ tibble::tibble(x = rep(seq_len(365), 3),
   ggplot2::scale_colour_brewer("Age (cal yr BP)", palette = "Set1") +
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
-  ggplot2::theme_bw()
+  theme_pet
 ``` 
 
 ## Calculate corrected Precipitation
 
-Using corrected MI and PET (calculated from modern temperature [CRU TS 4.04] and Padul temperature anomalies).
-
 $$\text{corrected P}_\text{ann} = \text{MI} \times \text{PET}_\text{ann}$$
 
 ```{r, echo = FALSE}
-fimon_corrected_pr <- purrr::map_dbl(seq_along(fimon_pet_tmp),
-                                     ~sum(fimon_pet_tmp[.x][[1]], na.rm = TRUE) * fimon2$corr_mi[.x])
+fimon_corrected_pr <- purrr::map_dbl(seq_along(fimon_pet_ultimate),
+                                     ~sum(fimon_pet_ultimate[.x][[1]], na.rm = TRUE) * fimon2$corr_mi[.x])
+# fimon_corrected_pr_ultimate <- fimon_corrected_pr
+fimon_corrected_pr_ultimate <- purrr::map_dbl(seq_along(fimon_pet_ultimate),
+                                     ~sum(fimon_pet_ultimate[.x][[1]], na.rm = TRUE) * fimon2$corr_mi[.x])
 ```
 
 ```{r, echo = FALSE}
 fimon %>%
   dplyr::select(1:3) %>%
-  dplyr::mutate(corr_mi = fimon2$corr_mi,
-                `corr_P_ann (MI ratio)` = fimon2$corr_P_ann,
-                `corr_P_ann (Tmp anomalies)` = fimon_corrected_pr) %>%
-  dplyr::slice(1:20) %>%
-  knitr::kable() # "pandoc", col.names = c(names(.)[1:5], "corrected MI", "corrected P_ann (MI ratio)", "corrected P_ann (Tmp anomalies)"))
+  dplyr::mutate(`corr MI` = fimon2$corr_mi,
+                `corr Pann (MI ratio)` = fimon2$corr_Pann,
+                `corr Pann (Tmp + Cld anomalies & Orb. Par.)` = fimon_corrected_pr) %>%
+  dplyr::slice(1:12) %>%
+  knitr::kable() # "pandoc", col.names = c(names(.)[1:5], "corrected MI", "corrected Pann (MI ratio)", "corrected Pann (Tmp anomalies)"))
 ```
-
-<!-- ## Find orbital parameters -->
-
-<!-- Selected samples and their orbital parameters: -->
-```{r orbital-params, echo = FALSE, message = FALSE, fig.height = 10}
-# fimon_years <- as.integer(fimon$age_cal_yr_BP)
-# # Find orbital parameters
-# fimon_orb_params <- fimon_years %>%
-#   purrr::map_df(palinsol::astro, solution = palinsol::ber78, degree = TRUE)
-# 
-# # Append the years to the table with the orbital parameters
-# fimon_orb_params <- fimon_orb_params %>%
-#   dplyr::mutate(year = fimon_years, .before = 1)
-
-fimon_orb_params <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-orbital-params.csv")
-
-# # Print table with the first 10 rows
-# fimon_orb_params %>%
-#   dplyr::slice(1:4, 59, 169, 146) %>%
-#   knitr::kable()
-
-# fimon_orb_params %>%
-#   tidyr::pivot_longer(cols = c(eps, ecc, varpi, epsp),
-#                       names_to = "var") %>%
-#   ggplot2::ggplot(ggplot2::aes(year / 1000, value)) +
-#   ggplot2::geom_point() +
-#   ggplot2::geom_line() +
-#   ggplot2::scale_x_reverse(breaks = seq(0, 200, 10),
-#                               labels = seq(0, 200, 10)) +
-#                               # scales::pretty_breaks(20)) +
-#   ggplot2::labs(x = "Age [kcal yrs BP]") +
-#   ggplot2::facet_wrap(facets = ~var, 
-#                       scales = "free",
-#                       labeller = ggplot2::labeller(var = c("ecc" = "Eccentricity (ecc)",
-#                                                            "eps" = "Obliquity (eps)",
-#                                                            "varpi" = "True Solar Longitude of the Perihelion (varpi)",
-#                                                            "epsp" = "(epsp)"))) +
-#   ggplot2::theme_bw()
-```
-
-```{r pet-ultimate, cache = TRUE, echo = FALSE, eval = FALSE}
-oplan <- future::plan(future::multisession, workers = 8)
-{p <- progressr::progressor(steps = length(fimon_cld_corr_mi))
-fimon_pet_ultimate <- 
-  seq_along(fimon_sf2) %>%
-  furrr::future_map(function(k) {
-    p()
-    purrr::map_dbl(seq_len(365),
-                   function(i) {
-                     splash::calc_daily_evap(lat = LAT,
-                                             n = i,
-                                             elv = fimon_elv,
-                                             y = year,
-                                             sf = fimon_sf2[k],
-                                             tc = fimon_tmp[i] +
-                                               fimon_anomalies[k][[1]][i],
-                                             ke = fimon_orb_params$ecc[k],
-                                             keps = fimon_orb_params$eps[k],
-                                             komega = fimon_orb_params$varpi[k])$pet_mm
-                   })
-  })} %>% 
-  progressr::with_progress()
-future::plan(oplan)
-
-fimon_corrected_pr_ultimate <- purrr::map_dbl(seq_along(fimon_pet_ultimate),
-                                     ~sum(fimon_pet_ultimate[.x][[1]], na.rm = TRUE) * fimon2$corr_mi[.x])
-```
-
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
@@ -626,7 +561,7 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-  ggplot2::theme_bw()
+  theme_pet
 ```
 
 - `age < 22k`
@@ -644,7 +579,7 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-    ggplot2::theme_bw()
+    theme_pet
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -683,9 +618,9 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
                                                            breaks = scales::pretty_breaks(15))
   ) +
   ggplot2::labs(x = "Age [cal yrs BP]",
-  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
-  y = "MI [-] and CO2 [1/100 ppm]") +
-  ggplot2::theme_bw()
+                # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+                y = "MI [-] and CO2 [1/100 ppm]") +
+  theme_pet
 ```
 
 - `age < 22k`
@@ -717,16 +652,16 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
                                                            breaks = scales::pretty_breaks(15))
   ) +
   ggplot2::labs(x = "Age [cal yrs BP]",
-  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
-  y = "MI [-] and CO2 [1/100 ppm]") +
-  ggplot2::theme_bw()
+                # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+                y = "MI [-] and CO2 [1/100 ppm]") +
+  theme_pet
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-#### Reconstructed vs corrected `P_ann`: Past CO2 calculated using `mean`
+#### Reconstructed vs corrected `Pann`: Past CO2 calculated using `mean`
 
 ##### With MI ratio
 
@@ -736,14 +671,14 @@ knitr::asis_output('\n\n\\hfill\\break')
 
 ```{r, echo = FALSE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
-               y = c(fimon$P_ann, 
-                     fimon2$corr_P_ann),
+               y = c(fimon$Pann, 
+                     fimon2$corr_Pann),
                var = rep(c("Reconstructed", 
                            "Corrected"), 
                          each = nrow(fimon2))) %>%
   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
     ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Dark2") + 
+    ggplot2::scale_colour_brewer(name = "Pann", palette = "Dark2") + 
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", 
@@ -755,15 +690,15 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
 
 ```{r, echo = FALSE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
-               y = c(fimon$P_ann, 
-                     fimon2$corr_P_ann),
+               y = c(fimon$Pann, 
+                     fimon2$corr_Pann),
                var = rep(c("Reconstructed", 
                            "Corrected"), 
                          each = nrow(fimon2))) %>%
   .[.$x < 22000, ] %>%
   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
     ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Dark2") + 
+    ggplot2::scale_colour_brewer(name = "Pann", palette = "Dark2") + 
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", 
@@ -775,6 +710,105 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
 knitr::asis_output('\n\n\\newpage')
 ```
 
+##### With temperature and cloud coverage anomalies and orbital parameters
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(fimon$age_cal_yr_BP, 2),
+               y = c(fimon$Pann, 
+                     fimon_corrected_pr_ultimate),
+               var = rep(c("recon. Pann", 
+                           "With Tmp and Cld anomalies and orbital params"), 
+                         each = nrow(fimon))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+  theme_pet
+```
+
+### `age < 22k`
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(fimon$age_cal_yr_BP, 2),
+               y = c(fimon$Pann, 
+                     fimon_corrected_pr_ultimate),
+               var = rep(c("recon. Pann", 
+                           "With Tmp and Cld anomalies and orbital params"),
+                         each = nrow(fimon))) %>%
+  dplyr::filter(x < 22000) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+    theme_pet
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+##### All the approaches
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(fimon$age_cal_yr_BP, 3),
+               y = c(fimon$Pann, 
+                     fimon2$corr_Pann,
+                     fimon_corrected_pr_ultimate),
+               var = factor(rep(c("recon. Pann", 
+                                  "MI ratio",
+                                  "With Tmp and Cld anomalies and orbital params"), 
+                                each = nrow(fimon)),
+                            levels = c("recon. Pann",
+                                       "With Tmp and Cld anomalies and orbital params",
+                                       "MI ratio"))) %>%
+ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+  theme_pet
+```
+
+### `age < 22k`
+
+```{r, echo = FALSE, eval = TRUE}
+tibble::tibble(x = rep(fimon$age_cal_yr_BP, 3),
+               y = c(fimon$Pann, 
+                     fimon2$corr_Pann,
+                     fimon_corrected_pr_ultimate),
+               var = factor(rep(c("recon. Pann", 
+                                  "MI ratio",
+                                  "With Tmp and Cld anomalies and orbital params"), 
+                                each = nrow(fimon)),
+                            levels = c("recon. Pann",
+                                       "With Tmp and Cld anomalies and orbital params",
+                                       "MI ratio"))) %>%
+  dplyr::filter(x < 22000) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+    ggplot2::geom_line() +
+    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+    theme_pet
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
 # Appendix
 
 ## A1. Lago di Fimon Data
