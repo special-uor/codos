@@ -30,6 +30,7 @@ options(knitr.kable.NA = '',
 path <- "~/OneDrive - University of Reading/UoR/Data/CRU/4.04/"
 
 `%>%` <- magrittr::`%>%`
+`%$%` <- magrittr::`%$%`
 
 month_breaks <- c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)
 
@@ -70,7 +71,7 @@ ref_idx <- 5:9 # -40 < age < -10
 LAT <- 45.469951
 LON <- 11.543468
 
-theme_pet <- 
+theme_bottom_legend <- 
   ggplot2::theme(panel.background = ggplot2::element_rect(fill = "white",
                                                           colour = NA),
                  panel.border = ggplot2::element_rect(fill = NA,
@@ -84,7 +85,7 @@ theme_pet <-
                  complete = TRUE,
                  legend.position = "bottom")
 
-theme_pet_black <- 
+theme_bottom_legend_black <- 
   ggplot2::theme(panel.background = ggplot2::element_rect(fill = "grey2",
                                                           colour = NA),
                  panel.border = ggplot2::element_rect(fill = NA,
@@ -103,25 +104,23 @@ theme_pet_black <-
 knitr::asis_output('\n\n\\renewcommand{\\arraystretch}{1.5}')
 ```
 
-## Obtain past CO2 from (Bereiter et al. 2015)
+## Obtain palaeo (past) CO2 from (Bereiter et al. 2015)
 
-```{r}
-past_co2 <- fimon %>%
-  .$age_cal_yr_BP %>%
-  purrr::map_dbl(codos::past_co2)
+```{r obtain-palaeo-co2}
+palaeo_co2 <- fimon %$%
+  purrr::map_dbl(age_cal_yr_BP, codos::past_co2)
 ```
 
 ## Obtain modern CO2 from (Bereiter et al. 2015)
 
-```{r modern_co2_20th}
+```{r obtain-modern-co2-20th}
 modern_co2 <- tibble::tibble(age = 1950 - c(1901:1990),
-                             co2 = purrr::map_dbl(age, codos::past_co2)) %>%
-  .$co2 %>%
-  median()
+                             co2 = purrr::map_dbl(age, codos::past_co2)) %$%
+  median(co2)
 ```
 
-## Read "modern" data - Quinto Vicentino
-```{r, eval = FALSE}
+## Read "modern" data - Quinto Vicentino station
+```{r read-modern-data, eval = FALSE}
 quinto_vicentino_tmin <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_tmin.csv", 
                                          na = ">>") %>%
   magrittr::set_names(tolower(colnames(.)))
@@ -130,7 +129,7 @@ quinto_vicentino_tmax <- readr::read_csv("/path/to/fimon-lake/quinto_vicentino_t
   magrittr::set_names(tolower(colnames(.)))
 ```
 
-```{r, echo = FALSE, message = FALSE}
+```{r read-modern-data-hidden, echo = FALSE, message = FALSE}
 quinto_vicentino_tmin <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/fimon-lake/quinto_vicentino_tmin.csv", 
                                          na = ">>") %>%
   magrittr::set_names(tolower(colnames(.)))
@@ -151,7 +150,7 @@ quinto_vicentino_tmp <- with(quinto_vicentino_clim, codos::int_sin(Tjan, Tjul))
 
 Fit a sinusoidal curve between the mean value for the coldest month, `T_jan =` `r round(quinto_vicentino_clim$Tjan, 4)`, and the warmest month, `T_jul =` `r round(quinto_vicentino_clim$Tjul, 4)`.
 
-```{r, echo = FALSE, fig.height = 5}
+```{r modern-temp_fig, echo = FALSE, fig.height = 5}
 codos::int_sin(quinto_vicentino_clim$Tmin, quinto_vicentino_clim$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
@@ -174,7 +173,7 @@ codos::int_sin(quinto_vicentino_clim$Tmin, quinto_vicentino_clim$Tmax) %>%
 knitr::asis_output('\n\n\\newpage')
 ```
 
-```{r, echo = FALSE}
+```{r temp-comparison_fig, echo = FALSE}
 tibble::tibble(x = rep(fimon$age_cal_yr_BP, 4),
                y = c(fimon$Tjan,
                      fimon$Tjul,
@@ -182,8 +181,8 @@ tibble::tibble(x = rep(fimon$age_cal_yr_BP, 4),
                      rep(mean(quinto_vicentino_tmp), nrow(fimon))),
                var = rep(c("Tjan", 
                            "Tjul", 
-                           "Mean Growing Season", 
-                           "Modern Growing Season"), 
+                           "Palaeo Mean Growing Season", 
+                           "Modern Mean Growing Season"), 
                          each = nrow(fimon))) %>%
   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_line() +
@@ -193,38 +192,41 @@ tibble::tibble(x = rep(fimon$age_cal_yr_BP, 4),
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", 
                 y = "Temperature [°C]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 ## Assemble the _Lago di Fimon_ data
 
-```{r}
+```{r assemble-data-set}
 fimon2 <- tibble::tibble(age_calBP = fimon$age_cal_yr_BP,
-                         past_temp = fimon$Tgs,
-                         past_co2 = past_co2,
+                         palaeo_co2 = palaeo_co2,
+                         palaeo_temp = fimon$Tgs,
                          modern_co2 = modern_co2,
-                         present_t = mean(quinto_vicentino_tmp),
+                         modern_temp = mean(quinto_vicentino_tmp),
                          recon_mi = fimon$MI,
                          recon_Pann = fimon$Pann)
 ```
 
 ## Find the corrected `MI`
-```{r}
-fimon2$corr_mi <- codos::corrected_mi(fimon2$present_t,
-                                      fimon2$past_temp,
-                                      fimon2$recon_mi,
-                                      fimon2$modern_co2,
-                                      fimon2$past_co2)
+```{r find-corrected-mi}
+corr_mi <- fimon2 %$%
+  codos::corrected_mi(Tc0 = modern_temp,
+                      Tc1 = palaeo_temp,
+                      MI = recon_mi,
+                      ca0 = modern_co2,
+                      ca1 = palaeo_co2)
+fimon2 <- fimon2 %>%
+  dplyr::mutate(corr_mi = corr_mi)
 ```
 
-```{r, echo = FALSE}
+```{r head-of-data-set, echo = FALSE}
 # Small subset
-knitr::kable(head(fimon2, 7),
+knitr::kable(head(fimon2, 5),
              col.names = c("age cal yr BP",
-                           "past temp",
-                           "past co2",
+                           "palaeo co2",
+                           "palaeo temp",
                            "modern co2",
-                           "present temp",
+                           "modern temp",
                            "recon. MI",
                            "recon. Pann",
                            "corr. MI"))
@@ -241,27 +243,23 @@ Approximated as the ratio
 $$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$
 multiplied by reconstructed `Pann`.
 
-```{r, echo = FALSE}
+```{r find-corrected-pann-as-mi-ratio, echo = FALSE}
 mi_ratio <- fimon2$corr_mi / fimon2$recon_mi
 # fimon2$recon_Pann <- fimon$Pann
 fimon2$corr_Pann <- fimon2$recon_Pann * mi_ratio
 ```
 
-```{r, echo = FALSE}
-fimon2 %>% 
-  write.csv(file = "fimon-with-corrected-mi.csv",
-            row.names = FALSE)
-
+```{r show-results-after-corr-pann, echo = FALSE}
 # Small subset
 knitr::kable(head(fimon2, 20),
              col.names = c("age cal yr BP",
-                           "past temp",
-                           "past co2",
+                           "palaeo co2",
+                           "palaeo temp",
                            "modern co2",
-                           "present temp",
+                           "modern temp",
                            "recon. MI",
-                           "corr. MI",
                            "recon. Pann",
+                           "corr. MI",
                            "corr. Pann"))
 ```
 
@@ -271,7 +269,7 @@ Check out and download the entire dataset in [Appendix A1](#a1-lago-di-fimon-dat
 knitr::asis_output('\n\n\\newpage')
 ```
 
-```{r, echo = FALSE}
+```{r load-cru-ts-ref-data, echo = FALSE}
 elv <- codos:::nc_var_get(file.path(path, "halfdeg.elv.nc"), 
                           "elv")
 cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), 
@@ -309,12 +307,12 @@ colnames(fimon_tmp_cru_ts) <- codos::lon$data[c(idx_x, idx_x + 1)]
 fimon_tmp_cru_ts <- colMeans(fimon_tmp_cru_ts, dims = 2)
 ```
 
-```{r, echo = FALSE}
+```{r delete-large-objects, echo = FALSE}
 # Delete large objects from the environment
 rm(elv, cld, sf, tmp)
 ```
 
-```{r, echo = FALSE}
+```{r calculate-modern-pet, echo = FALSE}
 year <- 1961
 fimon_pet_modern <- seq_len(365) %>%
   purrr::map_dbl(function(i) {
@@ -335,7 +333,7 @@ knitr::asis_output('\n\n\\newpage')
 ## Find anomalies (`Tmp` and `cld`)
 Data from the weather station Quinto Vicentino was used as the baseline to calculate the temperature anomalies.
 
-```{r, echo = FALSE}
+```{r find-cld-from-corr-mi, echo = FALSE}
 fimon_cld_corr_mi <- fimon2$corr_mi %>%
   purrr::map_dbl(codos::cld)
 
@@ -345,7 +343,7 @@ ref_cld_corr_mi <- mean(fimon_cld_cru_ts)
 fimon_modern <- quinto_vicentino_clim
 ```
 
-```{r, echo = TRUE}
+```{r find-anomalies, echo = TRUE}
 fimon_tmp_anomalies <- seq_len(nrow(fimon)) %>%
   purrr::map(~codos::int_sin(fimon$Tmin[.x] - fimon_modern$Tmin,
                              fimon$Tmax[.x] - fimon_modern$Tmax))
@@ -357,7 +355,7 @@ fimon_sf_anomalies <- 1 - (fimon_cld_corr_mi + fimon_cld_anomalies) / 100
 
 
 Lago di Fimon: Anomalies for age = `r fimon[1, 1]` cal yr BP
-```{r, fig.height = 5, echo = FALSE}
+```{r anomaly-ex1_fig, fig.height = 5, echo = FALSE}
 codos::int_sin(fimon$Tmin[1] - fimon_modern$Tmin,
                fimon$Tmax[1] - fimon_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
@@ -375,7 +373,7 @@ codos::int_sin(fimon$Tmin[1] - fimon_modern$Tmin,
 ```
 
 Lago di Fimon: Anomalies for age = `r fimon[59, 1]` cal yr BP
-```{r, fig.height = 5, echo = FALSE}
+```{r anomaly-ex2_fig, fig.height = 5, echo = FALSE}
 codos::int_sin(fimon$Tmin[59] - fimon_modern$Tmin,
                fimon$Tmax[59] - fimon_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
@@ -399,7 +397,7 @@ knitr::asis_output('\n\n\\newpage')
 ## Find orbital parameters
 
 Selected samples and their orbital parameters:
-```{r orbital-params, echo = FALSE, message = FALSE, fig.height = 10}
+```{r orbital-params_fig, echo = FALSE, message = FALSE, fig.height = 10}
 fimon_years <- as.integer(fimon$age_cal_yr_BP)
 # Find orbital parameters
 fimon_orb_params <- -fimon_years %>%
@@ -477,10 +475,10 @@ future::plan(oplan)
 - Latitude: `r LAT`
 - Elevation: `r fimon_elv`
 - Year: `1961`
-- Sunshine fraction: [`CRU TS 4.04`] $ + \texttt{Cld}_\text{anomalies}$ 
-- Temperature:  [`CRU TS 4.04`] $ + {Tmp}_\text{anomalies}$
+- Sunshine fraction: [`CRU TS 4.04`] $+ \text{Cld}_\text{anomalies}$ 
+- Temperature:  [`CRU TS 4.04`] $+ \text{Tmp}_\text{anomalies}$
 
-```{r, echo = FALSE, eval = TRUE}
+```{r pet-comparison_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(seq_len(365), 3),
                y = c(fimon_pet_ultimate[[1]],
                      fimon_pet_ultimate[[59]],
@@ -495,7 +493,7 @@ tibble::tibble(x = rep(seq_len(365), 3),
   ggplot2::scale_colour_brewer("Age (cal yr BP)", palette = "Set1") +
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
-  theme_pet
+  theme_bottom_legend
 ``` 
 
 ## Calculate corrected Precipitation
@@ -525,22 +523,6 @@ knitr::asis_output('\n\n\\newpage')
 ```
 
 ## Plots
-<!-- ### Modern PET -->
-<!-- Obtained from CRU TS 4.04 -->
-```{r, echo = FALSE, eval = FALSE}
-tibble::tibble(x = seq_len(365),
-               y = fimon_pet_modern) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y)) +
-  ggplot2::geom_line() +
-  ggplot2::labs(x = "[days]",
-                y = "PET [mm/day]") +
-  ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  ggplot2::theme_bw()
-```
-
-```{r, include=knitr::is_latex_output(), echo = FALSE, eval = FALSE}
-knitr::asis_output('\n\n\\newpage')
-```
 
 #### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
 
@@ -548,7 +530,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE}
+```{r recon-vs-corr-mi, echo = FALSE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
                y = c(fimon2$recon_mi, 
                      fimon2$corr_mi),
@@ -561,11 +543,11 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 - `age < 22k`
-```{r, echo = FALSE}
+```{r recon-vs-corr-mi-22k-zoom, echo = FALSE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
                y = c(fimon2$recon_mi, 
                      fimon2$corr_mi),
@@ -579,7 +561,7 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-    theme_pet
+    theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -592,19 +574,19 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r recon-vs-corr-mi-with-co2-tmp, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
                y = c(fimon2$recon_mi,
                      fimon2$corr_mi),
-               co2 = rep(fimon2$past_co2 / 100, 2),
-               past_temp = rep(fimon2$past_temp / 5, 2),
+               co2 = rep(fimon2$palaeo_co2 / 100, 2),
+               palaeo_temp = rep(fimon2$palaeo_temp / 5, 2),
                var = rep(c("MI: reconstructed",
                            "MI: corrected"),
                         each = nrow(fimon2))) %>%
   ggplot2::ggplot() +
   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::geom_line(ggplot2::aes(x, palaeo_temp, colour = "Temp")) +
   ggplot2::scale_colour_manual(name = NULL, 
                              values = c("past CO2 [1/100]" = "gold",
                                         "Temp" = "black",
@@ -620,17 +602,17 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
   ggplot2::labs(x = "Age [cal yrs BP]",
                 # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
                 y = "MI [-] and CO2 [1/100 ppm]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 - `age < 22k`
 
-```{r, echo = FALSE, eval = TRUE}
+```{r recon-vs-corr-mi-with-co2-tmp-22k-zoom, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
                y = c(fimon2$recon_mi,
                      fimon2$corr_mi),
-               co2 = rep(fimon2$past_co2 / 100, 2),
-               past_temp = rep(fimon2$past_temp / 5, 2),
+               co2 = rep(fimon2$palaeo_co2 / 100, 2),
+               palaeo_temp = rep(fimon2$palaeo_temp / 5, 2),
                var = rep(c("MI: reconstructed",
                            "MI: corrected"),
                         each = nrow(fimon2))) %>%
@@ -638,7 +620,7 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
   ggplot2::ggplot() +
   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::geom_line(ggplot2::aes(x, palaeo_temp, colour = "Temp")) +
   ggplot2::scale_colour_manual(name = NULL, 
                              values = c("past CO2 [1/100]" = "gold",
                                         "Temp" = "black",
@@ -654,7 +636,7 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
   ggplot2::labs(x = "Age [cal yrs BP]",
                 # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
                 y = "MI [-] and CO2 [1/100 ppm]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -669,7 +651,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE}
+```{r recon-vs-corr-pann-mi-ratio, echo = FALSE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
                y = c(fimon$Pann, 
                      fimon2$corr_Pann),
@@ -683,12 +665,12 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", 
                   y = "Annual precipitation [mm/year]") +
-    theme_pet
+    theme_bottom_legend
 ```
 
 - `age < 22k`
 
-```{r, echo = FALSE}
+```{r recon-vs-corr-pann-mi-ratio-22k-zoom, echo = FALSE}
 tibble::tibble(x = rep(fimon2$age_calBP, 2),
                y = c(fimon$Pann, 
                      fimon2$corr_Pann),
@@ -703,7 +685,7 @@ tibble::tibble(x = rep(fimon2$age_calBP, 2),
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", 
                   y = "Annual precipitation [mm/year]") +
-    theme_pet
+    theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -716,7 +698,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r recon-vs-corr-pann-all, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(fimon$age_cal_yr_BP, 2),
                y = c(fimon$Pann, 
                      fimon_corrected_pr_ultimate),
@@ -729,12 +711,12 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 ### `age < 22k`
 
-```{r, echo = FALSE, eval = TRUE}
+```{r recon-vs-corr-pann-all-22k-zoom, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(fimon$age_cal_yr_BP, 2),
                y = c(fimon$Pann, 
                      fimon_corrected_pr_ultimate),
@@ -748,7 +730,7 @@ tibble::tibble(x = rep(fimon$age_cal_yr_BP, 2),
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+    theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -761,7 +743,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r recon-vs-corr-pann-comparison, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(fimon$age_cal_yr_BP, 3),
                y = c(fimon$Pann, 
                      fimon2$corr_Pann,
@@ -779,12 +761,12 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 ### `age < 22k`
 
-```{r, echo = FALSE, eval = TRUE}
+```{r recon-vs-corr-pann-comparison-22k-zoom, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(fimon$age_cal_yr_BP, 3),
                y = c(fimon$Pann, 
                      fimon2$corr_Pann,
@@ -803,7 +785,7 @@ tibble::tibble(x = rep(fimon$age_cal_yr_BP, 3),
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+    theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -815,7 +797,22 @@ knitr::asis_output('\n\n\\newpage')
 Download the CSV file: [fimon-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/fimon-with-corrected-mi.csv)
 
 ```{r, echo = FALSE}
+# fimon2$corr_Pann <- fimon2$recon_Pann * mi_ratio
+fimon2$corr_Pann <- fimon_corrected_pr_ultimate
+fimon2 %>% 
+  readr::write_excel_csv(file = "lago-di-fimon-with-corrected-mi-and-pann.csv", 
+                         na = "")
+
 fimon2 %>%
   dplyr::select(-dplyr::ends_with(("loess"))) %>%
-  knitr::kable(longtable = TRUE)
+  knitr::kable(longtable = TRUE,
+               col.names = c("age [cal yr BP]",
+                             "palaeo co2 [umol/mol]",
+                             "palaeo temp [°C]",
+                             "modern co2 [umol/mol]",
+                             "modern temp [°C]",
+                             "recon. MI [-]",
+                             "recon. Pann [mm/day]",
+                             "corr. MI [-]",
+                             "corr. Pann [mm/day]"))
 ```
