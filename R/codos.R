@@ -389,11 +389,15 @@ vpd_internal <- function(Tc, MI, scale_factor = 100) {
 
 #' Vapour-pressure deficit (Pa)
 #'
-#' @param Tc0 Numeric vector with present temperature values (°C).
-#' @param Tc1 Numeric vector with past temperature values (°C).
+#' @param Tc0 Numeric vector with modern mean growing season temperature
+#'     values (°C).
+#' @param Tc1 Numeric vector with palaeo (past) mean growing season temperature
+#'     values (°C).
 #' @param MI Numeric vector with reconstructed moisture index values (-).
-#' @param ca0 Numeric vector of 'recent' CO2 partial pressures (umol/mol).
-#' @param ca1 Numeric vector of past CO2 partial pressures (umol/mol).
+#' @param ca0 Numeric vector with modern ('recent') CO2 partial pressures
+#'     (umol/mol).
+#' @param ca1 Numeric vector with palaeo (past) CO2 partial pressures
+#'     (umol/mol).
 #' @param scale_factor Scale factor to transform the output, default =
 #'     101.325 Pa/ppm at standard sea level pressure.
 #' @return Numeric vector with vapour-pressure deficit values.
