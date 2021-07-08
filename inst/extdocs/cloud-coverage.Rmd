@@ -40,8 +40,8 @@ ALPHA <- 0.25
 knitr::asis_output('\n\n\\renewcommand{\\arraystretch}{1.5}')
 ```
 
-```{r, eval = TRUE, echo = FALSE, cache = TRUE}
-path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+```{r, eval = TRUE, echo = FALSE, cache = FALSE}
+path <- "~/OneDrive - University of Reading/UoR/Data/CRU/4.04/"
 cld <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.cld.dat-clim-1961-1990-int.nc"), "cld")$data
 cld <- rowMeans(cld, dims = 2)
 # sf <- 1 - cld / 100
@@ -140,7 +140,7 @@ df_test <- df[-idx, ]
 
 ##### Linear regression
 
-```{r, include=knitr::is_latex_output(), echo = FALSE}
+```{r lm1_fig, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
@@ -225,7 +225,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = FALSE}
+```{r lm-tmp-greater-than-five_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 df_train5 <- df_train %>%
   dplyr::filter(Tmp > 5)
 
@@ -313,7 +313,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vs-vpd-lm_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ vpd, df_train)
 # Make predictions
@@ -348,11 +348,11 @@ knitr::asis_output('\n\n\\newpage')
 ##### Polynomial regression
 ##### 2nd degree
 
-```{r, include=knitr::is_latex_output(), echo = FALSE}
+```{r cld-vs-vpd-poli-2nd-deg_fig, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(vpd, 2, raw = TRUE), data = df_train)
 # Make predictions
@@ -384,11 +384,11 @@ knitr::asis_output('\n\n\\newpage')
 
 ##### 3rd degree
 
-```{r, include=knitr::is_latex_output(), echo = FALSE}
+```{r cld-vs-vpd-poli-3rd-deg_fig, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(vpd, 3, raw = TRUE), data = df_train)
 # Make predictions
@@ -424,7 +424,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vs-vpd-log_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ log(vpd), data = df_train)
 # Make predictions
@@ -459,7 +459,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vs-vpd-splines_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ splines2::bSpline(vpd,df = 3), data = df_train)
 # Make predictions
@@ -494,7 +494,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r cld-vs-vpd-gam_fig, echo = FALSE, eval = TRUE}
 # Build the model
 model <- mgcv::gam(CLD ~ s(vpd), data = df_train)
 # Make predictions
@@ -547,7 +547,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-mi-lm_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ MI, df_train)
 # Make predictions
@@ -586,7 +586,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-mi-plo-2nd-deg_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(MI, 2, raw = TRUE), data = df_train)
 # Make predictions
@@ -622,7 +622,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-mi-plo-3rd-deg_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(MI, 3, raw = TRUE), data = df_train)
 # Make predictions
@@ -658,7 +658,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-mi-log_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ log(MI + 1), data = df_train)
 # Make predictions
@@ -693,7 +693,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-mi-splines_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ splines2::bSpline(MI,df = 3), data = df_train)
 # Make predictions
@@ -728,7 +728,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r cld-mi-gam_fig, echo = FALSE, eval = TRUE}
 # Build the model
 model <- mgcv::gam(CLD ~ s(MI), data = df_train)
 # Make predictions
@@ -781,7 +781,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vpd-tmp-lm_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ vpd + Tmp, df_train)
 # Make predictions
@@ -845,7 +845,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vpd-tmp-poli-2nd_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(vpd, 2, raw = TRUE) + 
                   poly(Tmp, 2, raw = TRUE), data = df_train)
@@ -922,7 +922,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vpd-tmp-poli-3rd_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(vpd, 3, raw = TRUE) +
                   poly(Tmp, 3, raw = TRUE), data = df_train)
@@ -1002,7 +1002,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r cld-vpd-tmp-log_fig, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ log(vpd) + log(Tmp), data = df_train)
 # Make predictions
@@ -1062,7 +1062,7 @@ summary(model)
 ```
 
 <!-- ##### Spline regression -->
-```{r, echo = FALSE, eval = FALSE, cache = TRUE}
+```{r cld-vpd-tmp-splines_fig, echo = FALSE, eval = FALSE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ splines2::bSpline(vpd, df = 3) +
                   splines2::bSpline(Tmp, df = 3), 
@@ -1134,7 +1134,7 @@ summary(model)
 ```
 
 <!-- ##### Generalized additive models (GAM) -->
-```{r, echo = FALSE, eval = FALSE}
+```{r cld-vpd-tmp-gam_fig, echo = FALSE, eval = FALSE}
 # Build the model
 model <- mgcv::gam(CLD ~ s(vpd), data = df_train)
 # Make predictions
@@ -1187,7 +1187,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ MI + Tmp, df_train)
 # Make predictions
@@ -1252,7 +1252,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(MI, 2, raw = TRUE) + 
                   poly(Tmp, 2, raw = TRUE), data = df_train)
@@ -1329,7 +1329,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ poly(MI, 3, raw = TRUE) +
                   poly(Tmp, 3, raw = TRUE), data = df_train)
@@ -1409,7 +1409,7 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE, cache = TRUE}
+```{r, echo = FALSE, eval = TRUE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ log(MI + 1) + log(Tmp), data = df_train)
 # Make predictions
@@ -1469,7 +1469,7 @@ summary(model)
 ```
 
 <!-- ##### Spline regression -->
-```{r, echo = FALSE, eval = FALSE, cache = TRUE}
+```{r, echo = FALSE, eval = FALSE, cache = FALSE}
 # Build the model
 model <- lm(CLD ~ splines2::bSpline(MI, df = 3) +
                   splines2::bSpline(Tmp, df = 3), 
