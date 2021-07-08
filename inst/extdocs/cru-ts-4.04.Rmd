@@ -282,7 +282,7 @@ codos::nc_gs(file.path(path, "cru_ts4.04-clim-1961-1990-vpd-tmp.nc"), "vpd", thr
 # Plots
 ## Growing season VPD vs growing season ~~daytime~~ daily temperature
 ```{r, eval = FALSE, echo = FALSE}
-path <- "~/Desktop/iCloud/UoR/Data/CRU/4.04/"
+path <- "~/OneDrive - University of Reading//UoR/Data/CRU/4.04/"
 mi <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mi.nc"), "mi")$data
 # Tg <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt-gs.nc"), "mdt")$data
 Tmin <- codos:::nc_var_get(file.path(path, "cru_ts4.04.1901.2019.tmn.dat-clim-1961-1990-int-gs.nc"), "tmn")$data
@@ -290,16 +290,21 @@ Tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-daily.tmp-g
 # Tmp <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-mdt-gs.nc"), "mdt")$data
 vpd <- codos:::nc_var_get(file.path(path, "cru_ts4.04-clim-1961-1990-vpd-tmp-gs.nc"), "vpd")$data
 
-# Apply ice mask
-mi[codos:::ice_mask] <- NA
-# image(lon$data, lat$data, mi)
-Tmp[codos:::ice_mask] <- NA
-vpd[codos:::ice_mask] <- NA
+# Lat-lon mask
 lat <- codos::lat
 lon <- codos::lon
 lat_lon <- data.frame(i = seq_len(length(lon$data)),
                       j = rep(seq_along(lat$data), each = length(lon$data)))
 
+# Plot variables before applying the ice mask
+# image(lon$data, lat$data, mi)
+# image(lon$data, lat$data, Tmp)
+# image(lon$data, lat$data, vpd)
+
+# Apply ice mask
+mi[codos:::ice_mask] <- NA
+Tmp[codos:::ice_mask] <- NA
+vpd[codos:::ice_mask] <- NA
 mi[Tmp < 5] <- NA
 Tmp[Tmp < 5] <- NA
 ```
