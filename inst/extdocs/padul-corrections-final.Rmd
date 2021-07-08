@@ -563,7 +563,7 @@ knitr::asis_output('\n\n\\newpage')
 
 ## Calculate potential evapotranspiration (PET)
 
-```{r pet-w-tmp-anomalies, cache = TRUE, echo = FALSE, eval = TRUE}
+```{r pet-w-tmp-anomalies, cache = FALSE, echo = FALSE, eval = TRUE}
 year <- 1961
 oplan <- future::plan(future::multisession, workers = 8)
 {p <- progressr::progressor(steps = length(padul_anomalies))
@@ -726,7 +726,7 @@ knitr::asis_output('\n\n\\newpage')
 
 ## Re-calculate potential evapotranspiration (PET)
 
-```{r pet-cld-only, cache = TRUE, echo = FALSE}
+```{r pet-cld-only, cache = FALSE, echo = FALSE}
 year <- 1961
 padul_sf2 <- 1 - (padul_cld_corr_mi + padul_cld_anomalies) / 100
 
@@ -755,7 +755,7 @@ padul_est_pr_cld <-
 
 After including temperature and cloud coverage anomalies.
 
-```{r pet-tmp-cld, cache = TRUE, echo = FALSE}
+```{r pet-tmp-cld, cache = FALSE, echo = FALSE}
 year <- 1961
 padul_sf2 <- 1 - (padul_cld_corr_mi + padul_cld_anomalies) / 100
 
@@ -886,7 +886,7 @@ padul_orb_params %>%
   theme_bottom_legend
 ```
 
-```{r, cache = TRUE, echo = FALSE, eval = TRUE}
+```{r, cache = FALSE, echo = FALSE, eval = TRUE}
 year <- 1961
 oplan <- future::plan(future::multisession, workers = 8)
 {p <- progressr::progressor(steps = length(padul_anomalies))
@@ -919,7 +919,7 @@ padul_est_pr_orb_params <-
 knitr::asis_output('\n\n\\newpage')
 ```
 
-```{r pet-ultimate, cache = TRUE, echo = FALSE, eval = TRUE}
+```{r pet-ultimate, cache = FALSE, echo = FALSE, eval = TRUE}
 oplan <- future::plan(future::multisession, workers = 8)
 {p <- progressr::progressor(steps = length(padul_cld_corr_mi))
 padul_pet_ultimate <- 
@@ -1527,7 +1527,7 @@ knitr::asis_output('\n\n\\newpage')
 # knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, eval = FALSE}
 # tibble::tibble(age_cal_yr_BP = padul$age_cal_yr_BP,
 #                palaeo_MGS_temp = padul2$palaeo_MGS_temp,
 #                palaeo_co2 = padul2$palaeo_co2,
