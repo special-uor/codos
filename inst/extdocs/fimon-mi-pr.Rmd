@@ -255,9 +255,10 @@ fimon2 %>%
 ```
 
 ```{r plot-of-anomalous-records_fig, echo = FALSE}
+deltaT <- 1
 aux <- fimon2[idx, ] %>%
-  dplyr::mutate(palaeo_MGS_temp2 = palaeo_MGS_temp + 1,
-                palaeo_MGS_temp3 = palaeo_MGS_temp - 1)
+  dplyr::mutate(palaeo_MGS_temp2 = palaeo_MGS_temp + deltaT,
+                palaeo_MGS_temp3 = palaeo_MGS_temp - deltaT)
 
 corr_mi2 <- aux %$%
   codos::corrected_mi(Tc0 = modern_MGS_temp,
@@ -280,15 +281,17 @@ aux_long <- aux %>%
   tibble::tibble(age_calBP = rep(age_calBP, 3),
                  palaeo_co2 = rep(palaeo_co2, 3),
                  palaeo_MGS_temp = c(palaeo_MGS_temp,
-                                     palaeo_MGS_temp + 1,
-                                     palaeo_MGS_temp - 1),
+                                     palaeo_MGS_temp,
+                                     palaeo_MGS_temp),
                  modern_co2 = rep(modern_co2, 3),
                  modern_MGS_temp = rep(modern_MGS_temp, 3),
                  recon_mi = rep(recon_mi, 3),
                  corr_mi = c(corr_mi,
                                corr_mi_Tmp_plus_1,
                                corr_mi_Tmp_minus_1),
-                 cat = rep(c("0", "+1", "-1"), each = 3))
+                 cat = rep(c("Original", 
+                             paste0("+", deltaT," °C"), 
+                             paste0("-", deltaT," °C")), each = length(idx)))
 
 
 aux_long %$%
@@ -307,6 +310,7 @@ aux_long %$%
   ggplot2::geom_point(ggplot2::aes(14500, modern_co2 / 100, 
                                    colour = "Modern CO2 [1/100]"),
                       size = 2) +
+  ggplot2::geom_ribbon(ggplot2::aes(x, ymin = palaeo_MGS_temp - deltaT / 5, ymax = palaeo_MGS_temp + deltaT / 5), alpha = 0.5) +
   ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Palaeo MGS Temperature")) +
   ggplot2::scale_colour_manual(name = NULL, 
                                values = c("Palaeo CO2 [1/100]" = "gold",
@@ -1000,9 +1004,9 @@ fimon2 %>%
   dplyr::select(-dplyr::ends_with(("loess"))) %>%
   knitr::kable(longtable = TRUE,
                col.names = c("age [cal yr BP]",
-                             "palaeo co2 [umol/mol]",
+                             "palaeo CO2 [umol/mol]",
                              "palaeo MGS temp [°C]",
-                             "modern co2 [umol/mol]",
+                             "modern CO2 [umol/mol]",
                              "modern MGS temp [°C]",
                              "recon. MI [-]",
                              "recon. Pann [mm/day]",
