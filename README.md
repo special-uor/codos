@@ -7,7 +7,7 @@
 
 # CO<sub>dos</sub>: CO<sub>2</sub> Correction Tools
 
-<!-- <img src="inst/images/logo.png" alt="logo" align="right" height=200px/> -->
+<!-- <img src="documentation/codos/inst/images/logo.png" alt="logo" align="right" height=200px/> -->
 
 <!-- badges: start -->
 
@@ -15,6 +15,7 @@
 [![](https://www.r-pkg.org/badges/version/codos?color=black)](https://cran.r-project.org/package=codos)
 [![R build
 status](https://github.com/special-uor/codos/workflows/R-CMD-check/badge.svg)](https://github.com/special-uor/codos/actions)
+[![](https://img.shields.io/badge/doi-10.5281/zenodo.5083309-blue.svg)](https://doi.org/10.5281/zenodo.5083309)
 <!-- badges: end -->
 
 ## Installation
@@ -250,24 +251,7 @@ Summary statistics:
 
 ``` r
 summary(exp_mod)
-#> 
-#> Formula: vpd ~ a * exp(kTmp * Tmp - kMI * MI)
-#> 
-#> Parameters:
-#>      Estimate Std. Error t value Pr(>|t|)    
-#> a    4.589148   0.019843   231.3   <2e-16 ***
-#> kTmp 0.061108   0.000174   351.2   <2e-16 ***
-#> kMI  0.870229   0.002585   336.7   <2e-16 ***
-#> ---
-#> Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-#> 
-#> Residual standard error: 2.241 on 60291 degrees of freedom
-#> 
-#> Number of iterations to convergence: 8 
-#> Achieved convergence tolerance: 7.419e-06
 coefficients(exp_mod)
-#>          a       kTmp        kMI 
-#> 4.58914835 0.06110768 0.87022950
 ```
 
 ### Corrected `mi` from reconstructed `mi`
