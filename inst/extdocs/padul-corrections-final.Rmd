@@ -34,13 +34,21 @@ options(warn = 1)
 # Load padul data
 # padul <- readr::read_csv("~/Desktop/iCloud/UoR/Data/padul.csv")
 padul <- readr::read_csv("~/OneDrive - University of Reading/UoR/Data/padul.csv") %>%
-  magrittr::set_colnames(c("age_cal_yr_BP", colnames(.)[-1]))
+  magrittr::set_colnames(c("age_cal_yr_BP", colnames(.)[-1])) %>%
+  dplyr::mutate(Tmean = (T_jja + T_djf) / 2,
+                Tmax = Tmean + (T_jja - Tmean) / 0.9,
+                Tmin = Tmean + (T_djf - Tmean) / 0.9,
+                Tgs = list(Tmin, Tmax) %>%
+                  purrr::pmap_dbl(function(Tmin, Tmax) {
+                    aux <- codos::int_sin(Tmin, Tmax)
+                    mean(aux[aux > 0])
+                  }))
 
 ref_idx <- 5:9 # -40 < age < -10
 LAT <- 37.0108
 LON <- -3.6039
 
-theme_pet <- 
+theme_bottom_legend <- 
   ggplot2::theme(panel.background = ggplot2::element_rect(fill = "white",
                                                           colour = NA),
                  panel.border = ggplot2::element_rect(fill = NA,
@@ -54,7 +62,7 @@ theme_pet <-
                  complete = TRUE,
                  legend.position = "bottom")
 
-theme_pet_black <- 
+theme_bottom_legend_black <- 
   ggplot2::theme(panel.background = ggplot2::element_rect(fill = "grey2",
                                                           colour = NA),
                  panel.border = ggplot2::element_rect(fill = NA,
@@ -86,31 +94,62 @@ knitr::asis_output('\n\n\\hfill\\break')
 
 ```{r}
 padul_tmp <- rowMeans(padul[, c("T_djf", "T_jja")])
+palaeo_MGS_temp <- padul$Tgs
+```
+
+```{r, echo = FALSE}
+padul_modern_tmp <- padul$P_ann[ref_idx]
 ```
 
 ## Obtain past CO2 from (Bereiter et al. 2015)
 
 ```{r}
-past_co2 <- purrr::map_dbl(padul$age_cal_yr_BP, codos::past_co2)
+palaeo_co2 <- purrr::map_dbl(padul$age_cal_yr_BP, codos::past_co2)
 ```
 
 ## Obtain modern CO2 from (Bereiter et al. 2015)
 
 ```{r}
 modern_co2 <- tibble::tibble(age = 1950 - c(1901:1990),
-                             co2 = purrr::map_dbl(age, codos::past_co2)) %>%
-  .$co2 %>%
-  median()
+                             co2 = purrr::map_dbl(age, codos::past_co2)) %$%
+  median(co2)
 ```
 
-## Assemble the Padul data
+```{r temp-comparison_fig, echo = FALSE}
+tibble::tibble(x = rep(padul$age_cal_yr_BP, 3),
+               y = c(padul$T_djf,
+                     padul$T_jja,
+                     padul$Tgs),
+               var = rep(c("T_djf", 
+                           "T_jja", 
+                           "Palaeo Mean Growing Season"), 
+                         each = nrow(padul))) %>%
+  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(ggplot2::aes(0, 
+                                   mean(palaeo_MGS_temp[ref_idx]), 
+                                   colour = "Modern Mean Growing Season"),
+                      size = 3) +
+  ggsci::scale_color_jco(name = "") +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(10)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::labs(x = "Age [cal yrs BP]", 
+                y = "Temperature [°C]",
+                title = "Temperatures comparison") +
+  ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linetype = c(0, 1, 1, 1),
+                                                                    shape = c(19, NA, NA, NA)))) +
+  theme_bottom_legend
+```
+
+## Assemble the _Laguna de Padul_ dataset
 ```{r}
 padul2 <- tibble::tibble(age_calBP = padul$age_cal_yr_BP,
-                         past_temp = padul_tmp,
-                         past_co2 = past_co2,
+                         palaeo_co2 = palaeo_co2,
+                         palaeo_MGS_temp = palaeo_MGS_temp,
                          modern_co2 = modern_co2,
-                         present_t = padul_tmp,
-                         recon_mi = padul$MI)
+                         modern_MGS_temp = mean(palaeo_MGS_temp[ref_idx]),
+                         recon_mi = padul$MI,
+                         recon_Pann = padul$P_ann)
 ```
 
 
@@ -119,49 +158,225 @@ knitr::asis_output('\n\n\\newpage')
 ```
 
 ## Find the corrected `MI`
-```{r}
-padul2$corr_mi <- codos::corrected_mi(padul2$present_t,
-                                      padul2$past_temp,
-                                      padul2$recon_mi,
-                                      padul2$modern_co2,
-                                      padul2$past_co2)
+```{r, echo = FALSE}
+# padul2$corr_mi <- codos::corrected_mi(padul2$modern_MGS_temp,
+#                                       padul2$palaeo_MGS_temp,
+#                                       padul2$recon_mi,
+#                                       padul2$modern_co2,
+#                                       padul2$palaeo_co2)
 ```
 
+```{r find-corrected-mi}
+corr_mi <- padul2 %$%
+  codos::corrected_mi(Tc0 = modern_MGS_temp,
+                      Tc1 = palaeo_MGS_temp,
+                      MI = recon_mi,
+                      ca0 = modern_co2,
+                      ca1 = palaeo_co2)
+padul2 <- padul2 %>%
+  dplyr::mutate(corr_mi = corr_mi)
+```
+
+Records for which the corrected MI is smaller than reconstructed MI
+```{r, echo = FALSE}
+# Find years for which the corrected MI is smaller than reconstructed
+idx <- which(corr_mi - padul$MI < 0)
+
+padul2 %>%
+  dplyr::slice(c(idx)) %>%
+  knitr::kable(col.names = c("age cal yr BP",
+                             "palaeo co2",
+                             "palaeo MGS temp",
+                             "modern co2",
+                             "modern MGS temp",
+                             "recon. MI",
+                             "recon. Pann",
+                             "corr. MI"))
+```
+
+
+```{r, eval = FALSE, echo = FALSE}
+padul3 <- tibble::tibble(age_calBP = padul$age_cal_yr_BP,
+                         palaeo_co2 = palaeo_co2,
+                         palaeo_MGS_temp = padul$Tgs,
+                         modern_co2 = modern_co2,
+                         modern_MGS_temp = mean(padul$Tgs[ref_idx]),
+                         recon_mi = padul$MI)
+padul3$corr_mi <- codos::corrected_mi(padul3$modern_MGS_temp,
+                                      padul3$palaeo_MGS_temp,
+                                      padul3$recon_mi,
+                                      padul3$modern_co2,
+                                      padul3$palaeo_co2)
+plot(padul3$corr_mi, type = "l")
+lines(padul2$corr_mi, col = "red")
+lines(padul2$recon_mi, col = "blue")
+```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-## Find the corrected Annual Precipitation, `P_ann`
+# Anomalous records
+```{r, echo = FALSE}
+idx <- which(corr_mi - padul$MI < 0)
+deltaT <- 2
+aux <- padul2[idx, ] %>%
+  dplyr::mutate(palaeo_MGS_temp2 = palaeo_MGS_temp + deltaT,
+                palaeo_MGS_temp3 = palaeo_MGS_temp - deltaT)
 
-Approximated as the ratio
+corr_mi2 <- aux %$%
+  codos::corrected_mi(Tc0 = modern_MGS_temp,
+                      Tc1 = palaeo_MGS_temp2,
+                      MI = recon_mi,
+                      ca0 = modern_co2,
+                      ca1 = palaeo_co2)
+corr_mi3 <- aux %$%
+  codos::corrected_mi(Tc0 = modern_MGS_temp,
+                      Tc1 = palaeo_MGS_temp3,
+                      MI = recon_mi,
+                      ca0 = modern_co2,
+                      ca1 = palaeo_co2)
 
-$$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$
-multiplied by reconstructed `P_ann`.
-
-```{r}
-mi_ratio <- padul2$corr_mi / padul2$recon_mi
-padul2$corr_P_ann <- padul$P_ann * mi_ratio
+aux_long <- aux %>%
+  dplyr::select(-palaeo_MGS_temp2,
+                -palaeo_MGS_temp3) %>%
+  dplyr::mutate(corr_mi_Tmp_plus_1 = corr_mi2,
+                corr_mi_Tmp_minus_1 = corr_mi3) %$% 
+  tibble::tibble(age_calBP = rep(age_calBP, 3),
+                 palaeo_co2 = rep(palaeo_co2, 3),
+                 palaeo_MGS_temp = c(palaeo_MGS_temp,
+                                     palaeo_MGS_temp,
+                                     palaeo_MGS_temp),
+                 modern_co2 = rep(modern_co2, 3),
+                 modern_MGS_temp = rep(modern_MGS_temp, 3),
+                 recon_mi = rep(recon_mi, 3),
+                 corr_mi = c(corr_mi,
+                               corr_mi_Tmp_plus_1,
+                               corr_mi_Tmp_minus_1),
+                 cat = rep(c("Original", 
+                             paste0("+", deltaT," °C"), 
+                             paste0("-", deltaT," °C")), each = length(idx)))
 ```
 
-```{r, echo = TRUE}
-padul2 %>% 
-  write.csv(file = "padul-with-corrected-mi.csv",
-            row.names = FALSE)
+<!-- ## `age < 10k` -->
+<!-- ## `age < 20` -->
 
+This plot shows the effect of increasing and decreasing the temperature by `r deltaT`°C on the corrections of MI:
+```{r anomalous-records-10k-zoom_fig, echo = FALSE}
+aux_long %$%
+  tibble::tibble(x = rep(age_calBP, 2),
+                 y = c(recon_mi,
+                       corr_mi),
+                 co2 = rep(palaeo_co2 / 100, 2),
+                 palaeo_MGS_temp = rep(palaeo_MGS_temp / 5, 2),
+                 Temperature = rep(cat, 2),
+                 var = rep(c("MI: reconstructed",
+                             "MI: corrected"),
+                           each = length(corr_mi))) %>%
+  dplyr::filter(x < 20) %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var, linetype = Temperature)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "Palaeo CO2 [1/100]")) +
+  ggplot2::geom_point(ggplot2::aes(0, modern_co2 / 100, 
+                                   colour = "Modern CO2 [1/100]"),
+                      size = 2) +
+  ggplot2::geom_ribbon(ggplot2::aes(x, ymin = palaeo_MGS_temp - deltaT / 5, ymax = palaeo_MGS_temp + deltaT / 5), alpha = 0.5) +
+  ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Palaeo MGS Temperature")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                               values = c("Palaeo CO2 [1/100]" = "gold",
+                                          "Palaeo MGS Temperature" = "black",
+                                          "MI: reconstructed" = "#E41A1C",
+                                          "MI: corrected" = "#377EB8",
+                                          "Modern CO2 [1/100]" = "#09BA00")) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+                              sec.axis = ggplot2::sec_axis(~.*5,
+                                                           name = "Palaeo MGS Temperature [°C]",
+                                                           breaks = scales::pretty_breaks(15))
+  ) +
+  ggplot2::labs(x = "Age [cal yrs BP]",
+                y = "MI [-] and CO2 [1/100 ppm]") +
+  ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linetype = c(0, 1, 1, 1, 0),
+                                                                     shape = c(19, NA, NA, NA, 19)))) +
+  theme_bottom_legend
+```
+
+<!-- ## `age > 80k` -->
+```{r anomalous-records-80k-zoom_fig, echo = FALSE, eval = FALSE}
+aux_long %$%
+  tibble::tibble(x = rep(age_calBP, 2),
+                 y = c(recon_mi,
+                       corr_mi),
+                 co2 = rep(palaeo_co2 / 100, 2),
+                 palaeo_MGS_temp = rep(palaeo_MGS_temp / 5, 2),
+                 Temperature = rep(cat, 2),
+                 var = rep(c("MI: reconstructed",
+                             "MI: corrected"),
+                           each = length(corr_mi))) %>%
+  dplyr::filter(x > 80000) %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x, y, colour = var, linetype = Temperature)) +
+  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "Palaeo CO2 [1/100]")) +
+  ggplot2::geom_point(ggplot2::aes(80000, modern_co2 / 100, 
+                                   colour = "Modern CO2 [1/100]"),
+                      size = 2) +
+  ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Palaeo MGS Temperature")) +
+  ggplot2::scale_colour_manual(name = NULL, 
+                               values = c("Palaeo CO2 [1/100]" = "gold",
+                                          "Palaeo MGS Temperature" = "black",
+                                          "MI: reconstructed" = "#E41A1C",
+                                          "MI: corrected" = "#377EB8",
+                                          "Modern CO2 [1/100]" = "#09BA00")) +
+  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+                              sec.axis = ggplot2::sec_axis(~.*5,
+                                                           name = "Palaeo MGS Temperature [°C]",
+                                                           breaks = scales::pretty_breaks(15))
+  ) +
+  ggplot2::labs(x = "Age [cal yrs BP]",
+                y = "MI [-] and CO2 [1/100 ppm]") +
+  ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linetype = c(0, 1, 1, 1, 0),
+                                                                     shape = c(19, NA, NA, NA, 19)))) +
+  theme_bottom_legend
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- ## Find the estimated Annual Precipitation, `P_ann` -->
+
+<!-- Approximated as the ratio -->
+
+<!-- $$\text{MI}_\text{ratio}= \frac{\text{corrected}}{\text{reconstructed}}$$ -->
+<!-- multiplied by reconstructed `P_ann`. -->
+
+```{r, echo = FALSE}
+# mi_ratio <- padul2$corr_mi / padul2$recon_mi
+# padul2$est_Pann <- padul$P_ann * mi_ratio
+```
+
+```{r, echo = FALSE}
+# padul2 %>% 
+#   write.csv(file = "padul-with-corrected-mi.csv",
+#             row.names = FALSE)
+```
+
+```{r, echo = FALSE, eval = FALSE}
 # Small subset
 knitr::kable(head(padul2, 13),
-             col.names = c("age cal yr BP",
-                           "past temp",
-                           "past co2",
-                           "modern co2",
-                           "present temp",
-                           "recon. MI",
-                           "corr. MI",
-                           "corr. Pann"))
+             col.names = c("age [cal yr BP]",
+                           "palaeo CO2 [umol/mol]",
+                           "palaeo MGS temp [°C]",
+                           "modern CO2 [umol/mol]",
+                           "modern MGS temp [°C]",
+                           "recon. MI [-]",
+                           "recon. Pann [mm/day]",
+                           "corr. MI [-]",
+                           "est. Pann [mm/day]"))
 ```
 
-Check out and download the entire dataset in [Appendix A5](#a5-padul-data).
+<!-- Check out and download the entire dataset in [Appendix A1](#a1-laguna-de-padul-data). -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
@@ -210,7 +425,8 @@ padul_tmp <- colMeans(padul_tmp, dims = 2)
 padul_pre <- pre[c(idx_x, idx_x + 1), c(idx_y - 1, idx_y), ]
 rownames(padul_pre) <- codos::lat$data[c(idx_y, idx_y - 1)]
 colnames(padul_pre) <- codos::lon$data[c(idx_x, idx_x + 1)]
-padul_pre <- colMeans(padul_pre, dims = 2)
+# padul_pre <- colMeans(padul_pre, dims = 2)
+padul_pre <- colSums(padul_pre, dims = 2)
 ```
 
 ```{r, echo = FALSE}
@@ -264,7 +480,7 @@ padul_modern <- padul %>%
   dplyr::summarise(dplyr::across(dplyr::everything(), mean))
 ```
 
-```{r, echo = FALSE, fig.height = 5}
+```{r modern-temperature_fig, echo = FALSE, fig.height = 5}
 codos::int_sin(padul_modern$Tmin, padul_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
@@ -278,7 +494,7 @@ codos::int_sin(padul_modern$Tmin, padul_modern$Tmax) %>%
       ggplot2::labs(x = "[days]",
                     y = "Temp [°C]",
                     title = "'Modern' padul (avg. for -10 < age < -40") +
-      ggplot2::theme_bw()
+      theme_bottom_legend
 ```
 
 Rows `r min(ref_idx)`:`r max(ref_idx)` were used as the baseline to calculate the temperature anomalies.
@@ -286,7 +502,7 @@ Rows `r min(ref_idx)`:`r max(ref_idx)` were used as the baseline to calculate th
 ```{r, echo = FALSE}
 padul %>%
   dplyr::slice(ref_idx) %>%
-  rbind(c(NA, mean(.$MI), mean(.$P_ann), mean(.$T_djf), mean(.$T_jja), mean(.$Tmean), mean(.$Tmax), mean(.$Tmin))) %>%
+  rbind(c(NA, mean(.$MI), mean(.$P_ann), mean(.$T_djf), mean(.$T_jja), mean(.$Tmean), mean(.$Tmax), mean(.$Tmin), mean(.$Tgs))) %>%
   knitr::kable()
 ```
 
@@ -306,7 +522,7 @@ knitr::asis_output('\n\n\\newpage')
 ```
 
 Padul: Anomaly for age = `r padul[169, 1]` cal yr BP
-```{r, fig.height = 5, echo = FALSE}
+```{r temperature-anomalies-ex1_fig, fig.height = 5, echo = FALSE}
 codos::int_sin(padul$Tmin[169] - padul_modern$Tmin, 
                padul$Tmax[169] - padul_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
@@ -320,11 +536,11 @@ codos::int_sin(padul$Tmin[169] - padul_modern$Tmin,
                                    values = c("#0080ff","#ff3333")) +
       ggplot2::labs(x = "[days]",
                     y = "Temp [°C]") +
-      ggplot2::theme_bw()
+      theme_bottom_legend
 ```
 
 Padul: Anomaly for age = `r padul[272, 1]` cal yr BP
-```{r, fig.height = 5, echo = FALSE}
+```{r temperature-anomalies-ex2_fig, fig.height = 5, echo = FALSE}
 codos::int_sin(padul$Tmin[272] - padul_modern$Tmin, 
                padul$Tmax[272] - padul_modern$Tmax) %>%
   tibble::tibble(x = seq_len(365), y = .) %>%
@@ -338,7 +554,7 @@ codos::int_sin(padul$Tmin[272] - padul_modern$Tmin,
                                    values = c("#0080ff","#ff3333")) +
       ggplot2::labs(x = "[days]",
                     y = "Temp [°C]") +
-      ggplot2::theme_bw()
+      theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -376,7 +592,7 @@ future::plan(oplan)
 - Sunshine fraction: [`CRU TS 4.04`]
 - Temperature:  [`CRU TS 4.04`] $+ T_\text{anomalies}$
 
-```{r, echo = FALSE, eval = TRUE}
+```{r pet-comparison_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(seq_len(365), 3),
                y = c(padul_pet_tmp[169][[1]],
                      padul_pet_tmp[272][[1]],
@@ -391,7 +607,7 @@ tibble::tibble(x = rep(seq_len(365), 3),
   ggplot2::scale_colour_brewer("Age (cal yr BP)", palette = "Set1") +
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ``` 
 
 ## Calculate corrected Precipitation
@@ -401,18 +617,33 @@ Using corrected MI and PET (calculated from modern temperature [CRU TS 4.04] and
 $$\text{corrected P}_\text{ann} = \text{MI} \times \text{PET}_\text{ann}$$
 
 ```{r, echo = FALSE}
-padul_corrected_pr <- purrr::map_dbl(seq_along(padul_pet_tmp),
-                                     ~sum(padul_pet_tmp[.x][[1]], na.rm = TRUE) * padul2$corr_mi[.x])
+padul_est_pr <- purrr::map_dbl(seq_along(padul_pet_tmp),
+                               ~sum(padul_pet_tmp[.x][[1]], na.rm = TRUE) * padul2$corr_mi[.x])
 ```
 
 ```{r, echo = FALSE}
-padul %>%
-  dplyr::select(1:3) %>%
-  dplyr::mutate(corr_mi = padul2$corr_mi,
-                `corr_P_ann (MI ratio)` = padul2$corr_P_ann,
-                `corr_P_ann (Tmp anomalies)` = padul_corrected_pr) %>%
+padul2 %>%
+  dplyr::mutate(est_Pann = padul_est_pr) %>%
   dplyr::slice(c(1:15), c(100:105), c(175:180), c(275:280), c(430:438)) %>%
-  knitr::kable() # "pandoc", col.names = c(names(.)[1:5], "corrected MI", "corrected P_ann (MI ratio)", "corrected P_ann (Tmp anomalies)"))
+  knitr::kable(col.names = c("age [cal yr BP]",
+                             "palaeo CO2 [umol/mol]",
+                             "palaeo MGS temp [°C]",
+                             "modern CO2 [umol/mol]",
+                             "modern MGS temp [°C]",
+                             "recon. MI [-]",
+                             "recon. Pann [mm/day]",
+                             "corrected MI [-]",
+                             "estimated Pann [mm/day]"))
+```
+
+```{r, echo = FALSE}
+# padul %>%
+#   dplyr::select(1:3) %>%
+#   dplyr::mutate(corr_mi = padul2$corr_mi,
+#                 `est_Pann (MI ratio)` = padul2$est_Pann,
+#                 `est_Pann (Tmp anomalies)` = padul_est_pr) %>%
+#   dplyr::slice(c(1:15), c(100:105), c(175:180), c(275:280), c(430:438)) %>%
+#   knitr::kable() # "pandoc", col.names = c(names(.)[1:5], "corrected MI", "corrected P_ann (MI ratio)", "corrected P_ann (Tmp anomalies)"))
 ```
 
 <!-- ## Calculate MI -->
@@ -449,7 +680,7 @@ padul_cld_corr_mi <- padul2$corr_mi %>%
 ```
 
 Padul: cloud coverage
-```{r, echo = FALSE}
+```{r cld_fig, echo = FALSE}
 tibble::tibble(x = padul$age_cal_yr_BP,
                y = padul_cld_corr_mi) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
@@ -457,7 +688,7 @@ tibble::tibble(x = padul$age_cal_yr_BP,
   ggplot2::labs(x = "Age [cal yrs BP]",
                 y = "Cloud coverage [%]") +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ```
 
 
@@ -477,7 +708,7 @@ padul_cld_anomalies <- seq_len(nrow(padul)) %>%
 ```
 
 Padul: cloud coverage anomalies
-```{r, echo = FALSE, eval = TRUE}
+```{r cld-anomalies_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = padul$age_cal_yr_BP,
                y = padul_cld_anomalies) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
@@ -485,7 +716,7 @@ tibble::tibble(x = padul$age_cal_yr_BP,
   ggplot2::labs(x = "Age [cal yrs BP]",
                 y = "Cloud coverage anomalies [%]") +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ```
 
 
@@ -517,7 +748,7 @@ padul_pet_cld <-
   })} %>% 
   progressr::with_progress()
 future::plan(oplan)
-padul_corrected_pr_cld <- 
+padul_est_pr_cld <- 
   purrr::map_dbl(seq_along(padul_pet_cld),
                  ~sum(padul_pet_cld[.x][[1]], na.rm = TRUE) * padul2$corr_mi[.x])
 ```
@@ -550,7 +781,7 @@ future::plan(oplan)
 ```
 
 Padul: PET for age = `r padul[169, 1]` cal yr BP
-```{r, echo = FALSE}
+```{r pet-ex1_fig, echo = FALSE}
 tibble::tibble(x = rep(seq_len(365), 3),
                y = c(padul_pet_modern,
                      padul_pet_tmp[169][[1]],
@@ -565,12 +796,12 @@ tibble::tibble(x = rep(seq_len(365), 3),
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  theme_pet
+  theme_bottom_legend
 ``` 
 
 
 Padul: PET for age = `r padul[272, 1]` cal yr BP
-```{r, echo = FALSE}
+```{r pet-ex2_fig, echo = FALSE}
 tibble::tibble(x = rep(seq_len(365), 3),
                y = c(padul_pet_modern,
                      padul_pet_tmp[272][[1]],
@@ -585,33 +816,33 @@ tibble::tibble(x = rep(seq_len(365), 3),
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  theme_pet
+  theme_bottom_legend
 ``` 
 
-```{r, include=knitr::is_latex_output(), echo = FALSE, eval = TRUE}
+```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-## Re-calculate corrected precipitation
+<!-- ## Re-calculate corrected precipitation -->
 
-```{r}
-padul_corrected_pr_tmp_cld <- purrr::map_dbl(seq_along(padul_pet_tmp_cld),
+```{r, echo = FALSE}
+padul_est_pr_tmp_cld <- purrr::map_dbl(seq_along(padul_pet_tmp_cld),
                                          ~sum(padul_pet_tmp_cld[.x][[1]], na.rm = TRUE) * padul2$corr_mi[.x])
 ```
 
 ```{r, echo = FALSE}
-padul2 %>%
-  dplyr::mutate(corr_P_ann = padul_corrected_pr_tmp_cld) %>%
-  dplyr::slice(c(1:5), 162:172, c(272:280)) %>%
-  knitr::kable("pandoc")
+# padul2 %>%
+#   dplyr::mutate(est_Pann = padul_est_pr_tmp_cld) %>%
+#   dplyr::slice(c(1:5), 162:172, c(272:280)) %>%
+#   knitr::kable("pandoc")
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
+# knitr::asis_output('\n\n\\newpage')
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
+# knitr::asis_output('\n\n\\newpage')
 ```
 
 
@@ -619,7 +850,7 @@ knitr::asis_output('\n\n\\newpage')
 ### Find orbital parameters
 
 Selected samples and their orbital parameters:
-```{r orbital-oarams, echo = FALSE, message = FALSE, fig.height = 10}
+```{r orbital-params, echo = FALSE, message = FALSE, fig.height = 10}
 padul_years <- as.integer(padul$age_cal_yr_BP)
 # Find orbital parameters
 # padul_orb_params <- padul_years %>%
@@ -652,7 +883,7 @@ padul_orb_params %>%
                                                            "eps" = "Obliquity (eps)",
                                                            "varpi" = "True Solar Longitude of the Perihelion (varpi)",
                                                            "epsp" = "(epsp)"))) +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ```
 
 ```{r, cache = TRUE, echo = FALSE, eval = TRUE}
@@ -678,7 +909,7 @@ padul_pet_orb_params <- seq_along(padul_anomalies) %>%
   progressr::with_progress()
 future::plan(oplan)
 
-padul_corrected_pr_orb_params <- 
+padul_est_pr_orb_params <- 
   purrr::map_dbl(seq_along(padul_pet_orb_params),
                  ~sum(padul_pet_orb_params[.x][[1]], na.rm = TRUE) * padul2$corr_mi[.x])
 ```
@@ -712,7 +943,7 @@ padul_pet_ultimate <-
   progressr::with_progress()
 future::plan(oplan)
 
-padul_corrected_pr_ultimate <- purrr::map_dbl(seq_along(padul_pet_ultimate),
+padul_est_pr_ultimate <- purrr::map_dbl(seq_along(padul_pet_ultimate),
                                      ~sum(padul_pet_ultimate[.x][[1]], na.rm = TRUE) * padul2$corr_mi[.x])
 ```
 
@@ -742,7 +973,7 @@ padul_corrected_pr_ultimate <- purrr::map_dbl(seq_along(padul_pet_ultimate),
 #   ggplot2::labs(x = "[days]",
 #                 y = "PET [mm/day]") +
 #   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-#   theme_pet
+#   theme_bottom_legend
 #   # ggplot2::theme_bw()
 ``` 
 
@@ -772,7 +1003,7 @@ padul_corrected_pr_ultimate <- purrr::map_dbl(seq_along(padul_pet_ultimate),
 #   ggplot2::labs(x = "[days]",
 #                 y = "PET [mm/day]") +
 #   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-#   theme_pet
+#   theme_bottom_legend
 ``` 
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -782,7 +1013,7 @@ knitr::asis_output('\n\n\\newpage')
 ## Plots
 ### Modern PET
 Obtained from CRU TS 4.04
-```{r, echo = FALSE, eval = TRUE}
+```{r modern-pet-cru-ts_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = seq_len(365),
                y = padul_pet_modern) %>%
   ggplot2::ggplot(ggplot2::aes(x, y)) +
@@ -790,12 +1021,12 @@ tibble::tibble(x = seq_len(365),
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ```
 
 ### PET changes
 Padul: PET for age = `r padul[1, 1]` cal yr BP
-```{r, echo = FALSE}
+```{r pet-change-ex1_fig, echo = FALSE}
 tibble::tibble(x = rep(seq_len(365), 5),
                y = c(padul_pet_tmp[1][[1]] - padul_pet_modern,
                      padul_pet_cld[1][[1]] - padul_pet_modern,
@@ -820,7 +1051,7 @@ tibble::tibble(x = rep(seq_len(365), 5),
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  theme_pet
+  theme_bottom_legend
   # ggplot2::theme_bw()
 ```
 
@@ -829,7 +1060,7 @@ knitr::asis_output('\n\n\\newpage')
 ```
 
 Padul: PET for age = `r padul[169, 1]` cal yr BP
-```{r, echo = FALSE}
+```{r pet-change-ex2_fig, echo = FALSE}
 tibble::tibble(x = rep(seq_len(365), 5),
                y = c(padul_pet_tmp[169][[1]] - padul_pet_modern,
                      padul_pet_cld[169][[1]] - padul_pet_modern,
@@ -854,12 +1085,12 @@ tibble::tibble(x = rep(seq_len(365), 5),
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  theme_pet
+  theme_bottom_legend
   # ggplot2::theme_bw()
 ```
 
 Padul: PET for age = `r padul[272, 1]` cal yr BP
-```{r, echo = FALSE}
+```{r pet-change-ex3_fig, echo = FALSE}
 tibble::tibble(x = rep(seq_len(365), 5),
                y = c(padul_pet_tmp[272][[1]] - padul_pet_modern,
                      padul_pet_cld[272][[1]] - padul_pet_modern,
@@ -884,20 +1115,21 @@ tibble::tibble(x = rep(seq_len(365), 5),
   ggplot2::labs(x = "[days]",
                 y = "PET [mm/day]") +
   ggplot2::scale_x_continuous(breaks = c(1, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365)) +
-  theme_pet
+  theme_bottom_legend
 ``` 
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-#### Reconstructed vs corrected `MI`: Past CO2 calculated using `mean`
+#### Reconstructed vs corrected `MI`
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE}
+```{r mi-comparison_fig, echo = FALSE}
+modern_mi <- sum(padul_pre) / sum(padul_pet_modern)
 tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi, 
                      padul2$corr_mi),
@@ -906,15 +1138,19 @@ tibble::tibble(x = rep(padul2$age_calBP, 2),
                          each = nrow(padul2))) %>%
 ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_line() +
+  # ggplot2::geom_point(ggplot2::aes(0, modern_mi, colour = "Modern"),
+  #                     size = 3) +
   ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-  ggplot2::theme_bw()
+  # ggplot2::guides(colour = ggplot2::guide_legend(override.aes = list(linetype = c(1, 0, 1),
+  #                                                                    shape = c(NA, 19, NA)))) +
+  theme_bottom_legend
 ```
 
 - `age < 22k`
-```{r, echo = FALSE}
+```{r mi-comparison-22k-zoom_fig, echo = FALSE}
 tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi, 
                      padul2$corr_mi),
@@ -928,7 +1164,7 @@ tibble::tibble(x = rep(padul2$age_calBP, 2),
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-    ggplot2::theme_bw()
+    theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
@@ -941,19 +1177,19 @@ knitr::asis_output('\n\n\\newpage')
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r mi-comparison-with-co2-tmp_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi,
                      padul2$corr_mi),
-               co2 = rep(padul2$past_co2 / 100, 2),
-               past_temp = rep(padul2$past_temp / 5, 2),
+               co2 = rep(padul2$palaeo_co2 / 100, 2),
+               palaeo_MGS_temp = rep(padul2$palaeo_MGS_temp / 5, 2),
                var = rep(c("MI: reconstructed",
                            "MI: corrected"),
                         each = nrow(padul2))) %>%
   ggplot2::ggplot() +
   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Temp")) +
   ggplot2::scale_colour_manual(name = NULL, 
                              values = c("past CO2 [1/100]" = "gold",
                                         "Temp" = "black",
@@ -969,17 +1205,17 @@ tibble::tibble(x = rep(padul2$age_calBP, 2),
   ggplot2::labs(x = "Age [cal yrs BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ```
 
 - `age < 5k`
 
-```{r, echo = FALSE, eval = TRUE}
+```{r mi-comparison-with-co2-tmp-5k-zoom_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul2$age_calBP, 2),
                y = c(padul2$recon_mi,
                      padul2$corr_mi),
-               co2 = rep(padul2$past_co2 / 100, 2),
-               past_temp = rep(padul2$past_temp / 5, 2),
+               co2 = rep(padul2$palaeo_co2 / 100, 2),
+               palaeo_MGS_temp = rep(padul2$palaeo_MGS_temp / 5, 2),
                var = rep(c("MI: reconstructed",
                            "MI: corrected"),
                         each = nrow(padul2))) %>%
@@ -987,7 +1223,7 @@ tibble::tibble(x = rep(padul2$age_calBP, 2),
   ggplot2::ggplot() +
   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
+  ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Temp")) +
   ggplot2::scale_colour_manual(name = NULL, 
                              values = c("past CO2 [1/100]" = "gold",
                                         "Temp" = "black",
@@ -1003,257 +1239,252 @@ tibble::tibble(x = rep(padul2$age_calBP, 2),
   ggplot2::labs(x = "Age [cal yrs BP]",
   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
   y = "MI [-] and CO2 [1/100 ppm]") +
-  ggplot2::theme_bw()
+  theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\newpage')
 ```
 
-#### Reconstructed vs corrected `P_ann`: Past CO2 calculated using `mean`
+#### Reconstructed vs corrected `P_ann`
 
-##### With MI ratio
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
-```
-
-```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-               y = c(padul$P_ann, 
-                     padul2$corr_P_ann),
-               var = rep(c("Reconstructed", 
-                           "Corrected"), 
-                         each = nrow(padul2))) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Dark2") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", 
-                  y = "Annual precipitation [mm/year]") +
-    theme_pet
-```
-
-- `age < 22k`
-
-```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-               y = c(padul$P_ann, 
-                     padul2$corr_P_ann),
-               var = rep(c("Reconstructed", 
-                           "Corrected"), 
-                         each = nrow(padul2))) %>%
-  .[.$x < 22000, ] %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "P_ann", palette = "Dark2") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", 
-                  y = "Annual precipitation [mm/year]") +
-    theme_pet
-```
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
-```
-
-
-##### With temperature anomalies
+<!-- ##### With MI ratio -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
 knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr),
-               var = rep(c("recon. P_ann", 
-                           "With Tmp anomalies"), 
-                         each = nrow(padul))) %>%
-ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+```{r pann-mi-ratio_fig, echo = FALSE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul2$est_Pann),
+#                var = rep(c("Reconstructed", 
+#                            "Corrected"), 
+#                          each = nrow(padul2))) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "P_ann", palette = "Dark2") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", 
+#                   y = "Annual precipitation [mm/year]") +
+#     theme_bottom_legend
 ```
 
-### `age < 22k`
+<!-- - `age < 22k` -->
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr),
-               var = rep(c("recon. P_ann", 
-                           "With Tmp anomalies"), 
-                         each = nrow(padul))) %>%
-  dplyr::filter(x < 22000) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+```{r pann-mi-ratio-22k-zoom_fig, echo = FALSE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul2$est_Pann),
+#                var = rep(c("Reconstructed", 
+#                            "Corrected"), 
+#                          each = nrow(padul2))) %>%
+#   .[.$x < 22000, ] %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "P_ann", palette = "Dark2") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", 
+#                   y = "Annual precipitation [mm/year]") +
+#     theme_bottom_legend
 ```
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
+# knitr::asis_output('\n\n\\newpage')
 ```
 
-##### With cloud coverage anomalies
+<!-- ##### With temperature anomalies -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
+# knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_cld),
-               var = rep(c("recon. P_ann", 
-                           "With Cld anomalies"), 
-                         each = nrow(padul))) %>%
-ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+```{r pann-tmp-anomalies_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr),
+#                var = rep(c("recon. P_ann", 
+#                            "With Tmp anomalies"), 
+#                          each = nrow(padul))) %>%
+# ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_line() +
+#   ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#   theme_bottom_legend
 ```
 
-### `age < 22k`
+<!-- ### `age < 22k` -->
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_cld),
-               var = rep(c("recon. P_ann", 
-                           "With Cld anomalies"), 
-                         each = nrow(padul))) %>%
-  dplyr::filter(x < 22000) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+```{r pann-tmp-anomalies-22k-zoom_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr),
+#                var = rep(c("recon. P_ann", 
+#                            "With Tmp anomalies"), 
+#                          each = nrow(padul))) %>%
+#   dplyr::filter(x < 22000) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#     theme_bottom_legend
 ```
-
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
+# knitr::asis_output('\n\n\\newpage')
 ```
 
-##### With orbital parameters
+<!-- ##### With cloud coverage anomalies -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
+# knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_orb_params),
-               var = rep(c("recon. P_ann", 
-                           "With orbital params"), 
-                         each = nrow(padul))) %>%
-ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+```{r pann-cld-anomalies_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr_cld),
+#                var = rep(c("recon. P_ann", 
+#                            "With Cld anomalies"), 
+#                          each = nrow(padul))) %>%
+# ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_line() +
+#   ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#   theme_bottom_legend
 ```
 
-### `age < 22k`
+<!-- ### `age < 22k` -->
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_orb_params),
-               var = rep(c("recon. P_ann", 
-                           "With orbital params"), 
-                         each = nrow(padul))) %>%
-  dplyr::filter(x < 22000) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+```{r pann-cld-anomalies-22k-zoom_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr_cld),
+#                var = rep(c("recon. P_ann", 
+#                            "With Cld anomalies"), 
+#                          each = nrow(padul))) %>%
+#   dplyr::filter(x < 22000) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#     theme_bottom_legend
 ```
-
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
+# knitr::asis_output('\n\n\\newpage')
 ```
 
-##### With temperature and cloud coverage anomalies
+<!-- ##### With orbital parameters -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
+# knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_tmp_cld),
-               var = rep(c("recon. P_ann", 
-                           "With Tmp + Cld anomalies"), 
-                         each = nrow(padul))) %>%
-ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_line() +
-  ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+```{r pann-orb-params_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr_orb_params),
+#                var = rep(c("recon. P_ann", 
+#                            "With orbital params"), 
+#                          each = nrow(padul))) %>%
+# ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_line() +
+#   ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#   theme_bottom_legend
 ```
 
-### `age < 22k`
+<!-- ### `age < 22k` -->
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_tmp_cld),
-               var = rep(c("recon. P_ann", 
-                           "With Tmp + Cld anomalies"), 
-                         each = nrow(padul))) %>%
-  dplyr::filter(x < 22000) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+```{r pann-orb-params-22k-zoom_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr_orb_params),
+#                var = rep(c("recon. P_ann", 
+#                            "With orbital params"), 
+#                          each = nrow(padul))) %>%
+#   dplyr::filter(x < 22000) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#     theme_bottom_legend
 ```
-
-
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
+# knitr::asis_output('\n\n\\newpage')
 ```
 
-##### With temperature and cloud coverage anomalies and orbital parameters
+<!-- ##### With temperature and cloud coverage anomalies -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
+# knitr::asis_output('\n\n\\hfill\\break')
 ```
 
-```{r, echo = FALSE, eval = TRUE}
+```{r pann-tmp-cld-anomalies_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr_tmp_cld),
+#                var = rep(c("recon. P_ann", 
+#                            "With Tmp + Cld anomalies"), 
+#                          each = nrow(padul))) %>%
+# ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_line() +
+#   ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#   theme_bottom_legend
+```
+
+<!-- ### `age < 22k` -->
+
+```{r pann-tmp-cld-anomalies-22k-zoom_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
+#                y = c(padul2$recon_Pann, 
+#                      padul_est_pr_tmp_cld),
+#                var = rep(c("recon. P_ann", 
+#                            "With Tmp + Cld anomalies"), 
+#                          each = nrow(padul))) %>%
+#   dplyr::filter(x < 22000) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Dark2") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#     theme_bottom_legend
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- ##### With temperature and cloud coverage anomalies and orbital parameters -->
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r pann-all_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_ultimate),
+               y = c(padul2$recon_Pann, 
+                     padul_est_pr_ultimate),
                var = rep(c("recon. P_ann", 
                            "With Tmp and Cld anomalies and orbital params"), 
                          each = nrow(padul))) %>%
@@ -1263,15 +1494,15 @@ ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet
+  theme_bottom_legend
 ```
 
 ### `age < 22k`
 
-```{r, echo = FALSE, eval = TRUE}
+```{r pann-all-22k-zoom_fig, echo = FALSE, eval = TRUE}
 tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
-               y = c(padul$P_ann, 
-                     padul_corrected_pr_ultimate),
+               y = c(padul2$recon_Pann, 
+                     padul_est_pr_ultimate),
                var = rep(c("recon. P_ann", 
                            "With Tmp and Cld anomalies and orbital params"),
                          each = nrow(padul))) %>%
@@ -1282,7 +1513,7 @@ tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-    theme_pet
+    theme_bottom_legend
 ```
 
 
@@ -1290,109 +1521,119 @@ tibble::tibble(x = rep(padul$age_cal_yr_BP, 2),
 knitr::asis_output('\n\n\\newpage')
 ```
 
-##### All the approaches
+<!-- ##### All the approaches -->
 
 ```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
+# knitr::asis_output('\n\n\\hfill\\break')
 ```
 
 ```{r, echo = FALSE}
+# tibble::tibble(age_cal_yr_BP = padul$age_cal_yr_BP,
+#                palaeo_MGS_temp = padul2$palaeo_MGS_temp,
+#                palaeo_co2 = padul2$palaeo_co2,
+#                modern_co2 = padul2$modern_co2,
+#                modern_MGS_temp = padul2$modern_MGS_temp,
+#                recon_mi = padul2$recon_mi,
+#                corr_mi = padul2$corr_mi,
+#                recon_P_ann = padul2$recon_Pann,
+#                est_Pann_MI_ratio = padul2$est_Pann,
+#                est_Pann_Tmp_anomalies = padul_est_pr,
+#                est_Pann_Cld_anomalies = padul_est_pr_cld,
+#                est_Pann_Orbital_params = padul_est_pr_orb_params,
+#                est_Pann_Tmp_Cld_anomalies = padul_est_pr_tmp_cld,
+#                est_Pann_All = padul_est_pr_ultimate) %>%
+#   readr::write_excel_csv("padul-corrections-2021-06.csv", na = "")
 tibble::tibble(age_cal_yr_BP = padul$age_cal_yr_BP,
-               past_temp = padul2$past_temp,
-               past_co2 = padul2$past_co2,
+               palaeo_MGS_temp = padul2$palaeo_MGS_temp,
+               palaeo_co2 = padul2$palaeo_co2,
                modern_co2 = padul2$modern_co2,
-               present_t = padul2$present_t,
+               modern_MGS_temp = padul2$modern_MGS_temp,
                recon_mi = padul2$recon_mi,
                corr_mi = padul2$corr_mi,
-               recon_P_ann = padul$P_ann,
-               corr_P_ann_MI_ratio = padul2$corr_P_ann,
-               corr_P_ann_Tmp_anomalies = padul_corrected_pr,
-               corr_P_ann_Cld_anomalies = padul_corrected_pr_cld,
-               corr_P_ann_Orbital_params = padul_corrected_pr_orb_params,
-               corr_P_ann_Tmp_Cld_anomalies = padul_corrected_pr_tmp_cld,
-               corr_P_ann_All = padul_corrected_pr_ultimate) %>%
-  readr::write_excel_csv("padul-corrections-2021-06.csv", na = "")
+               recon_Pann = padul2$recon_Pann,
+               est_Pann = padul_est_pr_ultimate) %>%
+  readr::write_excel_csv("laguna-de-padul-corrections-2021-06.csv", na = "")
 ```
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 7),
-               y = c(padul$P_ann, 
-                     padul2$corr_P_ann,
-                     padul_corrected_pr,
-                     padul_corrected_pr_cld,
-                     padul_corrected_pr_tmp_cld,
-                     padul_corrected_pr_orb_params,
-                     padul_corrected_pr_ultimate),
-               var = factor(rep(c("reconstructed",
-                                 "MI ratio",
-                                 "With Tmp anomalies",
-                                 "With Cld anomalies",
-                                 "With Tmp + Cld anomalies",
-                                 "With orbital parameters",
-                                 "With Tmp + Cld anomalies and orbital params"), 
-                         each = nrow(padul)),
-                         levels = c("reconstructed",
-                                    "MI ratio",
-                                    "With Tmp anomalies",
-                                    "With Cld anomalies",
-                                    "With orbital parameters",
-                                    "With Tmp + Cld anomalies",
-                                    "With Tmp + Cld anomalies and orbital params"))) %>%
-ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_line() +
-  # ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
-  ggsci::scale_colour_locuszoom(name = "Precipitation") +
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet_black
+```{r pann-comparison_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 7),
+#                y = c(padul2$recon_Pann, 
+#                      padul2$est_Pann,
+#                      padul_est_pr,
+#                      padul_est_pr_cld,
+#                      padul_est_pr_tmp_cld,
+#                      padul_est_pr_orb_params,
+#                      padul_est_pr_ultimate),
+#                var = factor(rep(c("reconstructed",
+#                                  "MI ratio",
+#                                  "With Tmp anomalies",
+#                                  "With Cld anomalies",
+#                                  "With Tmp + Cld anomalies",
+#                                  "With orbital parameters",
+#                                  "With Tmp + Cld anomalies and orbital params"), 
+#                          each = nrow(padul)),
+#                          levels = c("reconstructed",
+#                                     "MI ratio",
+#                                     "With Tmp anomalies",
+#                                     "With Cld anomalies",
+#                                     "With orbital parameters",
+#                                     "With Tmp + Cld anomalies",
+#                                     "With Tmp + Cld anomalies and orbital params"))) %>%
+# ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_line() +
+#   # ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
+#   ggsci::scale_colour_locuszoom(name = "Precipitation") +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#   theme_bottom_legend_black
 ```
 
-### `age < 22k`
+<!-- ### `age < 22k` -->
 
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul$age_cal_yr_BP, 7),
-               y = c(padul$P_ann, 
-                     padul2$corr_P_ann,
-                     padul_corrected_pr,
-                     padul_corrected_pr_cld,
-                     padul_corrected_pr_tmp_cld,
-                     padul_corrected_pr_orb_params,
-                     padul_corrected_pr_ultimate),
-               var = factor(rep(c("reconstructed",
-                                 "MI ratio",
-                                 "With Tmp anomalies",
-                                 "With Cld anomalies",
-                                 "With Tmp + Cld anomalies",
-                                 "With orbital parameters",
-                                 "With Tmp + Cld anomalies and orbital params"), 
-                         each = nrow(padul)),
-                         levels = c("reconstructed",
-                                    "MI ratio",
-                                    "With Tmp anomalies",
-                                    "With Cld anomalies",
-                                    "With orbital parameters",
-                                    "With Tmp + Cld anomalies",
-                                    "With Tmp + Cld anomalies and orbital params"))) %>%
-  dplyr::filter(x < 22000) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    # ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
-    ggsci::scale_colour_locuszoom(name = "Precipitation") +
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
-  theme_pet_black
+```{r pann-comparison-22k-zoom_fig, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul$age_cal_yr_BP, 7),
+#                y = c(padul2$recon_Pann, 
+#                      padul2$est_Pann,
+#                      padul_est_pr,
+#                      padul_est_pr_cld,
+#                      padul_est_pr_tmp_cld,
+#                      padul_est_pr_orb_params,
+#                      padul_est_pr_ultimate),
+#                var = factor(rep(c("reconstructed",
+#                                  "MI ratio",
+#                                  "With Tmp anomalies",
+#                                  "With Cld anomalies",
+#                                  "With Tmp + Cld anomalies",
+#                                  "With orbital parameters",
+#                                  "With Tmp + Cld anomalies and orbital params"), 
+#                          each = nrow(padul)),
+#                          levels = c("reconstructed",
+#                                     "MI ratio",
+#                                     "With Tmp anomalies",
+#                                     "With Cld anomalies",
+#                                     "With orbital parameters",
+#                                     "With Tmp + Cld anomalies",
+#                                     "With Tmp + Cld anomalies and orbital params"))) %>%
+#   dplyr::filter(x < 22000) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     # ggplot2::scale_colour_brewer(name = "Precipitation", palette = "Set1") + 
+#     ggsci::scale_colour_locuszoom(name = "Precipitation") +
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "Precip [mm/day]") +
+#   theme_bottom_legend_black
 ```
 
 ```{r, echo = FALSE}
 # tibble::tibble(x = rep(padul$age_cal_yr_BP, 6),
-#                y = c(padul$P_ann, 
-#                      padul2$corr_P_ann,
-#                      padul_corrected_pr,
-#                      padul_corrected_pr_tmp_cld,
-#                      padul_corrected_pr_orb_params,
-#                      padul_corrected_pr_ultimate),
+#                y = c(padul2$recon_Pann, 
+#                      padul2$est_Pann,
+#                      padul_est_pr,
+#                      padul_est_pr_tmp_cld,
+#                      padul_est_pr_orb_params,
+#                      padul_est_pr_ultimate),
 #                var = factor(rep(c("reconstructed",
 #                            "MI ratio",
 #                            "With Tmp anomalies",
@@ -1425,245 +1666,265 @@ Dome C CO2 record from 800 to 600 kyr before present, Geophys. Res. Lett.,
 
 # Appendix
 
-## A1. Find reconstructed `MI` using `loess`
-
-```{r}
-past_co2_loess <- function(age_calBP, ref = codos::ice_core) {
-  # Extract the reference age and co2
-  ref_age <- purrr::pluck(ref, 1)
-  ref_co2 <- purrr::pluck(ref, 2)
-  if (age_calBP < min(ref_age))
-    return(ref_co2[which.min(ref_age)])
-  
-  if (age_calBP > max(ref_age))
-    return(ref_co2[which.max(ref_age)])
-  loessMod10 <- loess(co2 ~ age_calBP,
-                      tibble::tibble(age_calBP = ref_age,
-                                     co2 = ref_co2), span = 0.1)
-  return(predict(loessMod10, age_calBP))
-}
-
-padul2$past_co2_loess <- purrr::map_dbl(padul2$age_calBP, 
-                                        past_co2_loess)
-padul2$corr_mi_loess <- codos::corrected_mi(padul2$present_t,
-                                                 padul2$past_temp,
-                                                 padul2$recon_mi,
-                                                 padul2$modern_co2,
-                                                 padul2$past_co2_loess)
-
-head(padul2, 10) %>%
-  dplyr::select(-c(past_co2, corr_mi, corr_P_ann)) %>%
-  knitr::kable() %>%
-  kableExtra::kable_styling()
-```
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
-```
-
-## A2. Plot reconstructed vs corrected `MI` both approaches
+<!-- ## A1. Find reconstructed `MI` using `loess` -->
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age_calBP, 3),
-               y = c(padul2$recon_mi, 
-                     padul2$corr_mi, 
-                     padul2$corr_mi_loess),
-               var = rep(c("reconstructed", 
-                           "corrected (mean)", 
-                           "corrected (loess)"), 
-                         each = nrow(padul2))) %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-    ggplot2::theme_bw()
+# palaeo_co2_loess <- function(age_calBP, ref = codos::ice_core) {
+#   # Extract the reference age and co2
+#   ref_age <- purrr::pluck(ref, 1)
+#   ref_co2 <- purrr::pluck(ref, 2)
+#   if (age_calBP < min(ref_age))
+#     return(ref_co2[which.min(ref_age)])
+#   
+#   if (age_calBP > max(ref_age))
+#     return(ref_co2[which.max(ref_age)])
+#   loessMod10 <- loess(co2 ~ age_calBP,
+#                       tibble::tibble(age_calBP = ref_age,
+#                                      co2 = ref_co2), span = 0.1)
+#   return(predict(loessMod10, age_calBP))
+# }
+# 
+# padul2$palaeo_co2_loess <- purrr::map_dbl(padul2$age_calBP, 
+#                                         palaeo_co2_loess)
+# padul2$corr_mi_loess <- codos::corrected_mi(padul2$modern_MGS_temp,
+#                                                  padul2$palaeo_MGS_temp,
+#                                                  padul2$recon_mi,
+#                                                  padul2$modern_co2,
+#                                                  padul2$palaeo_co2_loess)
+# 
+# head(padul2, 10) %>%
+#   dplyr::select(-c(palaeo_co2, corr_mi, est_Pann)) %>%
+#   knitr::kable() %>%
+#   kableExtra::kable_styling()
 ```
 
-- `age < 5k`
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- ## A2. Plot reconstructed vs corrected `MI` both approaches -->
 
 ```{r, echo = FALSE}
-tibble::tibble(x = rep(padul2$age_calBP, 3),
-               y = c(padul2$recon_mi, 
-                     padul2$corr_mi, 
-                     padul2$corr_mi_loess),
-               var = rep(c("reconstructed", 
-                           "corrected (mean)", 
-                           "corrected (loess)"), 
-                         each = nrow(padul2))) %>%
-  .[.$x < 5000, ] %>%
-  ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
-    ggplot2::geom_line() +
-    ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
-    ggplot2::theme_bw()
+# tibble::tibble(x = rep(padul2$age_calBP, 3),
+#                y = c(padul2$recon_mi, 
+#                      padul2$corr_mi, 
+#                      padul2$corr_mi_loess),
+#                var = rep(c("reconstructed", 
+#                            "corrected (mean)", 
+#                            "corrected (loess)"), 
+#                          each = nrow(padul2))) %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
+#     ggplot2::theme_bw()
 ```
 
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
-```
-
-## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess`
-#### Include past CO2 and Temperature
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\hfill\\break')
-```
-
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-               y = c(padul2$recon_mi,
-                     padul2$corr_mi_loess),
-               co2 = rep(padul2$past_co2_loess / 100, 2),
-               past_temp = rep(padul2$past_temp / 5, 2),
-               var = rep(c("MI: reconstructed",
-                           "MI: corrected"),
-                        each = nrow(padul2))) %>%
-  ggplot2::ggplot() +
-  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
-  ggplot2::scale_colour_manual(name = NULL, 
-                             values = c("past CO2 [1/100]" = "gold",
-                                        "Temp" = "black",
-                                        "MI: reconstructed" = "#E41A1C",
-                                        "MI: corrected" = "#377EB8")) +
-  # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
-                              sec.axis = ggplot2::sec_axis(~.*5,
-                                                           name = "Temp [°C]",
-                                                           breaks = scales::pretty_breaks(15))
-  ) +
-  ggplot2::labs(x = "Age [cal yrs BP]",
-  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
-  y = "MI [-] and CO2 [1/100 ppm]") +
-  ggplot2::theme_bw()
-```
-
-- `age < 5k`
-
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-               y = c(padul2$recon_mi,
-                     padul2$corr_mi_loess),
-               co2 = rep(padul2$past_co2_loess / 100, 2),
-               past_temp = rep(padul2$past_temp / 5, 2),
-               var = rep(c("MI: reconstructed",
-                           "MI: corrected"),
-                        each = nrow(padul2))) %>%
-  .[.$x < 5000, ] %>%
-  ggplot2::ggplot() +
-  ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
-  ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
-  ggplot2::geom_line(ggplot2::aes(x, past_temp, colour = "Temp")) +
-  ggplot2::scale_colour_manual(name = NULL, 
-                             values = c("past CO2 [1/100]" = "gold",
-                                        "Temp" = "black",
-                                        "MI: reconstructed" = "#E41A1C",
-                                        "MI: corrected" = "#377EB8")) +
-  # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
-  ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-  ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
-                              sec.axis = ggplot2::sec_axis(~.*5,
-                                                           name = "Temp [°C]",
-                                                           breaks = scales::pretty_breaks(15))
-  ) +
-  ggplot2::labs(x = "Age [cal yrs BP]",
-  # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
-  y = "MI [-] and CO2 [1/100 ppm]") +
-  ggplot2::theme_bw()
-```
-
-## A4. Compare  `codos::ice_core` vs past CO2 calculate using `mean` and `loess`
-
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-               y = c(padul2$past_co2,
-                     padul2$past_co2_loess),
-               var = rep(c("Mean", 
-                           "LOESS (span = 0.1)"), 
-                         each = nrow(padul2))) %>%
-  ggplot2::ggplot() +
-    ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= max(padul2$age_calBP), ],
-                       ggplot2::aes(age_gas_calBP, 
-                                    co2_ppm, 
-                                    colour = "ice-core")) +
-    ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
-    # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
-    ggplot2::scale_colour_manual(name = "past CO2", 
-                                 values = c("Gold", "#E41A1C", "#377EB8")) +
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(10)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(10)) +
-    ggplot2::labs(x = "Age [cal yrs BP]",
-                  y = "CO2 [ppm]") +
-    ggplot2::theme_bw()
-```
-
-- `age < 5k`
-
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-                     y = c(padul2$past_co2,
-                           padul2$past_co2_loess),
-                     var = rep(c("Mean", 
-                                 "LOESS (span = 0.1)"), 
-                               each = nrow(padul2))) %>%
-  
-  .[.$x < 5000, ] %>%
-  ggplot2::ggplot() +
-    ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= 5000, ],
-                       ggplot2::aes(age_gas_calBP, co2_ppm, colour = "ice-core")) +
-    ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
-    # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
-    ggplot2::scale_colour_manual(name = "past CO2", values = c("Gold", "#E41A1C", "#377EB8")) +
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]",
-                  y = "CO2 [ppm]") +
-    ggplot2::theme_bw()
-```
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
-```
-
-- `age < 500`
-
-```{r, echo = FALSE, eval = TRUE}
-tibble::tibble(x = rep(padul2$age_calBP, 2),
-                     y = c(padul2$past_co2,
-                           padul2$past_co2_loess),
-                     var = rep(c("Mean", 
-                                 "LOESS (span = 0.1)"), 
-                               each = nrow(padul2))) %>%
-  
-  .[.$x < 500, ] %>%
-  ggplot2::ggplot() +
-    ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= 500, ],
-                       ggplot2::aes(age_gas_calBP, co2_ppm, colour = "ice-core")) +
-    ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
-    # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
-    ggplot2::scale_colour_manual(name = "past CO2", values = c("Gold", "#E41A1C", "#377EB8")) +
-    ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
-    ggplot2::labs(x = "Age [cal yrs BP]",
-                  y = "CO2 [ppm]") +
-    ggplot2::theme_bw()
-```
-
-```{r, include=knitr::is_latex_output(), echo = FALSE}
-knitr::asis_output('\n\n\\newpage')
-```
-
-## A5. Padul Data
-Download the CSV file: [padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv)
+<!-- - `age < 5k` -->
 
 ```{r, echo = FALSE}
+# tibble::tibble(x = rep(padul2$age_calBP, 3),
+#                y = c(padul2$recon_mi, 
+#                      padul2$corr_mi, 
+#                      padul2$corr_mi_loess),
+#                var = rep(c("reconstructed", 
+#                            "corrected (mean)", 
+#                            "corrected (loess)"), 
+#                          each = nrow(padul2))) %>%
+#   .[.$x < 5000, ] %>%
+#   ggplot2::ggplot(ggplot2::aes(x, y, colour = var)) +
+#     ggplot2::geom_line() +
+#     ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") + 
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]", y = "MI [-]") +
+#     ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- ## A3. Reconstructed vs corrected `MI`: Past CO2 calculated using `loess` -->
+<!-- #### Include past CO2 and Temperature -->
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\hfill\\break')
+```
+
+```{r, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                y = c(padul2$recon_mi,
+#                      padul2$corr_mi_loess),
+#                co2 = rep(padul2$palaeo_co2_loess / 100, 2),
+#                palaeo_MGS_temp = rep(padul2$palaeo_MGS_temp / 5, 2),
+#                var = rep(c("MI: reconstructed",
+#                            "MI: corrected"),
+#                         each = nrow(padul2))) %>%
+#   ggplot2::ggplot() +
+#   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
+#   ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Temp")) +
+#   ggplot2::scale_colour_manual(name = NULL, 
+#                              values = c("past CO2 [1/100]" = "gold",
+#                                         "Temp" = "black",
+#                                         "MI: reconstructed" = "#E41A1C",
+#                                         "MI: corrected" = "#377EB8")) +
+#   # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+#                               sec.axis = ggplot2::sec_axis(~.*5,
+#                                                            name = "Temp [°C]",
+#                                                            breaks = scales::pretty_breaks(15))
+#   ) +
+#   ggplot2::labs(x = "Age [cal yrs BP]",
+#   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+#   y = "MI [-] and CO2 [1/100 ppm]") +
+#   ggplot2::theme_bw()
+```
+
+<!-- - `age < 5k` -->
+
+```{r, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                y = c(padul2$recon_mi,
+#                      padul2$corr_mi_loess),
+#                co2 = rep(padul2$palaeo_co2_loess / 100, 2),
+#                palaeo_MGS_temp = rep(padul2$palaeo_MGS_temp / 5, 2),
+#                var = rep(c("MI: reconstructed",
+#                            "MI: corrected"),
+#                         each = nrow(padul2))) %>%
+#   .[.$x < 5000, ] %>%
+#   ggplot2::ggplot() +
+#   ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+#   ggplot2::geom_point(ggplot2::aes(x, co2, colour = "past CO2 [1/100]")) +
+#   ggplot2::geom_line(ggplot2::aes(x, palaeo_MGS_temp, colour = "Temp")) +
+#   ggplot2::scale_colour_manual(name = NULL, 
+#                              values = c("past CO2 [1/100]" = "gold",
+#                                         "Temp" = "black",
+#                                         "MI: reconstructed" = "#E41A1C",
+#                                         "MI: corrected" = "#377EB8")) +
+#   # ggplot2::scale_colour_brewer(name = "MI", palette = "Set1") +
+#   ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#   ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15),
+#                               sec.axis = ggplot2::sec_axis(~.*5,
+#                                                            name = "Temp [°C]",
+#                                                            breaks = scales::pretty_breaks(15))
+#   ) +
+#   ggplot2::labs(x = "Age [cal yrs BP]",
+#   # title = "CO2 [1/100 ppm] (gold dots) and Temp [°C] (black line)",
+#   y = "MI [-] and CO2 [1/100 ppm]") +
+#   ggplot2::theme_bw()
+```
+
+<!-- ## A4. Compare  `codos::ice_core` vs past CO2 calculate using `mean` and `loess` -->
+
+```{r, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                y = c(padul2$palaeo_co2,
+#                      padul2$palaeo_co2_loess),
+#                var = rep(c("Mean", 
+#                            "LOESS (span = 0.1)"), 
+#                          each = nrow(padul2))) %>%
+#   ggplot2::ggplot() +
+#     ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= max(padul2$age_calBP), ],
+#                        ggplot2::aes(age_gas_calBP, 
+#                                     co2_ppm, 
+#                                     colour = "ice-core")) +
+#     ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+#     # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
+#     ggplot2::scale_colour_manual(name = "past CO2", 
+#                                  values = c("Gold", "#E41A1C", "#377EB8")) +
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(10)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(10)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]",
+#                   y = "CO2 [ppm]") +
+#     ggplot2::theme_bw()
+```
+
+<!-- - `age < 5k` -->
+
+```{r, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                      y = c(padul2$palaeo_co2,
+#                            padul2$palaeo_co2_loess),
+#                      var = rep(c("Mean", 
+#                                  "LOESS (span = 0.1)"), 
+#                                each = nrow(padul2))) %>%
+#   
+#   .[.$x < 5000, ] %>%
+#   ggplot2::ggplot() +
+#     ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= 5000, ],
+#                        ggplot2::aes(age_gas_calBP, co2_ppm, colour = "ice-core")) +
+#     ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+#     # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
+#     ggplot2::scale_colour_manual(name = "past CO2", values = c("Gold", "#E41A1C", "#377EB8")) +
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]",
+#                   y = "CO2 [ppm]") +
+#     ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- - `age < 500` -->
+
+```{r, echo = FALSE, eval = TRUE}
+# tibble::tibble(x = rep(padul2$age_calBP, 2),
+#                      y = c(padul2$palaeo_co2,
+#                            padul2$palaeo_co2_loess),
+#                      var = rep(c("Mean", 
+#                                  "LOESS (span = 0.1)"), 
+#                                each = nrow(padul2))) %>%
+#   
+#   .[.$x < 500, ] %>%
+#   ggplot2::ggplot() +
+#     ggplot2::geom_line(data = codos::ice_core[codos::ice_core$age_gas_calBP <= 500, ],
+#                        ggplot2::aes(age_gas_calBP, co2_ppm, colour = "ice-core")) +
+#     ggplot2::geom_line(ggplot2::aes(x, y, colour = var)) +
+#     # ggplot2::scale_colour_brewer(name = "past CO2", palette = "Set1") +
+#     ggplot2::scale_colour_manual(name = "past CO2", values = c("Gold", "#E41A1C", "#377EB8")) +
+#     ggplot2::scale_x_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::scale_y_continuous(breaks = scales::pretty_breaks(15)) +
+#     ggplot2::labs(x = "Age [cal yrs BP]",
+#                   y = "CO2 [ppm]") +
+#     ggplot2::theme_bw()
+```
+
+```{r, include=knitr::is_latex_output(), echo = FALSE}
+# knitr::asis_output('\n\n\\newpage')
+```
+
+<!-- ## A5. Padul Data -->
+## A1. Laguna de Padul Data
+<!-- Download the CSV file: [padul-with-corrected-mi.csv](https://raw.githubusercontent.com/special-uor/codos/main/inst/extdocs/padul-with-corrected-mi.csv) -->
+
+```{r, echo = FALSE}
+padul2 <- padul2 %>%
+  dplyr::mutate(est_Pann = padul_est_pr_ultimate)
+
+padul2 %>% 
+  readr::write_excel_csv(file = "laguna-de-padul-with-corr-mi-and-est-pann.csv", 
+                         na = "")
+
 padul2 %>%
   dplyr::select(-dplyr::ends_with(("loess"))) %>%
-  knitr::kable(longtable = TRUE)
+  knitr::kable(longtable = TRUE,
+               col.names = c("age [cal yr BP]",
+                             "palaeo CO2 [umol/mol]",
+                             "palaeo MGS temp [°C]",
+                             "modern CO2 [umol/mol]",
+                             "modern MGS temp [°C]",
+                             "recon. MI [-]",
+                             "recon. Pann [mm/day]",
+                             "corrected MI [-]",
+                             "estimated Pann [mm/day]"))
+# padul2 %>%
+#   dplyr::select(-dplyr::ends_with(("loess"))) %>%
+#   knitr::kable(longtable = TRUE)
 ```
