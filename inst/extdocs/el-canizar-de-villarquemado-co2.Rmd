@@ -524,6 +524,8 @@ Dome C CO2 record from 800 to 600 kyr before present, Geophys. Res. Lett.,
 
 ```{r, echo = FALSE}
 villarquemado %>% 
+  dplyr::mutate(corrected_mi_dongyang = mi_output$result, 
+                .before = corrected_mi) %>%
   readr::write_excel_csv(file = "el-canizar-de-villarquemado-with-corr-mi.csv", 
                          na = "")
 
