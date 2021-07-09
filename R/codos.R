@@ -18,8 +18,6 @@ E <- function(Tc, beta = 146) {
 #' @param dHo Oxygen activation energy (J mol^-1), default = 36380.
 #' @param O Atmospheric concentration of oxygen (Pa), default = 21278.
 #' @param R Universal gas constant (J mol^-1 K^-1), default = 8.314.
-#' @param scale_factor Scale factor to transform the output, default =
-#'     101.325 Pa/ppm at standard sea level pressure.
 #'
 #' @return Numeric value of effective Michaelis constant of Rubisco.
 #' @keywords internal
