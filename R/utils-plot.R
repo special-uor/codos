@@ -11,9 +11,9 @@
 #' codos:::lat_lab(30)
 lat_lab <- function(x) {
   ifelse(x < 0,
-         paste(x, "°S"),
+         paste(x, "\u00B0S"),
          ifelse(x > 0,
-                paste(x, "°N"),
+                paste(x, "\u00B0N"),
                 x))
 }
 
@@ -30,9 +30,9 @@ lat_lab <- function(x) {
 #' codos:::lon_lab(30)
 lon_lab <- function(x) {
   ifelse(x < 0,
-         paste(x, "°E"),
+         paste(x, "\u00B0E"),
          ifelse(x > 0,
-                paste(x, "°W"),
+                paste(x, "\u00B0W"),
                 x))
 }
 
