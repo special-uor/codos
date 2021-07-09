@@ -63,7 +63,7 @@
 <div id="codos-co2-correction-tools" class="section level1">
 <div class="page-header"><h1 class="hasAnchor">
 <a href="#codos-co2-correction-tools" class="anchor"></a>CO<sub>dos</sub>: CO<sub>2</sub> Correction Tools</h1></div>
-<!-- <img src="inst/images/logo.png" alt="logo" align="right" height=200px/> -->
+<!-- <img src="documentation/codos/inst/images/logo.png" alt="logo" align="right" height=200px/> -->
 <!-- badges: start -->
 
 <div id="installation" class="section level2">
@@ -216,24 +216,7 @@
 <p>Summary statistics:</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">exp_mod</span><span class="op">)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Formula: vpd ~ a * exp(kTmp * Tmp - kMI * MI)</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Parameters:</span>
-<span class="co">#&gt;      Estimate Std. Error t value Pr(&gt;|t|)    </span>
-<span class="co">#&gt; a    4.589148   0.019843   231.3   &lt;2e-16 ***</span>
-<span class="co">#&gt; kTmp 0.061108   0.000174   351.2   &lt;2e-16 ***</span>
-<span class="co">#&gt; kMI  0.870229   0.002585   336.7   &lt;2e-16 ***</span>
-<span class="co">#&gt; ---</span>
-<span class="co">#&gt; Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Residual standard error: 2.241 on 60291 degrees of freedom</span>
-<span class="co">#&gt; </span>
-<span class="co">#&gt; Number of iterations to convergence: 8 </span>
-<span class="co">#&gt; Achieved convergence tolerance: 7.419e-06</span>
-<span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">exp_mod</span><span class="op">)</span>
-<span class="co">#&gt;          a       kTmp        kMI </span>
-<span class="co">#&gt; 4.58914835 0.06110768 0.87022950</span></code></pre></div>
+<span class="fu"><a href="https://rdrr.io/r/stats/coef.html">coefficients</a></span><span class="op">(</span><span class="va">exp_mod</span><span class="op">)</span></code></pre></div>
 </div>
 <div id="corrected-mi-from-reconstructed-mi" class="section level3">
 <h3 class="hasAnchor">
@@ -379,6 +362,7 @@
 <li><a href="https://github.com/special-uor/codos"><img src="https://img.shields.io/badge/devel%20version-0.0.1-yellow.svg"></a></li>
 <li><a href="https://cran.r-project.org/package=codos"><img src="https://www.r-pkg.org/badges/version/codos?color=black"></a></li>
 <li><a href="https://github.com/special-uor/codos/actions"><img src="https://github.com/special-uor/codos/workflows/R-CMD-check/badge.svg" alt="R build status"></a></li>
+<li><a href="https://doi.org/10.5281/zenodo.5083309"><img src="https://img.shields.io/badge/doi-10.5281/zenodo.5083309-blue.svg"></a></li>
 </ul>
 </div>
 </div>
