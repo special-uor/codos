@@ -1,15 +1,15 @@
 ---
 output: 
-  pdf_document:
-    extra_dependencies: ["float"]
   github_document:
     pandoc_args: --webtex
     # --webtex=https://latex.codecogs.com/png.latex?%5Cdpi{150}
+  pdf_document:
+    extra_dependencies: ["float"]
 header-includes:
    - \usepackage[default]{sourcesanspro}
    - \usepackage[T1]{fontenc}
-bibliography: inst/references/references.bib
-cls: inst/references/proceedings-of-the-royal-society-a.csl
+bibliography: documentation/codos/inst/references/references.bib
+cls: documentation/codos/inst/references/proceedings-of-the-royal-society-a.csl
 ---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -25,12 +25,13 @@ knitr::opts_chunk$set(
 ```
 
 # CO<sub>dos</sub>: CO<sub>2</sub> Correction Tools 
-<!-- <img src="inst/images/logo.png" alt="logo" align="right" height=200px/> -->
+<!-- <img src="documentation/codos/inst/images/logo.png" alt="logo" align="right" height=200px/> -->
 
 <!-- badges: start -->
 `r if(!knitr::is_latex_output()) badger::badge_devel("special-uor/codos", "yellow")`
 `r if(!knitr::is_latex_output()) badger::badge_cran_release("codos", "black")`
 `r if(!knitr::is_latex_output()) badger::badge_github_actions("special-uor/codos")`
+`r if(!knitr::is_latex_output()) badger::badge_doi("10.5281/zenodo.5083309", "blue")`
 <!-- badges: end -->
 
 ## Installation
@@ -226,8 +227,8 @@ exp_mod <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI),
 ```
 
 Summary statistics:
-```{r, echo = FALSE}
-df <- read.csv("inst/extdata/df.csv")
+```{r, echo = FALSE, eval = FALSE}
+df <- read.csv("documentation/codos/inst/extdata/df.csv")
 # Linear approximation
 lmod <- lm(log(vpd) ~ Tmp + MI, data = df)
 # Non-linear model
@@ -239,7 +240,7 @@ exp_mod <- nls(vpd ~ a * exp(kTmp * Tmp - kMI * MI),
                control = list(maxiter = 200))
 ```
 
-```{r}
+```{r, eval = FALSE}
 summary(exp_mod)
 coefficients(exp_mod)
 ```

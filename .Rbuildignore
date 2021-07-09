@@ -10,3 +10,4 @@
 ^data-raw$
 ^R\.ignore$
 ^\.github$
+^documentation$

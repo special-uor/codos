@@ -124,9 +124,12 @@ chi <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3, Tc0 = Tc) {
 #' @export
 # @keywords internal
 cld <- function(MI) {
-  terms <- list(a = 28.007,
-                b = 45.17,
-                kMI = 1.831)
+  # terms <- list(a = 28.00680, # including 0 < Tc < 5
+  #               b = 45.17031,
+  #               kMI = 1.83127)
+  terms <- list(a = 27.786456, # with Tc >= 5
+                b = 45.931293,
+                kMI = 1.775224)
   with(terms, a + b * (1 - exp(-kMI * MI)))
 }
 
@@ -355,12 +358,12 @@ past_co2_loess <- function(age, ref = codos::ice_core, span = 0.1, ...) {
 #' @return Numeric vector with corrected moisture index values.
 #' @export
 corrected_mi <- function(Tc0, Tc1, MI, ca0, ca1, ...) {
-  # terms <- list(a = 4.61232447483209,
-  #               kTmp = 0.0609249286877394,
-  #               kMI = 0.872588565709498)
-  terms <- list(a = 4.58914835462018,
-                kTmp = 0.0611076815696193,
-                kMI = 0.870229500285838)
+  terms <- list(a = 4.61232447483209,
+                kTmp = 0.0609249286877394,
+                kMI = 0.872588565709498)
+  # terms <- list(a = 4.58914835462018,
+  #               kTmp = 0.0611076815696193,
+  #               kMI = 0.870229500285838)
   vpd <- vpd(Tc0, Tc1, MI, ca0, ca1, ...) / 100
   with(terms, (log(vpd / a) - kTmp * Tc1) / (-kMI))
 }
@@ -375,22 +378,26 @@ corrected_mi <- function(Tc0, Tc1, MI, ca0, ca1, ...) {
 #' @return Numeric value of vapour-pressure deficit.
 #' @keywords internal
 vpd_internal <- function(Tc, MI, scale_factor = 100) {
-  # terms <- list(a = 4.61232447483209,
-  #               kTmp = 0.0609249286877394,
-  #               kMI = 0.872588565709498)
-  terms <- list(a = 4.58914835462018,
-                kTmp = 0.0611076815696193,
-                kMI = 0.870229500285838)
+  terms <- list(a = 4.61232447483209,
+                kTmp = 0.0609249286877394,
+                kMI = 0.872588565709498)
+  # terms <- list(a = 4.58914835462018,
+  #               kTmp = 0.0611076815696193,
+  #               kMI = 0.870229500285838)
   with(terms, a * exp(kTmp * Tc - kMI * MI)) * scale_factor
 }
 
 #' Vapour-pressure deficit (Pa)
 #'
-#' @param Tc0 Numeric vector with present temperature values (°C).
-#' @param Tc1 Numeric vector with past temperature values (°C).
+#' @param Tc0 Numeric vector with modern mean growing season temperature
+#'     values (°C).
+#' @param Tc1 Numeric vector with palaeo (past) mean growing season temperature
+#'     values (°C).
 #' @param MI Numeric vector with reconstructed moisture index values (-).
-#' @param ca0 Numeric vector of 'recent' CO2 partial pressures (umol/mol).
-#' @param ca1 Numeric vector of past CO2 partial pressures (umol/mol).
+#' @param ca0 Numeric vector with modern ('recent') CO2 partial pressures
+#'     (umol/mol).
+#' @param ca1 Numeric vector with palaeo (past) CO2 partial pressures
+#'     (umol/mol).
 #' @param scale_factor Scale factor to transform the output, default =
 #'     101.325 Pa/ppm at standard sea level pressure.
 #' @return Numeric vector with vapour-pressure deficit values.

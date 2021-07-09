@@ -7,15 +7,19 @@
 vpd(Tc0, Tc1, MI, ca0, ca1, scale_factor = 101.325 * 10^-3)
 }
 \arguments{
-\item{Tc0}{Numeric vector with present temperature values (°C).}
+\item{Tc0}{Numeric vector with modern mean growing season temperature
+values (°C).}
 
-\item{Tc1}{Numeric vector with past temperature values (°C).}
+\item{Tc1}{Numeric vector with palaeo (past) mean growing season temperature
+values (°C).}
 
 \item{MI}{Numeric vector with reconstructed moisture index values (-).}
 
-\item{ca0}{Numeric vector of 'recent' CO2 partial pressures (umol/mol).}
+\item{ca0}{Numeric vector with modern ('recent') CO2 partial pressures
+(umol/mol).}
 
-\item{ca1}{Numeric vector of past CO2 partial pressures (umol/mol).}
+\item{ca1}{Numeric vector with palaeo (past) CO2 partial pressures
+(umol/mol).}
 
 \item{scale_factor}{Scale factor to transform the output, default =
 101.325 Pa/ppm at standard sea level pressure.}

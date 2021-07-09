@@ -24,6 +24,8 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
+Remotes: 
+    github::villegar/splash
 Imports:
     doParallel,
     doSNOW,
@@ -37,7 +39,7 @@ Imports:
     progressr,
     purrr,
     scales,
+    splash,
     tibble
-Remotes: github::villegar/splash
 Depends: 
     R (>= 2.10)
