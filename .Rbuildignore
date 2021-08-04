@@ -11,3 +11,6 @@
 ^R\.ignore$
 ^\.github$
 ^documentation$
+^README-extended\.md$
+^README-extended\.Rmd$
+^README-extended\.pdf$

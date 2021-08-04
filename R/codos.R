@@ -122,12 +122,12 @@ chi <- function(Tc, MI, co2, scale_factor = 101.325 * 10^-3, Tc0 = Tc) {
 #' @export
 # @keywords internal
 cld <- function(MI) {
-  # terms <- list(a = 28.00680, # including 0 < Tc < 5
-  #               b = 45.17031,
-  #               kMI = 1.83127)
-  terms <- list(a = 27.786456, # with Tc >= 5
-                b = 45.931293,
-                kMI = 1.775224)
+  terms <- list(a = 28.00680, # including 0 < Tc < 5
+                b = 45.17031,
+                kMI = 1.83127)
+  # terms <- list(a = 27.786456, # with Tc >= 5
+  #               b = 45.931293,
+  #               kMI = 1.775224)
   with(terms, a + b * (1 - exp(-kMI * MI)))
 }
 
