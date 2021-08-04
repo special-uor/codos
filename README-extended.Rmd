@@ -52,11 +52,16 @@ devtools::install_github("special-uor/codos", "dev")
 
 <!-- - CRU TS 4.04: [inst/extdocs/cru-ts-4.04.md](inst/extdocs/cru-ts-4.04.md) -->
 
+
+```{r, include = !knitr::is_latex_output(), results = 'asis'}
+cat(paste0("
 -----
 
 Note: Some of the equations on this document are not displayed properly (due to a server issue), check out the [README-extended.pdf](README-extended.pdf).
 
 -----
+"))
+```
 
 ## Background:
 
@@ -64,7 +69,7 @@ Note: Some of the equations on this document are not displayed properly (due to 
 `vpd` is given by mean daily growing season temperature, `tmp` [°C] and moisture index, `mi` [-]. Using the CRU TS 4.04 dataset [@cru404] we found the following relation:
 
 <center>
-$$\text{vpd} = 4.589 \times \exp(0.0611 \times \text{tmp}-0.87 \times \text{mi})$$
+$$\text{vpd} = 4.6123 \times \exp(0.0609 \times \text{tmp}-0.8726 \times \text{mi})$$
 </center>
 
 The steps performed were:
