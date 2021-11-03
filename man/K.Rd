@@ -16,9 +16,6 @@ K(Tc, dHc = 79430, dHo = 36380, O = 21278, R = 8.314)
 \item{O}{Atmospheric concentration of oxygen (Pa), default = 21278.}
 
 \item{R}{Universal gas constant (J mol^-1 K^-1), default = 8.314.}
-
-\item{scale_factor}{Scale factor to transform the output, default =
-101.325 Pa/ppm at standard sea level pressure.}
 }
 \value{
 Numeric value of effective Michaelis constant of Rubisco.
