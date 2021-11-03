@@ -242,16 +242,18 @@ mat <- function(gdd0, mtco) {
 
   t0_input <- t0[(MTCO < 0) & (GDD0 > 0)]
 
-  u <- t0_input %>%
-    purrr::map(find_u,
-               min_u = min_u,
-               max_u = max_u,
-               method = "Brent") %>%
-    purrr::transpose("par") %>%
-    purrr::pluck("par") %>%
-    purrr::flatten_dbl()
+  if (length(t0_input) > 0) {
+    u <- t0_input %>%
+      purrr::map(find_u,
+                 min_u = min_u,
+                 max_u = max_u,
+                 method = "Brent") %>%
+      purrr::transpose("par") %>%
+      purrr::pluck("par") %>%
+      purrr::flatten_dbl()
 
-  MAT[(MTCO < 0) & (GDD0 > 0)] <- -MTCO[(MTCO < 0) & (GDD0 > 0)] * u / (1 - u)
+    MAT[(MTCO < 0) & (GDD0 > 0)] <- -MTCO[(MTCO < 0) & (GDD0 > 0)] * u / (1 - u)
+  }
   MAT
 }
 
