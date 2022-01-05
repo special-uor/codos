@@ -119,21 +119,8 @@ splash_dcl <- function(year) {
   days <- 365
   if (lubridate::leap_year(as.Date(paste0(year, "-01-01"))))
     days <- days + 1
-
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # 04. Calculate the declination angle (delta), degrees
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Woolf (1968)
-  # Paleoclimate variables:
-  ke <- 0.01670       # eccentricity of earth's orbit, 2000CE (Berger 1978)
-  keps <- 23.44       # obliquity of earth's elliptic, 2000CE (Berger 1978)
-  pir <- pi / 180
-  dcl <- c()
-  for (n in seq_len(days)) {
-    lam <- splash::berger_tls(n, 365)[2]
-    dcl <- c(dcl, asin(sin(lam * pir) * sin(keps * pir)) / pir)
-  }
-  dcl
+  seq_len(days) %>%
+    purrr::map_dbl(~splash::calc_daily_solar(0, .x, y = year)$delta_deg)
 }
 
 #' Calculate solar declination
