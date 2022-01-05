@@ -8,7 +8,7 @@ output:
 header-includes:
    - \usepackage[default]{sourcesanspro}
    - \usepackage[T1]{fontenc}
-bibliography: documentation/codos/inst/references/references.bib
+# bibliography: documentation/codos/inst/references/references.bib
 cls: documentation/codos/inst/references/proceedings-of-the-royal-society-a.csl
 ---
 <!-- README.md is generated from README.Rmd. Please edit that file -->
