@@ -1,6 +1,6 @@
 Package: codos
 Title: CO2 Correction Tools
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person(given = "Sandy P.",
            family = "Harrison",
@@ -23,7 +23,7 @@ License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Imports:
     doParallel,
     doSNOW,
