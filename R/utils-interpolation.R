@@ -143,13 +143,10 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
 
 #' Simplified version of \code{\link{int_acm}}
 #'
-#' @inheritParams int_acm
+#' @param ... Not used.
 #'
-#' @return @return Numeric vector with the interpolated values, this one has the same
-#'     length as the total sum of month_len.
-#' @keywords internal
-#' @noRd
-int_acm2 <- function(y_points, month_len) {
+#' @rdname int_acm
+int_acm2 <- function(y_points, month_len, ...) {
   MN <- rep(y_points, times = month_len)
   new_MN <- MN
 

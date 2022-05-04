@@ -2,9 +2,12 @@
 % Please edit documentation in R/utils-interpolation.R
 \name{int_acm}
 \alias{int_acm}
+\alias{int_acm2}
 \title{Mean-preserving autoregressive interpolation}
 \usage{
 int_acm(y_points, month_len, max_val = NULL, min_val = NULL)
+
+int_acm2(y_points, month_len, ...)
 }
 \arguments{
 \item{y_points}{Numeric vector with mean values at each timestep.}
@@ -18,6 +21,8 @@ entries.}
 
 \item{min_val}{Numeric value with the lower bound for the interpolated
 entries.}
+
+\item{...}{Not used.}
 }
 \value{
 Numeric vector with the interpolated values, this one has the same
