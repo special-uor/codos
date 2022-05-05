@@ -146,6 +146,8 @@ int_acm <- function(y_points, month_len, max_val = NULL, min_val = NULL) {
 #' @param ... Not used.
 #'
 #' @rdname int_acm
+#'
+#' @export
 int_acm2 <- function(y_points, month_len, ...) {
   MN <- rep(y_points, times = month_len)
   new_MN <- MN

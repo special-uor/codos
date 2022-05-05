@@ -664,7 +664,7 @@ nc_gs <- function(filename,
 #'
 #' @inheritParams monthly_clim
 #'
-#' @keywords internal
+#' @export
 nc_int <- function(filename,
                    varid,
                    timeid = "time",
