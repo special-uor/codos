@@ -16,13 +16,13 @@ codos::P_model_inverter$new(T_diff = 1.334567,
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
-\item \href{#method-new}{\code{P_model_inverter$new()}}
-\item \href{#method-calculate_m_true}{\code{P_model_inverter$calculate_m_true()}}
+\item \href{#method-P_model_inverter-new}{\code{P_model_inverter$new()}}
+\item \href{#method-P_model_inverter-calculate_m_true}{\code{P_model_inverter$calculate_m_true()}}
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-new"></a>}}
-\if{latex}{\out{\hypertarget{method-new}{}}}
+\if{html}{\out{<a id="method-P_model_inverter-new"></a>}}
+\if{latex}{\out{\hypertarget{method-P_model_inverter-new}{}}}
 \subsection{Method \code{new()}}{
 Create a new \code{p-model} object.
 \subsection{Usage}{
@@ -48,8 +48,8 @@ Create a new \code{p-model} object.
 }
 }
 \if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-calculate_m_true"></a>}}
-\if{latex}{\out{\hypertarget{method-calculate_m_true}{}}}
+\if{html}{\out{<a id="method-P_model_inverter-calculate_m_true"></a>}}
+\if{latex}{\out{\hypertarget{method-P_model_inverter-calculate_m_true}{}}}
 \subsection{Method \code{calculate_m_true()}}{
 Calculate true moisture index.
 \subsection{Usage}{
