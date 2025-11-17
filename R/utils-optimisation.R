@@ -15,7 +15,7 @@
 #'
 #' @return Numeric value
 #' @keywords internal
-f <- function(u, t0) {
+f_u <- function(u, t0) {
   abs((2 * (u * acos(-u) + sqrt(1 - u ^ 2)) / (1 - u)) + t0)
 }
 
@@ -34,7 +34,7 @@ f <- function(u, t0) {
 #' codos:::find_u(-9613.333, -1, 0.9999999)
 #' @noRd
 find_u <- function(t0, min_u = -1, max_u = 0.9999999999999, method = "Brent") {
-  optim(par = 0, fn = f, t0 = t0, method = method, lower = min_u, upper = max_u)
+  optim(par = 0, fn = f_u, t0 = t0, method = method, lower = min_u, upper = max_u)
 }
 
 # find_u2 <- function(t0, min_u = -1, max_u = 0.9999999999999, method = "Brent") {
